@@ -12,4 +12,252 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+
+// ==================== ENUM ====================
+enum Role {
+  ELEVE
+  ADMINISTRATEUR
+}
+
+enum StatutNotification {
+  ENVOYEE
+  RECUE
+  LUE
+}
+enum StatutRendezVous {
+  PLANIFIE
+  CONFIRME
+  ANNULE
+}
+
+enum StatutDocument {
+  EN_ATTENTE
+  RETIRE
+}
+
+enum StatutPaiement {
+  EN_ATTENTE
+  EFFECTUE
+}
+
+enum TypeDocument {
+  RELEVE
+  DIPLOME
+  DUPLICATA
+}
+enum modePaiement {
+  ORANGEMONEY
+  MTNMONEY
+  CARTEBANCAIRE
+  }
+
+// ==================== USER ====================
+model User {
+  id                String    @id @default(uuid())
+  motDePasse        String
+  role              Role
+  email             String    @unique
+  nom               String
+  prenom            String
+  dateCreation      DateTime  @default(now())
+  derniereConnexion DateTime?
+
+  // Champs spécifiques à l'élève (nulables si l'user est admin)
+  matriculeE   String? @unique
+  dateNaissance DateTime?
+  emailE      String? @unique
+
+  // Champs spécifiques à l'admin (nulables si l'user est élève)
+  matriculeA String? @unique
+  nomService String?
+  emailA     String? @unique
+
+  // Relations
+  rendezVousCrees     RendezVous[]         @relation("AdminRendezVous")
+  eleveRendezVous     RendezVous[]         @relation("EleveRendezVous")
+  documentsAcademique DocumentAcademique[] @relation("EleveDocuments")   // <-- renommé
+  notifications       Notification[]
+  duplicatas          Duplicata[]          @relation("EleveDuplicatas")
+  recu  Recu[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+// ==================== RENDEZ_VOUS ====================
+model RendezVous {
+  id          String            @id @default(uuid())
+  dateRdv     DateTime
+  heureRdv    String
+  lieu        String
+  statut      StatutRendezVous  @default(PLANIFIE)
+  commentaire String
+
+  adminId String
+  admin   User   @relation("AdminRendezVous", fields: [adminId], references: [id])
+
+  eleveId String
+  eleve   User   @relation("EleveRendezVous", fields: [eleveId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("rendez_vous")
+}
+
+// ==================== NOTIFICATION ====================
+model Notification {
+  id               String              @id @default(uuid())
+  typeNotification String
+  statut           StatutNotification  @default(ENVOYEE)
+  message          String
+  dateEnvoi        DateTime            @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notifications")
+}
+
+// ==================== DOCUMENTACADEMIQUE ====================
+model DocumentAcademique {
+  id          String         @id @default(uuid())
+  typeDocument TypeDocument
+  statut      StatutDocument @default(EN_ATTENTE)
+
+  // Élève qui demande
+  eleveId String
+  eleve   User   @relation("EleveDocuments", fields: [eleveId], references: [id])
+
+  // Relations optionnelles vers Paiement, Relevé, Diplôme
+  paiementId String?
+  paiement   Paiement? 
+  releveId String?
+  releve   Releve?   
+
+  diplomeId String?
+  diplome   Diplome?  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("documents")
+}
+
+// ==================== DUPLICATA ====================
+model Duplicata {
+  id           String         @id @default(uuid())
+  typeDocument TypeDocument
+  nomDuplicata String
+  statut       StatutDocument @default(EN_ATTENTE)
+  intruction   String
+
+  // Élève qui demande
+  eleveId String
+  eleve   User   @relation("EleveDuplicatas", fields: [eleveId], references: [id])
+
+  // Relations inverses (one-to-one, la FK est dans les modèles correspondants)
+  paiement Paiement? 
+  releve   Releve?   @relation("DuplicataReleve")
+  diplome  Diplome?  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("duplicatas")
+}
+
+// ==================== PAIEMENT ====================
+model Paiement {
+  id          String          @id @default(uuid())
+  statut      StatutPaiement  @default(EN_ATTENTE)
+  modePaiment String
+
+  // Lien vers Duplicata (one-to-one)
+  duplicataId String   @unique
+  duplicata   Duplicata  @relation(fields: [duplicataId], references: [id],onDelete:Cascade)
+  recu Recu[]
+
+  // Lien optionnel vers DocumentAcademique
+  documentAcademique   DocumentAcademique? @relation(fields: [documentAcademiqueId],references: [id],onDelete:Cascade)
+  documentAcademiqueId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("paiements")
+}
+
+// ==================== RELEVE ====================
+model Releve {
+  id          String         @id @default(uuid())
+  nomReleve   String
+  statut      StatutDocument @default(EN_ATTENTE)
+  instruction String
+
+  // Lien vers Duplicata (one-to-one)
+  duplicataId String   @unique
+  duplicata   Duplicata @relation("DuplicataReleve", fields: [duplicataId], references: [id])
+  
+  // Lien optionnel vers DocumentAcademique
+  documentAcademique   DocumentAcademique? @relation(fields: [documentAcademiqueId], references: [id], onDelete:Cascade)
+  documentAcademiqueId String? @unique
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("releves")
+}
+
+// ==================== DIPLOME ====================
+model Diplome {
+  id          String         @id @default(uuid())
+  nomDiplome  String
+  statut      StatutDocument @default(EN_ATTENTE)
+  instruction String
+
+  // Lien vers Duplicata (one-to-one)
+  duplicataId String   @unique
+  duplicata   Duplicata @relation(fields: [duplicataId], references: [id],onDelete:Cascade)
+
+  // Lien optionnel vers DocumentAcademique
+  documentAcademique   DocumentAcademique? @relation(fields: [documentAcademiqueId], references: [id] , onDelete:Cascade)
+  documentAcademiqueId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("diplomes")
+}
+      
+// ==================== RECU ====================
+model Recu {
+  id          String   @id @default(uuid())
+  numero      String   @unique           
+  montant     Float                       
+  dateEmission DateTime @default(now())   
+  modePaiement String?                                        
+  commentaire String?                     
+
+  // Relation optionnelle vers un étudiant (User)
+  matriculeEId String? 
+  MatricleE  User?   @relation(fields: [matriculeEId], references: [id])
+
+  // Relation optionnelle vers un paiement enregistré
+  paiementId String?
+  paiement   Paiement? @relation(fields: [paiementId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("recus")
 }
