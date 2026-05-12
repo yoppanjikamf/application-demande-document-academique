@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { signInSchema } from "@/lib/validations";
 import { signInAction } from "@/app/auth/actions";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -30,7 +31,7 @@ export function LoginForm() {
 
   const form = useForm<Values>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { matricule: "", email: "", password: "" },
   });
 
   const [pending, startTransition] = React.useTransition();
@@ -42,7 +43,7 @@ export function LoginForm() {
         toast.error(res.error);
         return;
       }
-      toast.success("Welcome back!");
+      toast.success("Connexion reussie !");
       router.push(res.redirectTo);
       router.refresh();
     });
@@ -53,12 +54,25 @@ export function LoginForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
+          name="matricule"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Matricule</FormLabel>
+              <FormControl>
+                <Input placeholder="OBC20260001" autoComplete="username" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="you@example.com" type="email" autoComplete="email" {...field} />
+                <Input placeholder="vous@example.com" type="email" autoComplete="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -69,11 +83,10 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <Input
+                <PasswordInput
                   placeholder="••••••••"
-                  type="password"
                   autoComplete="current-password"
                   {...field}
                 />
@@ -84,13 +97,13 @@ export function LoginForm() {
         />
 
         <Button className="w-full" type="submit" disabled={pending}>
-          {pending ? "Signing in..." : "Sign in"}
+          {pending ? "Connexion..." : "Se connecter"}
         </Button>
 
         <p className="text-sm text-muted-foreground">
-          No account?{" "}
+          Pas encore inscrit ?{" "}
           <Link href="/auth/register" className="text-foreground underline underline-offset-4">
-            Create one
+            Activer mon compte
           </Link>
           .
         </p>

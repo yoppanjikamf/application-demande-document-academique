@@ -11,7 +11,7 @@ export async function SiteHeader() {
     <header className="border-b bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <Link href="/" className="font-semibold tracking-tight">
-          Next.js Template
+          OBC Documents
         </Link>
         <nav className="flex items-center gap-2">
           {user ? (
@@ -20,21 +20,21 @@ export async function SiteHeader() {
                 <Link href="/dashboard">Dashboard</Link>
               </Button>
               <Button asChild variant="ghost">
-                <Link href="/account">Account</Link>
+                <Link href="/account">Compte</Link>
               </Button>
               <form action="/logout" method="post">
                 <Button type="submit" variant="outline">
-                  Log out
+                  Deconnexion
                 </Button>
               </form>
             </>
           ) : (
             <>
               <Button asChild variant="ghost">
-                <Link href="/auth/login">Log in</Link>
+                <Link href="/auth/login">Connexion</Link>
               </Button>
               <Button asChild>
-                <Link href="/auth/register">Create account</Link>
+                <Link href="/auth/register">Activation</Link>
               </Button>
             </>
           )}

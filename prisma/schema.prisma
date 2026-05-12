@@ -12,7 +12,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 
@@ -56,24 +56,21 @@ enum modePaiement {
 
 // ==================== USER ====================
 model User {
-  id                String    @id @default(uuid())
-  motDePasse        String
-  role              Role
-  email             String    @unique
+  id                String   @id @default(uuid())
+  authUserId        String?  @unique
+  role              Role     @default(ELEVE)
+  email             String   @unique
+  matricule         String   @unique
   nom               String
   prenom            String
-  dateCreation      DateTime  @default(now())
+  dateCreation      DateTime @default(now())
   derniereConnexion DateTime?
 
   // Champs spécifiques à l'élève (nulables si l'user est admin)
-  matriculeE   String? @unique
   dateNaissance DateTime?
-  emailE      String? @unique
 
   // Champs spécifiques à l'admin (nulables si l'user est élève)
-  matriculeA String? @unique
   nomService String?
-  emailA     String? @unique
 
   // Relations
   rendezVousCrees     RendezVous[]         @relation("AdminRendezVous")
@@ -249,8 +246,8 @@ model Recu {
   commentaire String?                     
 
   // Relation optionnelle vers un étudiant (User)
-  matriculeEId String? 
-  MatricleE  User?   @relation(fields: [matriculeEId], references: [id])
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
 
   // Relation optionnelle vers un paiement enregistré
   paiementId String?

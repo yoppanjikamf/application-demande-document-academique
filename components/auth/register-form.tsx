@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { signUpSchema } from "@/lib/validations";
 import { signUpAction } from "@/app/auth/actions";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -27,7 +28,7 @@ export function RegisterForm() {
   const router = useRouter();
   const form = useForm<Values>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { email: "", password: "", displayName: "" },
+    defaultValues: { matricule: "", email: "", password: "", confirmPassword: "" },
   });
 
   const [pending, startTransition] = React.useTransition();
@@ -39,7 +40,7 @@ export function RegisterForm() {
         toast.error(res.error);
         return;
       }
-      toast.success("Account created!");
+      toast.success("Compte active !");
       router.push(res.redirectTo);
       router.refresh();
     });
@@ -50,12 +51,12 @@ export function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="email"
+          name="matricule"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Matricule</FormLabel>
               <FormControl>
-                <Input placeholder="you@example.com" type="email" autoComplete="email" {...field} />
+                <Input placeholder="OBC20260001" autoComplete="username" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -63,12 +64,12 @@ export function RegisterForm() {
         />
         <FormField
           control={form.control}
-          name="displayName"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Display name (optional)</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="Jane" autoComplete="nickname" {...field} />
+                <Input placeholder="vous@example.com" type="email" autoComplete="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -79,11 +80,27 @@ export function RegisterForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="At least 8 characters"
-                  type="password"
+                <PasswordInput
+                  placeholder="Au moins 8 caracteres"
+                  autoComplete="new-password"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirmer le mot de passe</FormLabel>
+              <FormControl>
+                <PasswordInput
+                  placeholder="Confirmez votre mot de passe"
                   autoComplete="new-password"
                   {...field}
                 />
@@ -94,13 +111,13 @@ export function RegisterForm() {
         />
 
         <Button className="w-full" type="submit" disabled={pending}>
-          {pending ? "Creating account..." : "Create account"}
+          {pending ? "Activation..." : "Activer mon compte"}
         </Button>
 
         <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
+          Deja inscrit ?{" "}
           <Link href="/auth/login" className="text-foreground underline underline-offset-4">
-            Log in
+            Se connecter
           </Link>
           .
         </p>

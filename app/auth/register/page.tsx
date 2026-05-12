@@ -5,8 +5,8 @@ export default function RegisterPage() {
   return (
     <div className="flex justify-center">
       <AuthCard
-        title="Create your account"
-        description="Email/password sign-up backed by Supabase Auth."
+        title="Activer mon compte"
+        description="Votre matricule et votre email doivent deja exister dans la base OBC."
       >
         <RegisterForm />
       </AuthCard>
