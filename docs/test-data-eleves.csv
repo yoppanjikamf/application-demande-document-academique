@@ -1,0 +1,4 @@
+eleve_matricule,eleve_email,eleve_password,eleve_nom,eleve_prenom,eleve_date_naissance,document_type,document_statut,admin_matricule,rdv_date,rdv_heure,rdv_lieu,rdv_statut,rdv_commentaire
+ELEVE1001,eleve1001@example.com,Eleve1001!,Kone,Aminata,2003-04-12,RELEVE,EN_ATTENTE,ADMIN001,2026-06-05,09:00,Service OBC,PLANIFIE,Retrait releve
+ELEVE1002,eleve1002@example.com,Eleve1002!,Tedo,Samuel,2002-11-20,DIPLOME,RETIRE,ADMIN001,2026-06-06,14:30,Service OBC,CONFIRME,Retrait diplome
+     

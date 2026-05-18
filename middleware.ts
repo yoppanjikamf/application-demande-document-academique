@@ -7,7 +7,8 @@ export async function middleware(request: NextRequest) {
   const response = await updateSession(request);
 
   const pathname = request.nextUrl.pathname;
-  const isProtected = pathname.startsWith("/dashboard") || pathname.startsWith("/account");
+  const isProtected =
+    pathname.startsWith("/dashboard") || pathname.startsWith("/admin") || pathname.startsWith("/account");
 
   if (!isProtected) return response;
 

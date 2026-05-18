@@ -27,7 +27,7 @@ type Values = z.infer<typeof signInSchema>;
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = searchParams.get("next") ?? undefined;
 
   const form = useForm<Values>({
     resolver: zodResolver(signInSchema),

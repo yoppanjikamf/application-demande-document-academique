@@ -1,40 +1,30 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
-import { prisma } from "@/lib/prisma";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
 export default async function DashboardPage() {
-  const supabase = await createSupabaseServerClient();
-  const user = supabase ? (await supabase.auth.getUser()).data.user : null;
-
-  if (!user) {
-    redirect("/auth/login?next=/dashboard");
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { authUserId: user.id },
-    select: { nom: true, prenom: true, email: true, matricule: true, role: true },
-  });
-
-  if (!dbUser) {
-    redirect("/auth/login?next=/dashboard");
-  }
+  const user = await requireRole("ELEVE", "/dashboard");
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Espace eleve</h1>
         <p className="text-muted-foreground">
-          Connecte en tant que {dbUser.prenom} {dbUser.nom} ({dbUser.matricule}).
+          Connecte en tant que {user.prenom} {user.nom} ({user.matricule}).
         </p>
-        <p className="text-sm text-muted-foreground">Role : {dbUser.role}</p>
+        <p className="text-sm text-muted-foreground">Role : {user.role}</p>
       </div>
 
       <div className="flex gap-2">
         <Button asChild variant="outline">
           <Link href="/account">Voir mon compte</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/dashboard/documents">Mes documents</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/dashboard/rendezvous">Mes retraits</Link>
         </Button>
       </div>
     </div>

@@ -33,6 +33,12 @@ enum StatutRendezVous {
   ANNULE
 }
 
+enum StatutDisponibilite {
+  LIBRE
+  RESERVE
+  ANNULE
+}
+
 enum StatutDocument {
   EN_ATTENTE
   RETIRE
@@ -71,10 +77,12 @@ model User {
 
   // Champs spécifiques à l'admin (nulables si l'user est élève)
   nomService String?
+  maxRdvParJour Int? @default(10)
 
   // Relations
   rendezVousCrees     RendezVous[]         @relation("AdminRendezVous")
   eleveRendezVous     RendezVous[]         @relation("EleveRendezVous")
+  disponibilitesRdv   DisponibiliteRdv[]
   documentsAcademique DocumentAcademique[] @relation("EleveDocuments")   // <-- renommé
   notifications       Notification[]
   duplicatas          Duplicata[]          @relation("EleveDuplicatas")
@@ -101,10 +109,32 @@ model RendezVous {
   eleveId String
   eleve   User   @relation("EleveRendezVous", fields: [eleveId], references: [id])
 
+  disponibiliteId String?          @unique
+  disponibilite   DisponibiliteRdv? @relation(fields: [disponibiliteId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("rendez_vous")
+}
+
+// ==================== DISPONIBILITE RDV ====================
+model DisponibiliteRdv {
+  id       String             @id @default(uuid())
+  dateRdv  DateTime
+  heureRdv String
+  lieu     String
+  statut   StatutDisponibilite @default(LIBRE)
+
+  adminId String
+  admin   User   @relation(fields: [adminId], references: [id])
+
+  rendezVous RendezVous?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("disponibilites_rdv")
 }
 
 // ==================== NOTIFICATION ====================

@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 
+import { getHomePathForRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -71,6 +72,61 @@ async function findSupabaseUserIdByEmail(email: string) {
   throw new Error("Impossible de verifier tous les utilisateurs Supabase Auth.");
 }
 
+async function ensureAdminAuthUser(options: {
+  email: string;
+  password: string;
+  matricule: string;
+  nom: string;
+  prenom: string;
+  authUserId: string | null;
+}) {
+  const supabaseAdmin = createSupabaseAdminClient();
+  const appMetadata = {
+    role: "ADMINISTRATEUR",
+    matricule: options.matricule,
+  };
+  const userMetadata = {
+    matricule: options.matricule,
+    nom: options.nom,
+    prenom: options.prenom,
+  };
+
+  if (options.authUserId) {
+    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(options.authUserId, {
+      email_confirm: true,
+      app_metadata: appMetadata,
+      user_metadata: userMetadata,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return data.user.id;
+  }
+
+  const existingAuthUserId = await findSupabaseUserIdByEmail(options.email);
+  const payload = {
+    password: options.password,
+    email_confirm: true,
+    app_metadata: appMetadata,
+    user_metadata: userMetadata,
+  };
+
+  const { data, error } = existingAuthUserId
+    ? await supabaseAdmin.auth.admin.updateUserById(existingAuthUserId, payload)
+    : await supabaseAdmin.auth.admin.createUser({
+        email: options.email,
+        ...payload,
+      });
+
+  if (error) {
+    throw error;
+  }
+
+  return data.user.id;
+}
+
 export async function signInAction(input: z.infer<typeof signInSchema> & { next?: string }) {
   const parsed = signInSchema.safeParse(input);
   if (!parsed.success) {
@@ -81,7 +137,7 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
   const dbUser = await withDatabaseRetry(() =>
     prisma.user.findUnique({
       where: { matricule },
-      select: { id: true, authUserId: true, email: true, role: true },
+      select: { id: true, authUserId: true, email: true, role: true, nom: true, prenom: true, matricule: true },
     }),
   );
 
@@ -98,6 +154,66 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
     email: parsed.data.email,
     password: parsed.data.password,
   });
+
+  if (error && dbUser.role === "ADMINISTRATEUR") {
+    try {
+      const authUserId = await ensureAdminAuthUser({
+        email: dbUser.email,
+        password: parsed.data.password,
+        matricule: dbUser.matricule,
+        nom: dbUser.nom,
+        prenom: dbUser.prenom,
+        authUserId: dbUser.authUserId,
+      });
+
+      if (!dbUser.authUserId || dbUser.authUserId !== authUserId) {
+        await withDatabaseRetry(() =>
+          prisma.user.update({
+            where: { id: dbUser.id },
+            data: { authUserId },
+          }),
+        );
+      }
+
+      const retry = await supabase.auth.signInWithPassword({
+        email: parsed.data.email,
+        password: parsed.data.password,
+      });
+
+      if (retry.error) {
+        return { ok: false as const, error: "Mot de passe incorrect." };
+      }
+
+      if (retry.data.user && dbUser.authUserId !== retry.data.user.id) {
+        await withDatabaseRetry(() =>
+          prisma.user.update({
+            where: { id: dbUser.id },
+            data: {
+              authUserId: retry.data.user.id,
+              derniereConnexion: new Date(),
+            },
+          }),
+        );
+      } else {
+        await withDatabaseRetry(() =>
+          prisma.user.update({
+            where: { id: dbUser.id },
+            data: { derniereConnexion: new Date() },
+          }),
+        );
+      }
+
+      return {
+        ok: true as const,
+        redirectTo: input.next ? safeNextPath(input.next) : getHomePathForRole(dbUser.role),
+      };
+    } catch (adminError) {
+      return {
+        ok: false as const,
+        error: adminError instanceof Error ? adminError.message : "Connexion admin impossible.",
+      };
+    }
+  }
 
   if (error) {
     return { ok: false as const, error: "Mot de passe incorrect ou compte non active." };
@@ -122,7 +238,10 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
     );
   }
 
-  return { ok: true as const, redirectTo: safeNextPath(input.next) };
+  return {
+    ok: true as const,
+    redirectTo: input.next ? safeNextPath(input.next) : getHomePathForRole(dbUser.role),
+  };
 }
 
 export async function signUpAction(input: z.infer<typeof signUpSchema>) {

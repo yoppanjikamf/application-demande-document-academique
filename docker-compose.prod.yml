@@ -9,3 +9,24 @@ services:
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
+## Error Type
+Runtime TypeError
+
+## Error Message
+Cannot read properties of undefined (reading 'create')
+
+
+    at importTestDataAction (app/admin/actions.ts:243:59)
+    at form (<anonymous>:null:null)
+    at AdminImportPage (app/admin/import/page.tsx:18:7)
+
+## Code Frame
+  241 |       const commentaire = normalize(row.rdv_commentaire || "Import CSV");
+  242 |
+> 243 |       const disponibilite = await prisma.disponibiliteRdv.create({
+      |                                                           ^
+  244 |         data: {
+  245 |           adminId: admin.id,
+  246 |           dateRdv: rdvDate,
+
+Next.js version: 15.5.15 (Webpack)

@@ -1,11 +1,13 @@
 import Link from "next/link";
 
+import { getCurrentUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 
 export async function SiteHeader() {
   const supabase = await createSupabaseServerClient();
   const user = supabase ? (await supabase.auth.getUser()).data.user : null;
+  const dbUser = user ? await getCurrentUser() : null;
 
   return (
     <header className="border-b bg-background/80 backdrop-blur">
@@ -16,9 +18,15 @@ export async function SiteHeader() {
         <nav className="flex items-center gap-2">
           {user ? (
             <>
-              <Button asChild variant="ghost">
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
+              {dbUser?.role === "ADMINISTRATEUR" ? (
+                <Button asChild variant="ghost">
+                  <Link href="/admin">Administration</Link>
+                </Button>
+              ) : (
+                <Button asChild variant="ghost">
+                  <Link href="/dashboard">Espace eleve</Link>
+                </Button>
+              )}
               <Button asChild variant="ghost">
                 <Link href="/account">Compte</Link>
               </Button>
