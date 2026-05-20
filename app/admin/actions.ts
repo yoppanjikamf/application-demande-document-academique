@@ -1,12 +1,19 @@
 "use server";
+import { revalidatePath } from "next/cache";
 
-import { z } from "zod";
-
+import { getDocumentTitle, OBC_SETTINGS_ID } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
+import { notifyDocumentAvailable, notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { adminQuotaSchema } from "@/lib/validations";
-import { Role, StatutDocument, StatutRendezVous, TypeDocument } from "@/lib/generated/prisma/client";
+import { adminQuotaSchema, documentStatusUpdateSchema } from "@/lib/validations";
+import {
+  DiplomePrincipal,
+  Role,
+  StatutDocument,
+  StatutRendezVous,
+  TypeDocument,
+} from "@/lib/generated/prisma/client";
 
 type CsvRow = Record<string, string>;
 
@@ -108,46 +115,108 @@ async function ensureSupabaseEleve(email: string, password: string, matricule: s
 export async function updateAdminQuotaAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMINISTRATEUR") {
-    return { ok: false as const, error: "Acces refuse." };
+    throw new Error("Acces refuse.");
   }
 
   const parsed = adminQuotaSchema.safeParse({
-    maxRdvParJour: formData.get("maxRdvParJour"),
+    quotaJournalier: formData.get("quotaJournalier"),
   });
 
   if (!parsed.success) {
-    return { ok: false as const, error: "Quota invalide." };
+    throw new Error("Quota invalide.");
   }
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { maxRdvParJour: parsed.data.maxRdvParJour },
+  await prisma.parametreRendezVous.upsert({
+    where: { id: OBC_SETTINGS_ID },
+    update: { quotaJournalier: parsed.data.quotaJournalier },
+    create: {
+      id: OBC_SETTINGS_ID,
+      quotaJournalier: parsed.data.quotaJournalier,
+      lieuObc: "Centre OBC",
+    },
   });
 
-  return { ok: true as const };
+  revalidatePath("/admin/rdv-disponibilites");
+}
+
+export async function updateDocumentStatusAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMINISTRATEUR") {
+    throw new Error("Acces refuse.");
+  }
+
+  const parsed = documentStatusUpdateSchema.safeParse({
+    documentId: formData.get("documentId"),
+    statut: formData.get("statut"),
+  });
+
+  if (!parsed.success) {
+    throw new Error("Demande invalide.");
+  }
+
+  const document = await prisma.documentAcademique.findUnique({
+    where: { id: parsed.data.documentId },
+    include: { eleve: true },
+  });
+
+  if (!document) {
+    throw new Error("Document introuvable.");
+  }
+
+  const previousStatus = document.statut;
+  const nextStatus = parsed.data.statut;
+
+  await prisma.documentAcademique.update({
+    where: { id: document.id },
+    data: { statut: nextStatus },
+  });
+
+  const documentTitle = getDocumentTitle(document);
+  if (previousStatus !== "DISPONIBLE" && nextStatus === "DISPONIBLE") {
+    await notifyDocumentAvailable({
+      userId: document.eleve.id,
+      to: document.eleve.email,
+      documentTitle,
+    });
+  }
+
+  if (previousStatus !== "RETIRE" && nextStatus === "RETIRE") {
+    await prisma.rendezVous.updateMany({
+      where: {
+        documentId: document.id,
+        statut: { in: ["PLANIFIE", "CONFIRME"] },
+      },
+      data: { statut: "HONORE" },
+    });
+
+    await notifyDocumentRetired({
+      userId: document.eleve.id,
+      to: document.eleve.email,
+      documentTitle,
+    });
+  }
+
+  revalidatePath("/admin/documents");
+  revalidatePath("/dashboard/documents");
 }
 
 export async function importTestDataAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMINISTRATEUR") {
-    return { ok: false as const, error: "Acces refuse." };
+    throw new Error("Acces refuse.");
   }
 
   const file = formData.get("file");
   if (!(file instanceof File)) {
-    return { ok: false as const, error: "Fichier CSV manquant." };
+    throw new Error("Fichier CSV manquant.");
   }
 
   const content = await file.text();
   const rows = parseCsv(content);
 
   if (rows.length === 0) {
-    return { ok: false as const, error: "CSV vide ou invalide." };
+    throw new Error("CSV vide ou invalide.");
   }
-
-  let createdUsers = 0;
-  let createdDocuments = 0;
-  let createdRendezVous = 0;
 
   for (const row of rows) {
     const matricule = normalizeUpper(row.eleve_matricule || "");
@@ -185,28 +254,89 @@ export async function importTestDataAction(formData: FormData) {
       },
     });
 
-    createdUsers += 1;
-
     const typeDocument = normalizeUpper(row.document_type || "");
-    const statutDocument = normalizeUpper(row.document_statut || "EN_ATTENTE");
+    const statutDocument = normalizeUpper(row.document_statut || "PAS_DISPONIBLE");
+    const diplomeValue = normalizeUpper(row.diplome_type || row.diplome || "BACCALAUREAT");
+    const centreExamen = normalize(row.centre_examen || "");
+    let importedDocumentId: string | null = null;
 
     if (typeDocument) {
-      const type = TypeDocument[typeDocument as keyof typeof TypeDocument];
-      const statut = StatutDocument[statutDocument as keyof typeof StatutDocument];
+      const normalizedType =
+        typeDocument === "DIPLOME"
+          ? "ORIGINAL"
+          : typeDocument === "RELEVE"
+            ? "RELEVE_NOTES"
+            : typeDocument;
+      const normalizedStatus =
+        statutDocument === "EN_ATTENTE" || statutDocument === "NON_DISPONIBLE"
+          ? "PAS_DISPONIBLE"
+          : statutDocument;
+      const type = TypeDocument[normalizedType as keyof typeof TypeDocument];
+      const statut = StatutDocument[normalizedStatus as keyof typeof StatutDocument];
+      const diplomeType = DiplomePrincipal[diplomeValue as keyof typeof DiplomePrincipal];
 
-      if (!type || !statut) {
+      if (!type || !statut || !diplomeType) {
         throw new Error(`Type ou statut de document invalide pour ${matricule}.`);
       }
 
-      await prisma.documentAcademique.create({
-        data: {
+      await prisma.examenValide.upsert({
+        where: {
+          eleveId_diplomeType: {
+            eleveId: eleve.id,
+            diplomeType,
+          },
+        },
+        update: { centreExamen: centreExamen || undefined },
+        create: {
           eleveId: eleve.id,
-          typeDocument: type,
-          statut,
+          diplomeType,
+          centreExamen: centreExamen || null,
         },
       });
 
-      createdDocuments += 1;
+      await prisma.documentAcademique.upsert({
+        where: {
+          eleveId_diplomeType_typeDocument: {
+            eleveId: eleve.id,
+            diplomeType,
+            typeDocument: type,
+          },
+        },
+        update: {
+          statut,
+          centreExamen: type === "RELEVE_NOTES" ? centreExamen || undefined : undefined,
+        },
+        create: {
+          eleveId: eleve.id,
+          diplomeType,
+          typeDocument: type,
+          statut,
+          centreExamen: type === "RELEVE_NOTES" ? centreExamen || null : null,
+        },
+      });
+
+      const document = await prisma.documentAcademique.findUnique({
+        where: {
+          eleveId_diplomeType_typeDocument: {
+            eleveId: eleve.id,
+            diplomeType,
+            typeDocument: type,
+          },
+        },
+        select: { id: true },
+      });
+
+      if (!document) {
+        throw new Error(`Document introuvable apres import pour ${matricule}.`);
+      }
+
+      await prisma.documentAcademique.update({
+        where: { id: document.id },
+        data: {
+          statut,
+        },
+      });
+      importedDocumentId = document.id;
     }
 
     const adminMatricule = normalizeUpper(row.admin_matricule || "");
@@ -233,6 +363,7 @@ export async function importTestDataAction(formData: FormData) {
           data: {
             adminId: admin.id,
             eleveId: eleve.id,
+            documentId: importedDocumentId,
             dateRdv: rdvDate,
             heureRdv: rdvHeure,
             lieu: rdvLieu,
@@ -240,18 +371,10 @@ export async function importTestDataAction(formData: FormData) {
             commentaire,
           },
         });
-
-        createdRendezVous += 1;
       }
     }
   }
 
-  return {
-    ok: true as const,
-    summary: {
-      createdUsers,
-      createdDocuments,
-      createdRendezVous,
-    },
-  };
+  revalidatePath("/admin/documents");
+  revalidatePath("/admin");
 }

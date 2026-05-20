@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { AuthCard } from "@/components/auth/auth-card";
 import { LoginForm } from "@/components/auth/login-form";
 
@@ -8,7 +10,9 @@ export default function AdminLoginTestPage() {
         title="Test connexion admin"
         description="Utilisez les identifiants admin pour verifier la connexion."
       >
-        <LoginForm />
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
       </AuthCard>
     </div>
   );

@@ -35,11 +35,17 @@ export const disponibiliteSchema = z.object({
 });
 
 export const reservationSchema = z.object({
+  documentId: z.string().trim().min(10, "Le document est obligatoire."),
   dateRdv: z.string().trim().min(8, "La date est obligatoire."),
   heureRdv: z.string().trim().min(4, "L'heure est obligatoire."),
   commentaire: z.string().trim().max(250).optional(),
 });
 
 export const adminQuotaSchema = z.object({
-  maxRdvParJour: z.coerce.number().int().min(1).max(100),
+  quotaJournalier: z.coerce.number().int().min(1).max(1000),
+});
+
+export const documentStatusUpdateSchema = z.object({
+  documentId: z.string().trim().min(10),
+  statut: z.enum(["PAS_DISPONIBLE", "DISPONIBLE", "RETIRE"]),
 });
