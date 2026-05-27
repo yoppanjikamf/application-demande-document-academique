@@ -381,3 +381,46 @@ export async function importTestDataAction(formData: FormData) {
   revalidatePath("/admin/documents");
   revalidatePath("/admin");
 }
+
+export async function confirmAppointmentAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMINISTRATEUR") {
+    throw new Error("Acces refuse.");
+  }
+
+  const rendezVousId = String(formData.get("rendezVousId") ?? "");
+  if (!rendezVousId) {
+    throw new Error("Rendez-vous manquant.");
+  }
+
+  await prisma.rendezVous.update({
+    where: { id: rendezVousId },
+    data: { statut: "CONFIRME" },
+  });
+
+  revalidatePath("/admin/appointments");
+  revalidatePath("/admin");
+}
+
+export async function cancelAppointmentAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMINISTRATEUR") {
+    throw new Error("Acces refuse.");
+  }
+
+  const rendezVousId = String(formData.get("rendezVousId") ?? "");
+  if (!rendezVousId) {
+    throw new Error("Rendez-vous manquant.");
+  }
+
+  await prisma.rendezVous.update({
+    where: { id: rendezVousId },
+    data: {
+      statut: "ANNULE",
+      commentaire: "Annulation service OBC",
+    },
+  });
+
+  revalidatePath("/admin/appointments");
+  revalidatePath("/admin");
+}

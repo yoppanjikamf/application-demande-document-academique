@@ -49,17 +49,45 @@ export async function notifyDocumentAvailable({
   location: string;
 }) {
   const isReleve = typeDocument === "RELEVE_NOTES";
+  const isDuplicata = typeDocument === "DUPLICATA";
   const subject = isReleve
     ? "Releve de notes disponible au centre d'examen"
-    : "Document disponible pour rendez-vous";
+    : isDuplicata
+      ? "Duplicata disponible pour retrait"
+      : "Document disponible pour rendez-vous";
   const text = isReleve
-    ? `Votre ${documentTitle} est disponible dans votre centre d'examen: ${location}. Aucune prise de rendez-vous n'est necessaire.`
-    : `Votre document ${documentTitle} est disponible. Vous pouvez maintenant prendre rendez-vous pour le retrait.`;
+    ? `Votre releve de notes est desormais disponible dans votre centre d'examen: ${location}.`
+    : isDuplicata
+      ? "Votre duplicata est disponible pour retrait au Centre OBC."
+      : `Votre document ${documentTitle} est disponible. Vous pouvez maintenant prendre rendez-vous pour le retrait.`;
 
   await prisma.notification.create({
     data: {
       userId,
       typeNotification: "DOCUMENT_DISPONIBLE",
+      message: text,
+    },
+  });
+
+  await sendTrackedMail({ userId, to, subject, text });
+}
+
+export async function notifyDuplicataRequestRegistered({
+  userId,
+  to,
+  documentTitle,
+}: {
+  userId: string;
+  to: string;
+  documentTitle: string;
+}) {
+  const subject = "Demande de duplicata enregistree";
+  const text = `Votre demande de duplicata a ete enregistree avec succes et est en cours de traitement. Document: ${documentTitle}.`;
+
+  await prisma.notification.create({
+    data: {
+      userId,
+      typeNotification: "DEMANDE_DUPLICATA",
       message: text,
     },
   });

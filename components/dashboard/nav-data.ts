@@ -1,10 +1,14 @@
 import {
   CalendarDays,
+  CreditCard,
   FileText,
   FolderCheck,
   Home,
   Import,
   LayoutDashboard,
+  ListChecks,
+  MessageSquareText,
+  UsersRound,
   UserRound,
 } from "lucide-react";
 
@@ -26,7 +30,10 @@ const adminSections: NavSection[] = [
     label: "Administration",
     items: [
       { title: "Vue d'ensemble", url: "/admin", icon: LayoutDashboard },
+      { title: "Eleves", url: "/admin/students", icon: UsersRound },
       { title: "Documents", url: "/admin/documents", icon: FolderCheck },
+      { title: "Planning", url: "/admin/appointments", icon: CalendarDays },
+      { title: "Retraits", url: "/admin/withdrawals", icon: ListChecks },
       { title: "Disponibilites", url: "/admin/rdv-disponibilites", icon: CalendarDays },
       { title: "Import CSV", url: "/admin/import", icon: Import },
       { title: "Compte", url: "/account", icon: UserRound },
@@ -41,6 +48,8 @@ const eleveSections: NavSection[] = [
       { title: "Accueil", url: "/dashboard", icon: Home },
       { title: "Documents", url: "/dashboard/documents", icon: FileText },
       { title: "Rendez-vous", url: "/dashboard/rendez-vous", icon: CalendarDays },
+      { title: "Paiements", url: "/dashboard/payments", icon: CreditCard },
+      { title: "Notifications", url: "/dashboard/notifications", icon: MessageSquareText },
       { title: "Compte", url: "/account", icon: UserRound },
     ],
   },

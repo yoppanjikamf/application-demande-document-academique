@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default async function AdminDisponibilitesPage() {
-  await requireRole("ADMINISTRATEUR", "/admin/rdv-disponibilites");
+  const user = await requireRole("ADMINISTRATEUR", "/admin/rdv-disponibilites");
 
   const [settings, slots] = await Promise.all([
     prisma.parametreRendezVous.findUnique({ where: { id: OBC_SETTINGS_ID } }),
@@ -35,11 +35,12 @@ export default async function AdminDisponibilitesPage() {
   return (
     <DashboardShell
       role="ADMINISTRATEUR"
+      userName={`${user.prenom} ${user.nom}`}
       activePath="/admin/rdv-disponibilites"
       title="Disponibilites RDV"
       subtitle="Definissez le quota journalier global du centre et consultez les jours reserves."
     >
-      <form action={updateAdminQuotaAction} className="space-y-3 rounded-md border bg-card p-5 shadow-sm">
+      <form action={updateAdminQuotaAction} className="max-w-xl space-y-3 rounded-md border border-slate-200 bg-white p-5 shadow-sm">
         <label className="text-sm font-medium" htmlFor="quotaJournalier">
           Quota journalier global
         </label>
@@ -55,10 +56,10 @@ export default async function AdminDisponibilitesPage() {
       </form>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Creneaux actifs</h2>
+        <h2 className="text-lg font-semibold text-slate-950">Creneaux actifs</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           {slots.map((slot) => (
-            <div key={slot.id} className="rounded-md border bg-card p-4 text-sm shadow-sm">
+            <div key={slot.id} className="rounded-md border border-slate-200 bg-white p-4 text-sm shadow-sm">
               {slot.heureDebut} - {slot.heureFin}
             </div>
           ))}
@@ -66,14 +67,14 @@ export default async function AdminDisponibilitesPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Reservations du mois</h2>
+        <h2 className="text-lg font-semibold text-slate-950">Reservations du mois</h2>
         {[...countByDay.entries()].length === 0 ? (
-          <p className="text-muted-foreground">Aucune reservation ce mois.</p>
+          <p className="text-slate-500">Aucune reservation ce mois.</p>
         ) : (
           <div className="space-y-3">
             {[...countByDay.entries()].map(([date, count]) => (
-              <div key={date} className="rounded-md border bg-card p-4 shadow-sm">
-                <div className="text-sm text-muted-foreground">{date}</div>
+              <div key={date} className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="text-sm text-slate-500">{date}</div>
                 <div className="text-sm">Reservations: {count} / {quota}</div>
               </div>
             ))}

@@ -6,25 +6,27 @@ import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 
 export function DashboardShell({
   role,
+  userName,
   title,
   subtitle,
   activePath,
   children,
 }: {
   role: Role;
+  userName?: string;
   title: string;
   subtitle: string;
   activePath: string;
   children: ReactNode;
 }) {
   return (
-    <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2">
-      <div className="flex min-h-[calc(100vh-3.5rem)] bg-muted/40">
+    <div className="min-h-screen bg-slate-50">
+      <div className="flex min-h-screen">
         <DashboardSidebar role={role} activePath={activePath} />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <DashboardHeader role={role} title={title} subtitle={subtitle} />
-          <main className="flex-1 px-4 py-6 lg:px-8">{children}</main>
+          <DashboardHeader role={role} userName={userName} title={title} subtitle={subtitle} />
+          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
         </div>
       </div>
     </div>

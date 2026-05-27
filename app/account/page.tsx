@@ -1,5 +1,6 @@
 import { requireUser } from "@/lib/auth";
 import { ProfileForm } from "@/components/account/profile-form";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 export default async function AccountPage() {
   const user = await requireUser("/account");
@@ -8,24 +9,25 @@ export default async function AccountPage() {
     : "";
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Compte</h1>
-        <p className="text-muted-foreground">
-          Mettez a jour vos informations personnelles.
-        </p>
+    <DashboardShell
+      role={user.role}
+      userName={`${user.prenom} ${user.nom}`}
+      activePath="/account"
+      title="Compte"
+      subtitle="Coordonnees et informations personnelles du profil connecte."
+    >
+      <div className="max-w-2xl rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+        <ProfileForm
+          role={user.role}
+          email={user.email}
+          defaultValues={{
+            nom: user.nom,
+            prenom: user.prenom,
+            dateNaissance: dateValue,
+            nomService: user.nomService ?? "",
+          }}
+        />
       </div>
-
-      <ProfileForm
-        role={user.role}
-        email={user.email}
-        defaultValues={{
-          nom: user.nom,
-          prenom: user.prenom,
-          dateNaissance: dateValue,
-          nomService: user.nomService ?? "",
-        }}
-      />
-    </div>
+    </DashboardShell>
   );
 }

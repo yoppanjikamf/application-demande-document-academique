@@ -5,6 +5,7 @@ import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { StatusBadge, documentTone } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 
 const PAGE_SIZE = 20;
@@ -18,7 +19,7 @@ type AdminDocumentsPageProps = {
 };
 
 export default async function AdminDocumentsPage({ searchParams }: AdminDocumentsPageProps) {
-  await requireRole("ADMINISTRATEUR", "/admin/documents");
+  const user = await requireRole("ADMINISTRATEUR", "/admin/documents");
   const params = await searchParams;
   const status = STATUSES.find((value) => value === params?.statut);
   const page = Math.max(1, Number(params?.page ?? "1") || 1);
@@ -47,6 +48,7 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
   return (
     <DashboardShell
       role="ADMINISTRATEUR"
+      userName={`${user.prenom} ${user.nom}`}
       activePath="/admin/documents"
       title="Documents academiques"
       subtitle="Verification physique, changement de statut et suivi des rendez-vous."
@@ -62,8 +64,8 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-md border bg-card shadow-sm">
-        <div className="grid grid-cols-[1fr_auto] border-b px-4 py-3 text-sm font-medium text-muted-foreground">
+      <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
+        <div className="grid grid-cols-[1fr_auto] border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-500">
           <span>Demande</span>
           <span>Statut</span>
         </div>
@@ -71,15 +73,17 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
           <div key={document.id} className="space-y-3 border-b px-4 py-4 last:border-0">
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <div>
-                <p className="text-lg font-semibold">{getDocumentTitle(document)}</p>
-                <p className="text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-lg font-semibold text-slate-950">{getDocumentTitle(document)}</p>
+                  <StatusBadge tone={documentTone(document.statut)}>{getStatusLabel(document.statut)}</StatusBadge>
+                </div>
+                <p className="text-sm text-slate-500">
                   {document.eleve.prenom} {document.eleve.nom} · {document.eleve.matricule}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  Statut: {getStatusLabel(document.statut)}
+                <p className="text-sm text-slate-500">
                   {document.rendezVous[0]
-                    ? ` · RDV: ${document.rendezVous[0].dateRdv.toLocaleDateString("fr-FR")} ${document.rendezVous[0].heureRdv}`
-                    : ""}
+                    ? `RDV: ${document.rendezVous[0].dateRdv.toLocaleDateString("fr-FR")} ${document.rendezVous[0].heureRdv}`
+                    : "Aucun rendez-vous actif"}
                 </p>
               </div>
               <form action={updateDocumentStatusAction} className="flex flex-wrap items-center gap-2">
