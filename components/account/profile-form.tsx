@@ -101,19 +101,12 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
         ) : null}
 
         {role === "ADMINISTRATEUR" ? (
-          <FormField
-            control={form.control}
-            name="nomService"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Service</FormLabel>
-                <FormControl>
-                  <Input placeholder="Service" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <FormItem>
+            <FormLabel>Service</FormLabel>
+            <FormControl>
+              <Input value="OBC" disabled />
+            </FormControl>
+          </FormItem>
         ) : null}
 
         <Button type="submit" className="w-full" disabled={pending}>

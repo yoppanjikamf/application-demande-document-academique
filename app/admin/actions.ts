@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 
-import { getDocumentTitle, OBC_SETTINGS_ID } from "@/lib/appointment-service";
+import { getDocumentTitle, getPickupLocation, OBC_SETTINGS_ID } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
 import { notifyDocumentAvailable, notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
@@ -173,10 +173,13 @@ export async function updateDocumentStatusAction(formData: FormData) {
 
   const documentTitle = getDocumentTitle(document);
   if (previousStatus !== "DISPONIBLE" && nextStatus === "DISPONIBLE") {
+    const location = await getPickupLocation(document);
     await notifyDocumentAvailable({
       userId: document.eleve.id,
       to: document.eleve.email,
       documentTitle,
+      typeDocument: document.typeDocument,
+      location,
     });
   }
 

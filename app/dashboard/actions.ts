@@ -46,6 +46,12 @@ export async function reserverDisponibiliteAction(formData: FormData) {
     throw new Error("Document introuvable.");
   }
 
+  if (document.typeDocument === "ORIGINAL" && document.statut === "RETIRE") {
+    throw new Error(
+      "Diplome deja retire. Veuillez faire une demande de duplicata si necessaire.",
+    );
+  }
+
   if (document.statut !== "DISPONIBLE") {
     throw new Error("Ce document n'est pas encore disponible.");
   }
@@ -98,9 +104,11 @@ export async function reserverDisponibiliteAction(formData: FormData) {
     userId: user.id,
     to: user.email,
     documentTitle: getDocumentTitle(document),
+    documentType: document.typeDocument,
     date,
     time: parsed.data.heureRdv,
     location,
+    recipientName: `${user.prenom} ${user.nom}`.trim(),
   });
 
   redirect(`/dashboard/rendez-vous?documentId=${encodeURIComponent(document.id)}`);

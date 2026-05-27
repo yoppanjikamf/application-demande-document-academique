@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { profileUpdateSchema } from "@/lib/validations";
 
 type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
+const ADMIN_SERVICE_NAME = "OBC";
 
 function parseOptionalDate(value?: string) {
   if (!value) {
@@ -42,7 +43,7 @@ export async function updateProfileAction(input: ProfileUpdateInput) {
       where: { id: user.id },
       data: {
         ...baseData,
-        nomService: parsed.data.nomService?.trim() || null,
+        nomService: ADMIN_SERVICE_NAME,
         dateNaissance: null,
       },
     });

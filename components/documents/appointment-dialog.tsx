@@ -27,13 +27,19 @@ type AppointmentDialogProps = {
   documentId: string;
   documentTitle: string;
   disabled: boolean;
+  defaultComment?: string;
 };
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function AppointmentDialog({ documentId, documentTitle, disabled }: AppointmentDialogProps) {
+export function AppointmentDialog({
+  documentId,
+  documentTitle,
+  disabled,
+  defaultComment,
+}: AppointmentDialogProps) {
   const [date, setDate] = useState(todayKey());
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState("");
@@ -130,7 +136,11 @@ export function AppointmentDialog({ documentId, documentTitle, disabled }: Appoi
             </div>
           </div>
 
-          <Input name="commentaire" placeholder="Commentaire (optionnel)" />
+          <Input
+            name="commentaire"
+            placeholder="Commentaire (optionnel)"
+            defaultValue={defaultComment}
+          />
 
           <DialogFooter>
             <Button type="submit" disabled={!selectedSlot || loading}>

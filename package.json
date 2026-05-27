@@ -20,6 +20,7 @@
     "db:studio": "prisma studio",
     "seed:admin": "tsx scripts/seed-admin.ts",
     "seed:test-auth": "tsx scripts/seed-auth-test-user.ts",
+    "prisma:seed": "tsx scripts/seed-diplomes.ts",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status"
