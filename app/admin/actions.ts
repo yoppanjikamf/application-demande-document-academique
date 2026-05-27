@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 
 import { getDocumentTitle, getPickupLocation, OBC_SETTINGS_ID } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
+import { canAdminAccessDocument, getAdminDocumentScope, isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
 import { notifyDocumentAvailable, notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -154,13 +155,17 @@ export async function updateDocumentStatusAction(formData: FormData) {
     throw new Error("Demande invalide.");
   }
 
-  const document = await prisma.documentAcademique.findUnique({
-    where: { id: parsed.data.documentId },
+  const document = await prisma.documentAcademique.findFirst({
+    where: { id: parsed.data.documentId, ...getAdminDocumentScope(user) },
     include: { eleve: true },
   });
 
   if (!document) {
     throw new Error("Document introuvable.");
+  }
+
+  if (!isDocumentRequestAllowed(document.diplomeType, document.typeDocument)) {
+    throw new Error("Le Probatoire ne donne pas lieu a un diplome.");
   }
 
   const previousStatus = document.statut;
@@ -261,6 +266,7 @@ export async function importTestDataAction(formData: FormData) {
     const statutDocument = normalizeUpper(row.document_statut || "PAS_DISPONIBLE");
     const diplomeValue = normalizeUpper(row.diplome_type || row.diplome || "BACCALAUREAT");
     const centreExamen = normalize(row.centre_examen || "");
+    const regionComposition = normalize(row.region_composition || row.region || "Centre");
     let importedDocumentId: string | null = null;
 
     if (typeDocument) {
@@ -282,6 +288,21 @@ export async function importTestDataAction(formData: FormData) {
         throw new Error(`Type ou statut de document invalide pour ${matricule}.`);
       }
 
+      if (!isDocumentRequestAllowed(diplomeType, type)) {
+        throw new Error(`Le document ${type} n'est pas autorise pour ${diplomeType}.`);
+      }
+
+      const route = resolveDocumentRoute({
+        diplomeType,
+        typeDocument: type,
+        centreExamen,
+        regionComposition,
+      });
+
+      if (!canAdminAccessDocument(user, route)) {
+        throw new Error("Vous ne pouvez pas importer une demande d'un autre organisme ou d'une autre antenne.");
+      }
+
       await prisma.examenValide.upsert({
         where: {
           eleveId_diplomeType: {
@@ -289,11 +310,12 @@ export async function importTestDataAction(formData: FormData) {
             diplomeType,
           },
         },
-        update: { centreExamen: centreExamen || undefined },
+        update: { centreExamen: centreExamen || undefined, regionComposition },
         create: {
           eleveId: eleve.id,
           diplomeType,
           centreExamen: centreExamen || null,
+          regionComposition,
         },
       });
 
@@ -307,14 +329,20 @@ export async function importTestDataAction(formData: FormData) {
         },
         update: {
           statut,
-          centreExamen: type === "RELEVE_NOTES" ? centreExamen || undefined : undefined,
+          centreExamen: centreExamen || undefined,
+          regionComposition,
+          organismeId: route.organismeId,
+          antenneRegionaleId: route.antenneRegionaleId,
         },
         create: {
           eleveId: eleve.id,
           diplomeType,
           typeDocument: type,
           statut,
-          centreExamen: type === "RELEVE_NOTES" ? centreExamen || null : null,
+          centreExamen: centreExamen || null,
+          regionComposition,
+          organismeId: route.organismeId,
+          antenneRegionaleId: route.antenneRegionaleId,
         },
       });
 
@@ -352,6 +380,17 @@ export async function importTestDataAction(formData: FormData) {
       const admin = await prisma.user.findUnique({ where: { matricule: adminMatricule } });
       if (!admin) {
         throw new Error(`Admin introuvable pour matricule ${adminMatricule}.`);
+      }
+
+      if (importedDocumentId) {
+        const importedDocument = await prisma.documentAcademique.findUnique({
+          where: { id: importedDocumentId },
+          select: { organismeId: true, antenneRegionaleId: true },
+        });
+
+        if (importedDocument && !canAdminAccessDocument(admin, importedDocument)) {
+          throw new Error(`Admin ${adminMatricule} non autorise pour ce document.`);
+        }
       }
 
       const rdvStatut = StatutRendezVous[rdvStatutValue as keyof typeof StatutRendezVous];
@@ -393,8 +432,8 @@ export async function confirmAppointmentAction(formData: FormData) {
     throw new Error("Rendez-vous manquant.");
   }
 
-  await prisma.rendezVous.update({
-    where: { id: rendezVousId },
+  await prisma.rendezVous.updateMany({
+    where: { id: rendezVousId, document: { is: getAdminDocumentScope(user) } },
     data: { statut: "CONFIRME" },
   });
 
@@ -413,8 +452,8 @@ export async function cancelAppointmentAction(formData: FormData) {
     throw new Error("Rendez-vous manquant.");
   }
 
-  await prisma.rendezVous.update({
-    where: { id: rendezVousId },
+  await prisma.rendezVous.updateMany({
+    where: { id: rendezVousId, document: { is: getAdminDocumentScope(user) } },
     data: {
       statut: "ANNULE",
       commentaire: "Annulation service OBC",

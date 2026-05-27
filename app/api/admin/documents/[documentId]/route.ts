@@ -1,5 +1,6 @@
 import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, requireApiUser } from "@/lib/api-utils";
+import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 
 type RouteContext = {
@@ -8,10 +9,10 @@ type RouteContext = {
 
 export async function GET(_request: Request, { params }: RouteContext) {
   try {
-    await requireApiUser("ADMINISTRATEUR");
+    const admin = await requireApiUser("ADMINISTRATEUR");
     const { documentId } = await params;
-    const document = await prisma.documentAcademique.findUnique({
-      where: { id: documentId },
+    const document = await prisma.documentAcademique.findFirst({
+      where: { id: documentId, ...getAdminDocumentScope(admin) },
       include: {
         eleve: {
           select: {

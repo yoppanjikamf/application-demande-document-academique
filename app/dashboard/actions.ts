@@ -14,6 +14,7 @@ import {
   parseDateKey,
 } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
+import { getAntenneForRegion, isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
 import { notifyAppointmentConfirmed, notifyDuplicataRequestRegistered } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { reservationSchema } from "@/lib/validations";
@@ -82,6 +83,10 @@ export async function reserverDisponibiliteAction(formData: FormData) {
     throw new Error("Document introuvable.");
   }
 
+  if (!isDocumentRequestAllowed(document.diplomeType, document.typeDocument)) {
+    throw new Error("Ce type de document n'est pas delivre pour cet examen.");
+  }
+
   if (document.typeDocument === "ORIGINAL" && document.statut === "RETIRE") {
     throw new Error(
       "Diplome deja retire. Veuillez faire une demande de duplicata si necessaire.",
@@ -90,6 +95,11 @@ export async function reserverDisponibiliteAction(formData: FormData) {
 
   if (document.statut !== "DISPONIBLE") {
     throw new Error("Ce document n'est pas encore disponible.");
+  }
+
+  const route = resolveDocumentRoute(document);
+  if (!route.requiresAppointment) {
+    throw new Error("Ce document se retire directement au centre d'examen, sans rendez-vous.");
   }
 
   const availableSlots = await getAvailableSlots(date);
@@ -111,7 +121,11 @@ export async function reserverDisponibiliteAction(formData: FormData) {
   }
 
   const admin = await prisma.user.findFirst({
-    where: { role: "ADMINISTRATEUR" },
+    where: {
+      role: "ADMINISTRATEUR",
+      organismeId: route.organismeId,
+      ...(route.antenneRegionaleId ? { antenneRegionaleId: route.antenneRegionaleId } : {}),
+    },
     select: { id: true },
     orderBy: { createdAt: "asc" },
   });
@@ -207,12 +221,28 @@ export async function requestReleveNotesAction(formData: FormData) {
     },
     update: {
       centreExamen: exam.centreExamen,
+      regionComposition: exam.regionComposition,
+      organismeId: resolveDocumentRoute({
+        diplomeType,
+        typeDocument: "RELEVE_NOTES",
+        centreExamen: exam.centreExamen,
+        regionComposition: exam.regionComposition,
+      }).organismeId,
+      antenneRegionaleId: null,
     },
     create: {
       eleveId: user.id,
       diplomeType,
       typeDocument: "RELEVE_NOTES",
       centreExamen: exam.centreExamen,
+      regionComposition: exam.regionComposition,
+      organismeId: resolveDocumentRoute({
+        diplomeType,
+        typeDocument: "RELEVE_NOTES",
+        centreExamen: exam.centreExamen,
+        regionComposition: exam.regionComposition,
+      }).organismeId,
+      antenneRegionaleId: null,
       statut: "PAS_DISPONIBLE",
     },
   });
@@ -244,6 +274,10 @@ export async function submitDuplicataRequestAction(formData: FormData) {
 
   const diplomeType = parseDiplome(formData.get("diplomeType"));
   const cibleDocument = parseDuplicataTarget(formData.get("cibleDocument"));
+  if (!isDocumentRequestAllowed(diplomeType, "DUPLICATA", cibleDocument)) {
+    throw new Error("Le Probatoire ne donne pas lieu a un diplome.");
+  }
+
   const parsed = schema.safeParse({
     session: formData.get("session"),
     centreExamen: formData.get("centreExamen"),
@@ -271,6 +305,13 @@ export async function submitDuplicataRequestAction(formData: FormData) {
   const justificatif = formData.get("piecesJustificatives");
   const justificatifName = justificatif instanceof File ? justificatif.name : "";
   const documentTitle = getDuplicataTitle(diplomeType, cibleDocument);
+  const route = resolveDocumentRoute({
+    diplomeType,
+    typeDocument: cibleDocument,
+    centreExamen: parsed.data.centreExamen,
+    regionComposition: exam.regionComposition,
+  });
+  const antenne = route.antenneRegionaleId ? getAntenneForRegion(exam.regionComposition) : null;
 
   await prisma.documentAcademique.upsert({
     where: {
@@ -280,11 +321,20 @@ export async function submitDuplicataRequestAction(formData: FormData) {
         typeDocument: "DUPLICATA",
       },
     },
-    update: {},
+    update: {
+      centreExamen: parsed.data.centreExamen,
+      regionComposition: exam.regionComposition,
+      organismeId: route.organismeId,
+      antenneRegionaleId: antenne?.id ?? null,
+    },
     create: {
       eleveId: user.id,
       diplomeType,
       typeDocument: "DUPLICATA",
+      centreExamen: parsed.data.centreExamen,
+      regionComposition: exam.regionComposition,
+      organismeId: route.organismeId,
+      antenneRegionaleId: antenne?.id ?? null,
       statut: "PAS_DISPONIBLE",
     },
   });
@@ -295,6 +345,9 @@ export async function submitDuplicataRequestAction(formData: FormData) {
       typeDocument: "DUPLICATA",
       nomDuplicata: documentTitle,
       statut: "PAS_DISPONIBLE",
+      regionComposition: exam.regionComposition,
+      organismeId: route.organismeId,
+      antenneRegionaleId: antenne?.id ?? null,
       intruction: JSON.stringify({
         diplomeType,
         cibleDocument,

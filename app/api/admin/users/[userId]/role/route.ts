@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
+import { ORGANISME_IDS } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/lib/generated/prisma/client";
 
@@ -28,6 +29,8 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       data: {
         role: input.role,
         nomService: input.role === "ADMINISTRATEUR" ? "OBC" : null,
+        organismeId: input.role === "ADMINISTRATEUR" ? ORGANISME_IDS.OBC : null,
+        antenneRegionaleId: input.role === "ADMINISTRATEUR" ? "antenne-centre" : null,
       },
       select: {
         id: true,
@@ -37,6 +40,8 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         prenom: true,
         role: true,
         nomService: true,
+        organismeId: true,
+        antenneRegionaleId: true,
       },
     });
 

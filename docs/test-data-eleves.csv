@@ -1,3 +1,6 @@
-eleve_matricule,eleve_email,eleve_password,eleve_nom,eleve_prenom,eleve_date_naissance,document_type,document_statut,admin_matricule,rdv_date,rdv_heure,rdv_lieu,rdv_statut,rdv_commentaire
-ELEVE1001,eleve1001@example.com,Eleve1001!,Kone,Aminata,2003-04-12,RELEVE,EN_ATTENTE,ADMIN001,2026-06-05,09:00,Service OBC,PLANIFIE,Retrait releve
-ELEVE1002,eleve1002@example.com,Eleve1002!,Tedo,Samuel,2002-11-20,DIPLOME,RETIRE,ADMIN001,2026-06-06,14:30,Service OBC,CONFIRME,Retrait diplome
+eleve_matricule,eleve_email,eleve_password,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,centre_examen,region_composition,document_type,document_statut,admin_matricule,rdv_date,rdv_heure,rdv_lieu,rdv_statut,rdv_commentaire
+ELEVE1001,eleve1001@example.com,Eleve1001!,Kone,Aminata,2003-04-12,BACCALAUREAT,Lycee General Leclerc,Centre,ORIGINAL,DISPONIBLE,ADMIN001,2026-06-05,09:00,Antenne regionale OBC Centre - Yaounde,CONFIRME,Retrait diplome original Baccalaureat
+ELEVE1002,eleve1002@example.com,Eleve1002!,Tedo,Samuel,2002-11-20,BACCALAUREAT,Lycee de Biyem-Assi,Centre,RELEVE_NOTES,PAS_DISPONIBLE,,,,,,Demande releve en attente de disponibilite
+ELEVE1003,eleve1003@example.com,Eleve1003!,Ngono,Claire,2004-02-08,PROBATOIRE,Lycee de Mballa II,Centre,RELEVE_NOTES,DISPONIBLE,,,,,,Retrait direct au centre examen sans RDV
+ELEVE1004,eleve1004@example.com,Eleve1004!,Manga,David,2005-09-30,BEPC,Lycee Bilingue de Douala,Littoral,ORIGINAL,DISPONIBLE,,,,,,Document BEPC gere par DECC
+ELEVE1005,eleve1005@example.com,Eleve1005!,Abena,Ruth,2001-12-03,BACCALAUREAT,Lycee de Bafoussam,Ouest,DUPLICATA,PAS_DISPONIBLE,,,,,,Demande duplicata a traiter

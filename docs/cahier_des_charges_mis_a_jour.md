@@ -1,0 +1,386 @@
+# CAHIER DES CHARGES
+## Application Web de Gestion des Retraits de Documents Académiques
+### (Diplômes, Relevés, Duplicatas) — CAS DE OBC / DECC
+
+**Cameroun — 2026 | Version 2.0**
+
+---
+
+## TABLE DES MATIÈRES
+
+1. Contexte & Problématique
+2. Objectifs du Projet
+3. Périmètre du Projet
+4. Besoins Fonctionnels
+5. Besoins Non Fonctionnels
+6. Architecture Technique
+7. Contraintes du Projet
+8. Glossaire
+
+---
+
+## 1. CONTEXTE & PROBLÉMATIQUE
+
+### 1.1 — Contexte et origine du projet
+
+Au Cameroun, la délivrance et le retrait des documents académiques, notamment les diplômes, relevés de notes, attestations et duplicatas, demeurent encore fortement dépendants de procédures physiques et manuelles. Les élèves, anciens élèves et diplômés doivent souvent se déplacer plusieurs fois vers les centres d’examen, les antennes régionales ou les services administratifs pour vérifier la disponibilité d’un document, déposer une demande, obtenir des informations de retrait ou récupérer physiquement le document attendu.
+
+Cette organisation entraîne des pertes de temps, des frais de transport, des files d’attente et un manque de visibilité sur l’état réel des demandes. Du côté de l’administration, la gestion manuelle des dossiers augmente la charge de travail, favorise les erreurs de saisie, complique la traçabilité et rend difficile le pilotage statistique des retraits. La transformation numérique offre donc une opportunité concrète de moderniser ce processus tout en sécurisant les données et en améliorant l’expérience des usagers.
+
+Le présent projet consiste à concevoir une application web de gestion des retraits de documents académiques pour le cas OBC / DECC. L’application permet aux élèves de consulter leurs documents, demander certains documents, suivre les statuts, recevoir des notifications, effectuer un paiement lorsque nécessaire et planifier un rendez-vous de retrait. Elle permet également aux administrateurs de gérer les élèves, les documents, les rendez-vous, les retraits, les notifications, les reçus, les imports CSV et les statistiques.
+
+### 1.2 — Problématique
+
+> ❝ ***Comment concevoir et développer une application web permettant aux élèves camerounais de suivre et de retirer leurs documents académiques de manière sécurisée, tout en simplifiant la gestion administrative des services OBC / DECC ?*** ❞
+
+### 1.3 — Problèmes identifiés
+
+| Acteur | Problèmes rencontrés |
+|--------|----------------------|
+| Élèves | Déplacements multiples pour connaître la disponibilité des documents, manque de visibilité sur l’état d’avancement, files d’attente, délais de traitement élevés, coûts de transport, difficulté à obtenir les instructions exactes de retrait et absence de rappel fiable. |
+| Administration | Gestion manuelle des dossiers, absence de système centralisé de suivi, charge administrative importante, risques d’erreurs humaines, risques de fraude, difficulté à tracer les retraits physiques et absence de tableaux de bord fiables. |
+
+### 1.4 — Public cible
+
+- Élèves et anciens élèves.
+- Diplômés souhaitant récupérer un diplôme, un relevé ou un duplicata.
+- Administrateurs OBC.
+- Administrateurs DECC.
+- Agents d’antennes régionales OBC.
+- Services de délivrance des documents académiques.
+- Encadreurs, tuteurs et responsables chargés de valider le projet.
+
+---
+
+## 2. OBJECTIFS DU PROJET
+
+### 2.1 — Objectif général
+
+L’objectif général du projet est de concevoir et développer une application web sécurisée permettant la consultation, la demande, le suivi et le retrait physique des documents académiques, tout en offrant à l’administration OBC / DECC un back-office centralisé pour gérer les élèves, les documents, les statuts, les rendez-vous, les retraits, les paiements, les reçus et les notifications.
+
+### 2.2 — Objectifs spécifiques
+
+| N° | Objectif |
+|----|----------|
+| OBJ-01 | Permettre aux élèves de consulter en temps réel la disponibilité de leurs documents académiques. |
+| OBJ-02 | Permettre aux élèves de demander un relevé de notes ou un duplicata lorsque les règles métier l’autorisent. |
+| OBJ-03 | Gérer le paiement des demandes payantes, notamment les duplicatas, avec génération de reçu. |
+| OBJ-04 | Envoyer des notifications applicatives et des emails lors des événements importants. |
+| OBJ-05 | Simplifier la gestion administrative grâce à un back-office OBC / DECC. |
+| OBJ-06 | Assurer la traçabilité complète des retraits physiques : qui retire, quel document, quand, où et sous quel statut. |
+| OBJ-07 | Planifier les rendez-vous de retrait lorsque le document nécessite un passage en antenne régionale. |
+| OBJ-08 | Appliquer les règles de routage entre OBC, DECC, centres d’examen et antennes régionales. |
+| OBJ-09 | Garantir la sécurité, la confidentialité et la cohérence des données personnelles des élèves. |
+| OBJ-10 | Fournir des statistiques administratives sur les documents, rendez-vous, paiements et retraits. |
+
+---
+
+## 3. PÉRIMÈTRE DU PROJET
+
+### 3.1 — Inclus dans le projet
+
+- Authentification avec Supabase Auth.
+- Profils utilisateurs synchronisés dans Prisma.
+- Gestion des rôles `ELEVE` et `ADMINISTRATEUR`.
+- Activation d’un compte élève à partir d’un matricule déjà présent en base.
+- Connexion par matricule, email et mot de passe.
+- Déconnexion sécurisée.
+- Modification du profil utilisateur.
+- Consultation des documents académiques de l’élève.
+- Consultation du détail d’un document et des instructions de retrait.
+- Demande de relevé de notes.
+- Demande de duplicata avec diplôme cible, session, centre d’examen, motif et mode de paiement.
+- Paiement applicatif simplifié pour les duplicatas.
+- Génération et consultation de reçus.
+- Notifications applicatives en base de données.
+- Envoi d’emails via Nodemailer.
+- Journalisation des emails envoyés ou échoués dans `mail_logs`.
+- Back-office administrateur.
+- Import CSV d’élèves, examens, documents et rendez-vous.
+- Gestion des statuts de documents.
+- Gestion des rendez-vous côté élève et côté administration.
+- Annulation de rendez-vous par l’élève ou l’administration.
+- Enregistrement des retraits physiques.
+- Historique des retraits.
+- Tableau de bord administratif.
+- Quota journalier global de rendez-vous.
+- Créneaux horaires actifs.
+- Gestion des jours fériés et blocage des week-ends.
+- Routage métier des documents entre OBC, DECC, centres d’examen et antennes régionales.
+- Gestion des organismes `OBC` et `DECC`.
+- Gestion des antennes régionales OBC.
+- Gestion des examens validés par élève.
+
+### 3.2 — Hors périmètre (exclus)
+
+- Téléchargement numérique sécurisé des documents académiques au format PDF.
+- Vérification des documents par QR code pour les employeurs.
+- Intégration complète avec un ERP institutionnel existant.
+- Passerelle Mobile Money réelle avec OTP, signature fournisseur et callback certifié.
+- Notifications push natives navigateur ou mobile.
+- Réinitialisation complète du mot de passe via interface dédiée.
+- Audit log complet de toutes les actions sensibles.
+- Mode hors ligne.
+- Rôle séparé `SERVICE_DELIVRANCE`, actuellement intégré au rôle `ADMINISTRATEUR`.
+
+### 3.3 — Acteurs et parties prenantes
+
+| Acteur / Rôle | Type | Responsabilités |
+|----------------|------|-----------------|
+| Administrateur | Interne | Gérer les utilisateurs, importer les données, consulter les statistiques, modifier les statuts, gérer les rendez-vous et enregistrer les retraits. |
+| Service OBC | Interne | Gérer les documents relevant de l’OBC, notamment les diplômes et relevés du Baccalauréat et du Probatoire selon les règles métier. |
+| Service DECC | Interne | Gérer les documents relevant de la DECC, notamment les documents liés au BEPC. |
+| Antenne régionale OBC | Interne | Gérer les documents orientés vers une antenne régionale selon la région de composition de l’élève. |
+| Élève / Diplômé | Utilisateur final | Consulter ses documents, demander un relevé ou un duplicata, effectuer un paiement, réserver ou annuler un rendez-vous et consulter ses notifications. |
+| Système interne | Technique | Déclencher les notifications, confirmer certains paiements via webhook interne et journaliser les emails. |
+| Développeur / Stagiaire | Réalisateur | Développer, tester, maintenir et documenter l’application. |
+| Tuteur / Encadreur | Commanditaire | Valider les livrables, orienter les priorités et contrôler la conformité du projet. |
+
+### 3.4 — Règles métier conservées
+
+| Élément | Règle métier |
+|---------|--------------|
+| BEPC | Les documents du BEPC sont gérés par la DECC. |
+| Probatoire | Le Probatoire est géré par l’OBC, mais ne donne pas lieu à un diplôme original. |
+| Baccalauréat original | Le diplôme original du Baccalauréat est orienté vers une antenne régionale OBC et nécessite un rendez-vous. |
+| Relevés | Les relevés se retirent généralement au centre d’examen sans rendez-vous. |
+| Duplicata | Le duplicata suit le routage du document cible et nécessite un paiement. |
+| Statut document | Les statuts sont `PAS_DISPONIBLE`, `DISPONIBLE` et `RETIRE`. |
+| Statut rendez-vous | Les statuts sont `PLANIFIE`, `CONFIRME`, `ANNULE` et `HONORE`. |
+| Statut paiement | Les statuts sont `EN_ATTENTE` et `EFFECTUE`. |
+| Statut notification | Les statuts sont `ENVOYEE`, `RECUE` et `LUE`. |
+| Périmètre administrateur | Un administrateur ne traite que les documents de son organisme et, pour l’OBC, de son antenne régionale lorsqu’elle est définie. |
+
+---
+
+## 4. BESOINS FONCTIONNELS
+
+> Légende : 🔴 Obligatoire — 🟡 Important — 🟢 Optionnel
+
+### 4.1 — Module Authentification & Gestion des accès
+
+| ID | Fonctionnalité | Description détaillée | Priorité |
+|----|----------------|----------------------|----------|
+| F-01 | Inscription / activation | Activer un compte élève à partir d’un matricule et d’un email déjà présents dans la base Prisma, puis créer ou mettre à jour le compte Supabase Auth. | 🔴 |
+| F-02 | Connexion / Déconnexion | Authentifier l’utilisateur avec matricule, email et mot de passe, ouvrir une session Supabase Auth et permettre la déconnexion. | 🔴 |
+| F-03 | Gestion des rôles | Différencier les droits des rôles `ELEVE` et `ADMINISTRATEUR`, avec redirection vers `/dashboard` ou `/admin`. | 🔴 |
+| F-04 | Récupération du mot de passe | Prévoir un flux de réinitialisation par email sécurisé pour les comptes utilisateurs. | 🟡 |
+| F-05 | Profil utilisateur | Permettre à l’utilisateur de modifier ses informations personnelles : nom, prénom, date de naissance pour l’élève, service pour l’administrateur. | 🟡 |
+
+### 4.2 — Module Consultation des Documents académiques
+
+| ID | Fonctionnalité | Description détaillée | Priorité |
+|----|----------------|----------------------|----------|
+| F-06 | Espace Mes Documents | Afficher la liste des documents académiques de l’élève connecté avec type, diplôme, statut, lieu de retrait et rendez-vous actif éventuel. | 🔴 |
+| F-07 | Statut de disponibilité | Afficher clairement si un document est non disponible, disponible ou retiré. | 🔴 |
+| F-08 | Instructions de retrait | Afficher l’adresse, le lieu, les pièces requises, les conditions de retrait et l’obligation éventuelle de rendez-vous. | 🔴 |
+| F-09 | Demande de relevé de notes | Permettre à l’élève de créer ou suivre une demande de relevé selon l’examen validé. | 🟡 |
+| F-10 | Demande de duplicata | Permettre une demande motivée de duplicata avec diplôme cible, session, centre d’examen, justificatif et paiement. | 🔴 |
+| F-11 | Ajout au calendrier | Prévoir un export calendrier ou un rappel afin de ne pas manquer la date du retrait. | 🟡 |
+
+### 4.3 — Module Notifications
+
+| ID | Fonctionnalité | Description détaillée | Priorité |
+|----|----------------|----------------------|----------|
+| F-12 | Notification de disponibilité | Créer une notification applicative et envoyer un email lorsque le statut d’un document passe à `DISPONIBLE`. | 🔴 |
+| F-13 | Notification de rendez-vous | Confirmer par notification et email les informations du rendez-vous : document, date, heure, lieu et pièces à présenter. | 🔴 |
+| F-14 | Notification de duplicata | Confirmer l’enregistrement d’une demande de duplicata par notification et email. | 🟡 |
+| F-15 | Notification de retrait | Envoyer un accusé de retrait lorsque le document est marqué `RETIRE`. | 🟡 |
+| F-16 | Historique des notifications | Permettre à l’élève de consulter les notifications reçues dans son tableau de bord. | 🟢 |
+| F-17 | Rappel automatique | Prévoir un rappel automatique si un document disponible n’est pas retiré après un délai défini, notamment 30 jours. | 🟡 |
+
+### 4.4 — Module Administration (Back-office)
+
+| ID | Fonctionnalité | Description détaillée | Priorité |
+|----|----------------|----------------------|----------|
+| F-18 | Tableau de bord administratif | Afficher les statistiques principales : documents, rendez-vous, retraits, délais et volumes. | 🟡 |
+| F-19 | Import CSV | Importer en masse des élèves, examens validés, documents et rendez-vous depuis un fichier CSV. | 🔴 |
+| F-20 | Gestion des élèves | Lister, rechercher et consulter les élèves dans le back-office. | 🔴 |
+| F-21 | Gestion des documents | Lister, filtrer et consulter les documents relevant du périmètre de l’administrateur. | 🔴 |
+| F-22 | Mise à jour des statuts | Modifier le statut d’un document et déclencher les notifications associées. | 🔴 |
+| F-23 | Historique des retraits | Consulter les retraits déjà honorés avec l’élève, l’administrateur, le document, le lieu et la date. | 🔴 |
+| F-24 | Gestion des rôles | Modifier le rôle d’un utilisateur depuis une route administrative dédiée. | 🟡 |
+
+### 4.5 — Module Rendez-vous & Paiements
+
+| ID | Fonctionnalité | Description détaillée | Priorité |
+|----|----------------|----------------------|----------|
+| F-25 | Consultation des créneaux | Afficher les créneaux disponibles selon la date, le quota journalier, les rendez-vous existants, les week-ends et les jours fériés. | 🔴 |
+| F-26 | Réservation de rendez-vous | Créer un rendez-vous pour un document disponible lorsque le routage impose un retrait en antenne régionale. | 🔴 |
+| F-27 | Annulation de rendez-vous élève | Permettre à l’élève d’annuler un rendez-vous actif. | 🟡 |
+| F-28 | Confirmation / annulation admin | Permettre à l’administrateur de confirmer ou annuler un rendez-vous depuis le back-office. | 🟡 |
+| F-29 | Enregistrement du retrait physique | Marquer un document comme retiré et passer le rendez-vous associé au statut `HONORE`. | 🔴 |
+| F-30 | Configuration du quota RDV | Définir le quota journalier global de rendez-vous et exploiter les créneaux horaires actifs. | 🟡 |
+| F-31 | Initiation de paiement | Créer un paiement pour une demande de duplicata. | 🔴 |
+| F-32 | Confirmation de paiement | Mettre à jour le statut du paiement via webhook interne ou action applicative. | 🔴 |
+| F-33 | Génération de reçu | Générer un reçu de paiement avec numéro, montant, mode de paiement et commentaire. | 🔴 |
+| F-34 | Intégration Mobile Money | Prévoir une intégration réelle Orange Money / MTN Money avec OTP, statut d’échec et confirmation fournisseur. | 🟡 |
+
+### 4.6 — Récapitulatif des fonctionnalités
+
+| Module | 🔴 Obligatoires | 🟡 Importants | 🟢 Optionnels |
+|--------|-----------------|----------------|----------------|
+| Authentification & Gestion des accès | 3 | 2 | 0 |
+| Consultation des Documents académiques | 4 | 2 | 0 |
+| Notifications | 2 | 3 | 1 |
+| Administration (Back-office) | 5 | 2 | 0 |
+| Rendez-vous & Paiements | 6 | 4 | 0 |
+| **TOTAL** | **20** | **13** | **1** |
+
+---
+
+## 5. BESOINS NON FONCTIONNELS
+
+| Catégorie | Exigence | Critère de satisfaction |
+|-----------|----------|------------------------|
+| ⚡ Performance | Temps de réponse | Les pages principales doivent viser un chargement inférieur à 3 secondes et les routes API courantes doivent viser moins de 500 ms hors latence réseau. |
+| ⚡ Performance | Capacité de charge | L’application doit pouvoir supporter un usage simultané raisonnable, avec une cible de 200 utilisateurs simultanés sans dégradation majeure. |
+| 🔒 Sécurité | Authentification | L’authentification est gérée par Supabase Auth ; aucun mot de passe n’est stocké dans Prisma. |
+| 🔒 Sécurité | Autorisation | Les accès sont contrôlés par rôle et par périmètre organisme / antenne régionale. |
+| 🔒 Sécurité | Données personnelles | Les données personnelles doivent être limitées aux utilisateurs autorisés et la conformité RGPD doit être formalisée. |
+| 🔒 Sécurité | Injections SQL | L’accès aux données passe par Prisma ORM afin d’éviter l’interpolation SQL directe de données utilisateur. |
+| 🔒 Sécurité | Protection XSS | Les sorties affichées dans l’interface doivent être échappées par React et l’application doit être servie en HTTPS en production. |
+| 📱 Accessibilité | Responsive design | Les interfaces doivent être utilisables sur mobile, tablette et desktop, sans débordement horizontal. |
+| 📱 Accessibilité | Compatibilité | L’application doit fonctionner sur les versions récentes de Chrome, Firefox, Edge et Safari. |
+| 📱 Accessibilité | Langue | L’interface et la documentation métier sont en français. |
+| 🛠️ Maintenabilité | Architecture | Le code est organisé autour de Next.js App Router, Route Handlers, Server Actions, Prisma et services `lib/*`. |
+| 🛠️ Maintenabilité | Validation | Les entrées critiques doivent être validées avec Zod ou une validation équivalente. |
+| 🛠️ Maintenabilité | Versioning | Les modifications doivent être suivies dans Git avec des messages de commit clairs. |
+| 📊 Fiabilité | Disponibilité | Le déploiement cible Vercel + Supabase Cloud doit assurer une disponibilité adaptée à un service administratif. |
+| 📊 Fiabilité | Gestion des erreurs | Les erreurs doivent être capturées, affichées clairement à l’utilisateur et journalisées côté serveur lorsque nécessaire. |
+| 📊 Fiabilité | Emails | Les envois d’emails doivent être journalisés dans `mail_logs` avec succès ou erreur. |
+
+---
+
+## 6. ARCHITECTURE TECHNIQUE
+
+### 6.1 — Stack technique choisie
+
+| Couche | Technologie | Justification du choix |
+|--------|-------------|------------------------|
+| Frontend | Next.js App Router + React | Permet de construire des interfaces modernes, sécurisées et adaptées aux pages publiques, dashboard élève et back-office admin. |
+| Style / UI | Tailwind CSS | Facilite la création d’interfaces cohérentes, responsives et maintenables. |
+| Backend | API Routes Next.js + Server Actions | Centralise la logique serveur dans le même projet sans backend séparé. |
+| Base de données | Supabase (PostgreSQL) avec Prisma | PostgreSQL fournit un modèle relationnel robuste ; Prisma sécurise et structure l’accès aux données. |
+| Authentification | JWT / sessions via Supabase Auth | Supabase Auth gère les comptes, sessions, mots de passe et identifiants d’authentification. |
+| Emails | Nodemailer | Permet d’envoyer des notifications métier depuis le serveur applicatif. |
+| Validation | Zod | Permet de valider les formulaires et entrées API. |
+| Versioning | Git + GitHub | Assure le suivi des modifications, l’historique et la collaboration. |
+| Hébergement | Vercel + Supabase Cloud | Vercel est adapté au déploiement Next.js et Supabase fournit la base PostgreSQL et l’authentification. |
+
+### 6.2 — Architecture logique (Pattern MVC)
+
+| MODÈLE (Model) | VUE (View) | CONTRÔLEUR (Controller) |
+|----------------|-----------|--------------------------|
+| Le modèle est représenté par `prisma/schema.prisma`, Prisma Client et les entités métier : `User`, `DocumentAcademique`, `RendezVous`, `Paiement`, `Recu`, `Notification`, `Organisme`, `AntenneRegionale`, `ExamenValide`, etc. | La vue est représentée par les pages et composants Next.js : `app/dashboard/*`, `app/admin/*`, `app/auth/*`, `app/account/*`. | Le contrôle est assuré par les Route Handlers `app/api/*`, les Server Actions `app/*/actions.ts` et les services métier dans `lib/*`. |
+
+### 6.3 — Contraintes du projet
+
+| Type de contrainte | Description |
+|--------------------|-------------|
+| Technique | Le projet repose sur Next.js, Supabase Auth, PostgreSQL, Prisma, Nodemailer et Tailwind CSS. |
+| Temporelle | Le développement doit respecter les délais de soutenance et les échéances académiques. |
+| Équipe | Le projet est réalisé dans un contexte de stage ou de projet académique, avec validation par un encadreur. |
+| Connectivité | L’application dépend d’une connexion Internet, même si un mode hors ligne partiel reste envisageable plus tard. |
+| Institutionnelle | Les règles de retrait doivent rester conformes aux procédures OBC / DECC. |
+| Légale | Les données personnelles doivent être protégées et la conformité RGPD doit être formalisée. |
+
+### 6.4 — Organisation du code
+
+| Zone | Rôle |
+|------|------|
+| `app/auth/*` | Pages et actions d’authentification. |
+| `app/dashboard/*` | Interface élève : documents, rendez-vous, paiements, notifications. |
+| `app/admin/*` | Back-office administrateur : documents, élèves, import, retraits, rendez-vous, statistiques. |
+| `app/account/*` | Consultation et modification du profil. |
+| `app/api/*` | Routes HTTP pour auth, documents, paiements, notifications, retraits et statistiques. |
+| `lib/auth.ts` | Récupération de l’utilisateur connecté et contrôle de rôle. |
+| `lib/api-utils.ts` | Réponses JSON, erreurs API, pagination et protection des routes internes. |
+| `lib/appointment-service.ts` | Créneaux, quotas, jours fériés, titres de documents et lieux de retrait. |
+| `lib/document-routing.ts` | Règles OBC / DECC, antennes régionales, routage et périmètre admin. |
+| `lib/mail-service.ts` | Notifications email, création de notifications et journalisation des emails. |
+| `prisma/schema.prisma` | Schéma relationnel de référence. |
+| `scripts/*` | Seeds administrateur, élève test et données de diplômes. |
+
+### 6.5 — Modèle de données actuel
+
+| Entité | Rôle dans le système |
+|--------|----------------------|
+| `User` | Utilisateur applicatif, élève ou administrateur, relié à Supabase Auth par `authUserId`. |
+| `Organisme` | Organisme responsable, actuellement OBC ou DECC. |
+| `AntenneRegionale` | Antenne régionale OBC selon la région de composition. |
+| `ExamenValide` | Examen obtenu par un élève et servant de base aux documents demandables. |
+| `DocumentAcademique` | Document académique consultable ou demandable. |
+| `RendezVous` | Réservation de retrait ou trace d’un retrait physique honoré. |
+| `DisponibiliteRdv` | Ancien modèle de disponibilité dédiée encore présent dans le schéma. |
+| `Notification` | Notification applicative liée à un utilisateur. |
+| `MailLog` | Journal des emails envoyés ou échoués. |
+| `Duplicata` | Demande de duplicata. |
+| `Paiement` | Paiement associé à un duplicata et éventuellement à un document académique. |
+| `Recu` | Reçu de paiement généré par l’application. |
+| `ParametreRendezVous` | Paramètres globaux de rendez-vous, notamment quota journalier et lieu OBC. |
+| `CreneauHoraire` | Plage horaire active pour les rendez-vous. |
+| `JourFerie` | Date bloquée dans le calendrier des rendez-vous. |
+
+---
+
+## 7. CONTRAINTES DU PROJET
+
+| Type de contrainte | Description |
+|--------------------|-------------|
+| Fonctionnelle | Le système doit respecter les règles OBC / DECC : BEPC vers DECC, Baccalauréat original vers antenne régionale OBC, Probatoire sans diplôme original. |
+| Fonctionnelle | Un document ne peut être retiré que lorsqu’il est disponible et correctement rattaché à l’élève. |
+| Fonctionnelle | Un rendez-vous ne peut être créé que si le document nécessite réellement un rendez-vous et si le quota le permet. |
+| Fonctionnelle | Un élève ne doit pas avoir deux rendez-vous actifs pour le même document. |
+| Technique | Les sessions et mots de passe sont gérés par Supabase Auth, tandis que Prisma conserve le profil métier. |
+| Technique | Le mot de passe ne doit jamais être stocké dans le modèle Prisma `User`. |
+| Technique | Les routes internes doivent être protégées par `INTERNAL_API_SECRET`. |
+| Sécurité | Les administrateurs doivent être limités à leur organisme et à leur antenne régionale. |
+| Sécurité | Les informations techniques sensibles ne doivent pas être exposées à l’utilisateur final. |
+| Paiement | Le paiement Mobile Money réel reste hors périmètre immédiat ; le MVP gère un paiement applicatif simplifié et des reçus. |
+| Documentation | Les anciens diagrammes image sont conservés comme historique, mais les sources Mermaid mises à jour font référence. |
+| Données | Le CSV d’import doit contenir les colonnes nécessaires : matricule, email, mot de passe, identité, diplôme, centre d’examen, région, document, statut et rendez-vous. |
+
+---
+
+## 8. GLOSSAIRE
+
+| Terme | Définition |
+|-------|-----------|
+| OBC | Office du Baccalauréat du Cameroun. |
+| DECC | Direction ou Délégation des Examens, Concours et de la Certification, utilisée ici pour représenter l’organisme responsable des documents du BEPC. |
+| JWT | JSON Web Token, format de jeton utilisé pour transporter des informations d’authentification. |
+| SSR | Server Side Rendering, rendu côté serveur d’une page web. |
+| RDV | Rendez-vous. |
+| MVP | Minimum Viable Product, première version utilisable du produit. |
+| API | Application Programming Interface, interface permettant à des modules logiciels de communiquer. |
+| CRUD | Create, Read, Update, Delete : opérations de base sur les données. |
+| ORM | Object Relational Mapping, couche d’accès aux données reliant le code aux tables SQL. |
+| Prisma | ORM TypeScript utilisé pour accéder à PostgreSQL. |
+| Supabase Auth | Service d’authentification utilisé pour gérer les comptes, mots de passe et sessions. |
+| PostgreSQL | Système de gestion de base de données relationnelle. |
+| Nodemailer | Bibliothèque Node.js utilisée pour envoyer des emails. |
+| SMTP | Simple Mail Transfer Protocol, protocole d’envoi d’emails. |
+| CSV | Comma-Separated Values, format de fichier tabulaire utilisé pour importer des données. |
+| OBC_SETTINGS_ID | Identifiant global utilisé pour les paramètres de rendez-vous. |
+| `ELEVE` | Rôle applicatif d’un élève ou diplômé. |
+| `ADMINISTRATEUR` | Rôle applicatif d’un agent administratif OBC / DECC. |
+| `SERVICE_DELIVRANCE` | Rôle envisagé mais non implémenté séparément dans le MVP actuel. |
+| `PAS_DISPONIBLE` | Statut indiquant qu’un document n’est pas encore disponible. |
+| `DISPONIBLE` | Statut indiquant qu’un document est prêt pour retrait. |
+| `RETIRE` | Statut indiquant qu’un document a été retiré physiquement. |
+| `PLANIFIE` | Statut initial possible d’un rendez-vous. |
+| `CONFIRME` | Statut d’un rendez-vous validé. |
+| `ANNULE` | Statut d’un rendez-vous annulé. |
+| `HONORE` | Statut d’un rendez-vous correspondant à un retrait effectué. |
+| `EN_ATTENTE` | Statut d’un paiement créé mais non encore confirmé. |
+| `EFFECTUE` | Statut d’un paiement confirmé. |
+| Mobile Money | Service de paiement mobile, notamment Orange Money ou MTN Mobile Money. |
+| MailLog | Journal applicatif des emails envoyés ou échoués. |
+| Reçu | Document ou trace de paiement généré après une opération payante. |
+| Antenne régionale | Service régional OBC responsable de certains retraits, notamment le Baccalauréat original. |
+| Centre d’examen | Établissement ou lieu où l’élève a composé et où certains documents peuvent être retirés. |
+
+---
+
+*Document généré le 27/05/2026 — Version 2.0*

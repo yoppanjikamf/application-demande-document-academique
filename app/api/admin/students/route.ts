@@ -1,14 +1,17 @@
 import { getPageParams, handleApiError, json, requireApiUser } from "@/lib/api-utils";
+import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   try {
-    await requireApiUser("ADMINISTRATEUR");
+    const admin = await requireApiUser("ADMINISTRATEUR");
+    const documentScope = getAdminDocumentScope(admin);
     const url = new URL(request.url);
     const search = url.searchParams.get("q")?.trim();
     const { page, limit, skip } = getPageParams(request);
     const where = {
       role: "ELEVE" as const,
+      documentsAcademique: { some: documentScope },
       ...(search
         ? {
             OR: [
@@ -37,8 +40,8 @@ export async function GET(request: Request) {
           createdAt: true,
           _count: {
             select: {
-              documentsAcademique: true,
-              eleveRendezVous: true,
+              documentsAcademique: { where: documentScope },
+              eleveRendezVous: { where: { document: { is: documentScope } } },
             },
           },
         },

@@ -1,6 +1,7 @@
 import { Mail, Search } from "lucide-react";
 
 import { requireRole } from "@/lib/auth";
+import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Input } from "@/components/ui/input";
@@ -13,8 +14,10 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
   const user = await requireRole("ADMINISTRATEUR", "/admin/students");
   const params = await searchParams;
   const q = params?.q?.trim();
+  const documentScope = getAdminDocumentScope(user);
   const where = {
     role: "ELEVE" as const,
+    documentsAcademique: { some: documentScope },
     ...(q
       ? {
           OR: [
@@ -40,8 +43,8 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
       dateNaissance: true,
       _count: {
         select: {
-          documentsAcademique: true,
-          eleveRendezVous: true,
+          documentsAcademique: { where: documentScope },
+          eleveRendezVous: { where: { document: { is: documentScope } } },
         },
       },
     },

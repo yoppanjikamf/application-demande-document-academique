@@ -1,6 +1,7 @@
 import "dotenv/config";
 
 import { PrismaClient, Role, type DiplomePrincipal, type TypeDocument } from "../lib/generated/prisma/client";
+import { OBC_REGIONAL_ANTENNAS, ORGANISME_IDS, resolveDocumentRoute } from "../lib/document-routing";
 import { createSupabaseAdminClient } from "../lib/supabase/admin";
 
 const prisma = new PrismaClient();
@@ -18,25 +19,65 @@ const EXAMS: Array<{
   diplomeType: DiplomePrincipal;
   anneeSession: number;
   centreExamen: string;
+  regionComposition: string;
 }> = [
   {
     diplomeType: "BEPC",
     anneeSession: 2020,
     centreExamen: "Lycee de Biyem-Assi",
+    regionComposition: "Centre",
   },
   {
     diplomeType: "PROBATOIRE",
     anneeSession: 2022,
     centreExamen: "Lycee General Leclerc",
+    regionComposition: "Centre",
   },
   {
     diplomeType: "BACCALAUREAT",
     anneeSession: 2023,
     centreExamen: "Lycee General Leclerc",
+    regionComposition: "Centre",
   },
 ];
 
-const DOCUMENT_TYPES: TypeDocument[] = ["ORIGINAL", "RELEVE_NOTES"];
+const DOCUMENT_TYPES_BY_EXAM: Record<DiplomePrincipal, TypeDocument[]> = {
+  BEPC: ["ORIGINAL", "RELEVE_NOTES"],
+  PROBATOIRE: ["RELEVE_NOTES"],
+  BACCALAUREAT: ["ORIGINAL", "RELEVE_NOTES"],
+};
+
+async function ensureOrganismesAndAntennes() {
+  await prisma.organisme.upsert({
+    where: { id: ORGANISME_IDS.OBC },
+    update: { nom: "OBC" },
+    create: { id: ORGANISME_IDS.OBC, nom: "OBC" },
+  });
+  await prisma.organisme.upsert({
+    where: { id: ORGANISME_IDS.DECC },
+    update: { nom: "DECC" },
+    create: { id: ORGANISME_IDS.DECC, nom: "DECC" },
+  });
+
+  for (const antenne of OBC_REGIONAL_ANTENNAS) {
+    await prisma.antenneRegionale.upsert({
+      where: { id: antenne.id },
+      update: {
+        nom: antenne.nom,
+        region: antenne.region,
+        ville: antenne.ville,
+        organismeId: ORGANISME_IDS.OBC,
+      },
+      create: {
+        id: antenne.id,
+        nom: antenne.nom,
+        region: antenne.region,
+        ville: antenne.ville,
+        organismeId: ORGANISME_IDS.OBC,
+      },
+    });
+  }
+}
 
 async function findSupabaseUserIdByEmail(email: string) {
   const supabase = createSupabaseAdminClient();
@@ -94,6 +135,7 @@ async function ensureSupabaseEleve() {
 }
 
 async function main() {
+  await ensureOrganismesAndAntennes();
   const authUserId = await ensureSupabaseEleve();
 
   const existingByMatricule = await prisma.user.findUnique({
@@ -163,16 +205,25 @@ async function main() {
       update: {
         anneeSession: exam.anneeSession,
         centreExamen: exam.centreExamen,
+        regionComposition: exam.regionComposition,
       },
       create: {
         eleveId: user.id,
         diplomeType: exam.diplomeType,
         anneeSession: exam.anneeSession,
         centreExamen: exam.centreExamen,
+        regionComposition: exam.regionComposition,
       },
     });
 
-    for (const typeDocument of DOCUMENT_TYPES) {
+    for (const typeDocument of DOCUMENT_TYPES_BY_EXAM[exam.diplomeType]) {
+      const route = resolveDocumentRoute({
+        diplomeType: exam.diplomeType,
+        typeDocument,
+        centreExamen: exam.centreExamen,
+        regionComposition: exam.regionComposition,
+      });
+
       await prisma.documentAcademique.upsert({
         where: {
           eleveId_diplomeType_typeDocument: {
@@ -183,14 +234,20 @@ async function main() {
         },
         update: {
           statut: "DISPONIBLE",
-          centreExamen: typeDocument === "RELEVE_NOTES" ? exam.centreExamen : null,
+          centreExamen: exam.centreExamen,
+          regionComposition: exam.regionComposition,
+          organismeId: route.organismeId,
+          antenneRegionaleId: route.antenneRegionaleId,
         },
         create: {
           eleveId: user.id,
           diplomeType: exam.diplomeType,
           typeDocument,
           statut: "DISPONIBLE",
-          centreExamen: typeDocument === "RELEVE_NOTES" ? exam.centreExamen : null,
+          centreExamen: exam.centreExamen,
+          regionComposition: exam.regionComposition,
+          organismeId: route.organismeId,
+          antenneRegionaleId: route.antenneRegionaleId,
         },
       });
     }
@@ -202,7 +259,7 @@ async function main() {
   console.log(`  Email: ${TEST_USER.email}`);
   console.log(`  Mot de passe: ${TEST_USER.password}`);
   console.log(`  Examens valides: ${EXAMS.length}`);
-  console.log(`  Documents disponibles: ${EXAMS.length * DOCUMENT_TYPES.length}`);
+  console.log(`  Documents disponibles: ${EXAMS.reduce((sum, exam) => sum + DOCUMENT_TYPES_BY_EXAM[exam.diplomeType].length, 0)}`);
 }
 
 main()

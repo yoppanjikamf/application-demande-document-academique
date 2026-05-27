@@ -124,3 +124,35 @@ Erreurs frequentes :
 - mettre `SMTP_FROM` avec une adresse differente de `SMTP_USER` ;
 - utiliser le port `465` sans SSL/TLS ;
 - copier le mot de passe d'application avec des espaces involontaires.
+
+## 10. Utilisation dans cette application
+
+Dans le MVP actuel, l'application utilise deux niveaux de notification :
+
+- une notification applicative en base dans la table `notifications` ;
+- un email envoye par Nodemailer depuis le serveur Next.js.
+
+Les fonctions metier sont centralisees dans `lib/mail-service.ts` :
+
+- `notifyDocumentAvailable` : document disponible ;
+- `notifyDuplicataRequestRegistered` : demande de duplicata enregistree ;
+- `notifyDocumentRetired` : document retire ;
+- `notifyAppointmentConfirmed` : rendez-vous confirme.
+
+Chaque tentative d'envoi est journalisee dans la table `mail_logs` :
+
+- `status = ENVOYE` si l'email part correctement ;
+- `status = ERREUR` si Nodemailer retourne une erreur ;
+- `error` contient le message technique en cas d'echec.
+
+Pour tester le flux complet :
+
+1. Configure les variables SMTP dans `.env`.
+2. Redemarre `npm run dev`.
+3. Connecte-toi comme administrateur.
+4. Passe un document au statut `DISPONIBLE`.
+5. Verifie que l'eleve a une notification dans `/dashboard/notifications`.
+6. Verifie que l'email est envoye.
+7. Verifie la table `mail_logs` en base.
+
+Important : les notifications push navigateur/mobile ne sont pas encore implementees. Dans la documentation et les diagrammes du MVP, il faut donc parler de "notification en base + email" plutot que de "push".

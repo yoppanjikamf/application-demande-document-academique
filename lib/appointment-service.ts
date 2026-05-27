@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getAntenneForRegion, isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
 import type {
   DiplomePrincipal,
   DocumentAcademique,
@@ -140,13 +141,12 @@ export function getStatusLabel(status: StatutDocument) {
   return "Retire";
 }
 
-export async function getPickupLocation(document: Pick<DocumentAcademique, "typeDocument" | "centreExamen">) {
-  const settings = await getAppointmentSettings();
-  if (document.typeDocument === "RELEVE_NOTES") {
-    return document.centreExamen?.trim() || "Centre d'examen de l'eleve";
-  }
-
-  return settings.lieuObc;
+export async function getPickupLocation(
+  document: Pick<DocumentAcademique, "diplomeType" | "typeDocument" | "centreExamen" | "regionComposition"> & {
+    antenneRegionale?: { nom: string; ville: string | null; region: string } | null;
+  },
+) {
+  return resolveDocumentRoute(document).location;
 }
 
 export async function getAvailableSlots(date: Date): Promise<AppointmentSlot[]> {
@@ -201,6 +201,18 @@ export async function ensureDocumentsForValidatedExams(eleveId: string) {
 
   for (const exam of exams) {
     for (const typeDocument of ["ORIGINAL", "RELEVE_NOTES", "DUPLICATA"] as const) {
+      if (!isDocumentRequestAllowed(exam.diplomeType, typeDocument)) {
+        continue;
+      }
+
+      const route = resolveDocumentRoute({
+        diplomeType: exam.diplomeType,
+        typeDocument,
+        centreExamen: exam.centreExamen,
+        regionComposition: exam.regionComposition,
+      });
+      const antenne = route.antenneRegionaleId ? getAntenneForRegion(exam.regionComposition) : null;
+
       await prisma.documentAcademique.upsert({
         where: {
           eleveId_diplomeType_typeDocument: {
@@ -210,13 +222,19 @@ export async function ensureDocumentsForValidatedExams(eleveId: string) {
           },
         },
         update: {
-          centreExamen: typeDocument === "RELEVE_NOTES" ? exam.centreExamen : undefined,
+          centreExamen: exam.centreExamen,
+          regionComposition: exam.regionComposition ?? undefined,
+          organismeId: route.organismeId,
+          antenneRegionaleId: antenne?.id ?? null,
         },
         create: {
           eleveId,
           diplomeType: exam.diplomeType,
           typeDocument,
-          centreExamen: typeDocument === "RELEVE_NOTES" ? exam.centreExamen : null,
+          centreExamen: exam.centreExamen,
+          regionComposition: exam.regionComposition,
+          organismeId: route.organismeId,
+          antenneRegionaleId: antenne?.id ?? null,
           statut: "PAS_DISPONIBLE",
         },
       });

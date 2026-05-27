@@ -58,8 +58,8 @@ export async function notifyDocumentAvailable({
   const text = isReleve
     ? `Votre releve de notes est desormais disponible dans votre centre d'examen: ${location}.`
     : isDuplicata
-      ? "Votre duplicata est disponible pour retrait au Centre OBC."
-      : `Votre document ${documentTitle} est disponible. Vous pouvez maintenant prendre rendez-vous pour le retrait.`;
+      ? `Votre duplicata est disponible pour retrait: ${location}.`
+      : `Votre document ${documentTitle} est disponible pour retrait: ${location}.`;
 
   await prisma.notification.create({
     data: {

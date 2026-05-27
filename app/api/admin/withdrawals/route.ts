@@ -1,7 +1,8 @@
 import { z } from "zod";
 
-import { getDocumentTitle } from "@/lib/appointment-service";
+import { getDocumentTitle, getPickupLocation } from "@/lib/appointment-service";
 import { ApiError, getPageParams, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
+import { getAdminDocumentScope } from "@/lib/document-routing";
 import { notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 
@@ -13,11 +14,12 @@ const withdrawalSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    await requireApiUser("ADMINISTRATEUR");
+    const admin = await requireApiUser("ADMINISTRATEUR");
+    const documentScope = getAdminDocumentScope(admin);
     const { page, limit, skip } = getPageParams(request);
     const [withdrawals, total] = await Promise.all([
       prisma.rendezVous.findMany({
-        where: { statut: "HONORE" },
+        where: { statut: "HONORE", document: { is: documentScope } },
         orderBy: [{ updatedAt: "desc" }, { dateRdv: "desc" }],
         skip,
         take: limit,
@@ -42,7 +44,7 @@ export async function GET(request: Request) {
           document: true,
         },
       }),
-      prisma.rendezVous.count({ where: { statut: "HONORE" } }),
+      prisma.rendezVous.count({ where: { statut: "HONORE", document: { is: documentScope } } }),
     ]);
 
     return json({ withdrawals, pagination: { page, limit, total } });
@@ -54,9 +56,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const admin = await requireApiUser("ADMINISTRATEUR");
+    const documentScope = getAdminDocumentScope(admin);
     const input = await parseJson(request, withdrawalSchema);
-    const document = await prisma.documentAcademique.findUnique({
-      where: { id: input.documentId },
+    const document = await prisma.documentAcademique.findFirst({
+      where: { id: input.documentId, ...documentScope },
       include: { eleve: true },
     });
 
@@ -70,11 +73,13 @@ export async function POST(request: Request) {
           where: {
             id: input.appointmentId,
             documentId: document.id,
+            document: { is: documentScope },
           },
         })
       : await prisma.rendezVous.findFirst({
           where: {
             documentId: document.id,
+            document: { is: documentScope },
             statut: { in: ["PLANIFIE", "CONFIRME"] },
           },
           orderBy: { dateRdv: "asc" },
@@ -103,7 +108,7 @@ export async function POST(request: Request) {
           documentId: document.id,
           dateRdv: now,
           heureRdv: now.toTimeString().slice(0, 5),
-          lieu: "Centre OBC",
+          lieu: await getPickupLocation(document),
           statut: "HONORE",
           commentaire: input.commentaire?.trim() || "Retrait physique confirme",
         },

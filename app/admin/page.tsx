@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarDays, FileText, ListChecks, UsersRound } from "lucide-react";
 
 import { requireRole } from "@/lib/auth";
+import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -11,6 +12,7 @@ import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 
 export default async function AdminPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin");
+  const documentScope = getAdminDocumentScope(user);
 
   const [
     elevesCount,
@@ -23,18 +25,19 @@ export default async function AdminPage() {
     nextAppointments,
   ] = await Promise.all([
     prisma.user.count({ where: { role: "ELEVE" } }),
-    prisma.documentAcademique.count(),
-    prisma.rendezVous.count({ where: { statut: { in: ["PLANIFIE", "CONFIRME"] } } }),
-    prisma.documentAcademique.count({ where: { statut: "DISPONIBLE" } }),
-    prisma.documentAcademique.count({ where: { statut: "PAS_DISPONIBLE" } }),
-    prisma.rendezVous.count({ where: { statut: "HONORE" } }),
+    prisma.documentAcademique.count({ where: documentScope }),
+    prisma.rendezVous.count({ where: { statut: { in: ["PLANIFIE", "CONFIRME"] }, document: { is: documentScope } } }),
+    prisma.documentAcademique.count({ where: { ...documentScope, statut: "DISPONIBLE" } }),
+    prisma.documentAcademique.count({ where: { ...documentScope, statut: "PAS_DISPONIBLE" } }),
+    prisma.rendezVous.count({ where: { statut: "HONORE", document: { is: documentScope } } }),
     prisma.documentAcademique.findMany({
+      where: documentScope,
       take: 5,
       orderBy: { updatedAt: "desc" },
       include: { eleve: true },
     }),
     prisma.rendezVous.findMany({
-      where: { statut: { in: ["PLANIFIE", "CONFIRME"] } },
+      where: { statut: { in: ["PLANIFIE", "CONFIRME"] }, document: { is: documentScope } },
       take: 5,
       orderBy: [{ dateRdv: "asc" }, { heureRdv: "asc" }],
       include: { eleve: true, document: true },
@@ -46,7 +49,7 @@ export default async function AdminPage() {
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
       activePath="/admin"
-      title="Administration OBC"
+      title={`Administration ${user.nomService ?? ""}`.trim()}
       subtitle={`Connecte en tant que ${user.prenom} ${user.nom}${user.nomService ? ` · ${user.nomService}` : ""}`}
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

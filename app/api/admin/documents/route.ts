@@ -1,15 +1,19 @@
 import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { getPageParams, handleApiError, json, requireApiUser } from "@/lib/api-utils";
+import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { StatutDocument } from "@/lib/generated/prisma/client";
 
 export async function GET(request: Request) {
   try {
-    await requireApiUser("ADMINISTRATEUR");
+    const admin = await requireApiUser("ADMINISTRATEUR");
     const url = new URL(request.url);
     const status = url.searchParams.get("statut");
     const { page, limit, skip } = getPageParams(request);
-    const where = status && status in StatutDocument ? { statut: status as StatutDocument } : {};
+    const where = {
+      ...getAdminDocumentScope(admin),
+      ...(status && status in StatutDocument ? { statut: status as StatutDocument } : {}),
+    };
     const [documents, total] = await Promise.all([
       prisma.documentAcademique.findMany({
         where,

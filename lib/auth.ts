@@ -13,6 +13,8 @@ export type AuthenticatedUser = {
   prenom: string;
   role: Role;
   nomService: string | null;
+  organismeId: string | null;
+  antenneRegionaleId: string | null;
   dateNaissance: Date | null;
 };
 
@@ -39,6 +41,8 @@ export async function getCurrentUser() {
       prenom: true,
       role: true,
       nomService: true,
+      organismeId: true,
+      antenneRegionaleId: true,
       dateNaissance: true,
     },
   });

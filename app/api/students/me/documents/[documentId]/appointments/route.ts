@@ -10,6 +10,7 @@ import {
   parseDateKey,
 } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
+import { resolveDocumentRoute } from "@/lib/document-routing";
 import { notifyAppointmentConfirmed } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 
@@ -46,6 +47,11 @@ export async function POST(request: Request, { params }: RouteContext) {
       throw new ApiError("Ce document n'est pas encore disponible.", 409);
     }
 
+    const route = resolveDocumentRoute(document);
+    if (!route.requiresAppointment) {
+      throw new ApiError("Ce document se retire directement au centre d'examen, sans rendez-vous.", 409);
+    }
+
     const availableSlots = await getAvailableSlots(date);
     const selectedSlot = availableSlots.find((slot) => slot.value === input.heureRdv);
 
@@ -66,7 +72,11 @@ export async function POST(request: Request, { params }: RouteContext) {
     }
 
     const admin = await prisma.user.findFirst({
-      where: { role: "ADMINISTRATEUR" },
+      where: {
+        role: "ADMINISTRATEUR",
+        organismeId: route.organismeId,
+        ...(route.antenneRegionaleId ? { antenneRegionaleId: route.antenneRegionaleId } : {}),
+      },
       select: { id: true },
       orderBy: { createdAt: "asc" },
     });

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { getDocumentTitle, getPickupLocation } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
+import { getAdminDocumentScope, isDocumentRequestAllowed } from "@/lib/document-routing";
 import { notifyDocumentAvailable, notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 
@@ -15,16 +16,20 @@ type RouteContext = {
 
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
-    await requireApiUser("ADMINISTRATEUR");
+    const admin = await requireApiUser("ADMINISTRATEUR");
     const { documentId } = await params;
     const input = await parseJson(request, statusSchema);
-    const document = await prisma.documentAcademique.findUnique({
-      where: { id: documentId },
+    const document = await prisma.documentAcademique.findFirst({
+      where: { id: documentId, ...getAdminDocumentScope(admin) },
       include: { eleve: true },
     });
 
     if (!document) {
       throw new ApiError("Document introuvable.", 404);
+    }
+
+    if (!isDocumentRequestAllowed(document.diplomeType, document.typeDocument)) {
+      throw new ApiError("Le Probatoire ne donne pas lieu a un diplome.", 422);
     }
 
     const previousStatus = document.statut;

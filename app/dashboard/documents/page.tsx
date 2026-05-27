@@ -9,6 +9,7 @@ import {
   getStatusLabel,
 } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
+import { isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import type { DiplomePrincipal, DocumentAcademique, RendezVous, TypeDocument } from "@/lib/generated/prisma/client";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
@@ -171,6 +172,16 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
   const honoredDuplicataAppointment = getHonoredAppointment(duplicataDocument);
   const honoredOriginalAppointment = getHonoredAppointment(originalDocument);
   const honoredReleveAppointment = getHonoredAppointment(releveDocument);
+  const originalRoute = originalDocument ? resolveDocumentRoute(originalDocument) : null;
+  const duplicataRoute =
+    currentExam && selectedCible
+      ? resolveDocumentRoute({
+          diplomeType: currentExam.diplomeType,
+          typeDocument: selectedCible,
+          centreExamen: currentExam.centreExamen,
+          regionComposition: currentExam.regionComposition,
+        })
+      : null;
 
   return (
     <DashboardShell
@@ -206,6 +217,9 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                   <p className="mt-1 text-sm text-slate-500">
                     Session {exam.anneeSession ?? "non renseignee"} · {exam.centreExamen ?? "Centre non renseigne"}
                   </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Region de composition: {exam.regionComposition ?? "Centre"}
+                  </p>
                 </Link>
               );
             })}
@@ -223,10 +237,19 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {[
-              { type: "ORIGINAL" as const, icon: FileCheck2, text: "Retrait au Centre OBC avec rendez-vous." },
+              {
+                type: "ORIGINAL" as const,
+                icon: FileCheck2,
+                text:
+                  currentExam.diplomeType === "BACCALAUREAT"
+                    ? "Retrait a l'antenne regionale OBC avec rendez-vous."
+                    : "Retrait direct au centre d'examen.",
+              },
               { type: "RELEVE_NOTES" as const, icon: FileText, text: "Retrait direct dans votre centre d'examen." },
-              { type: "DUPLICATA" as const, icon: RotateCcw, text: "Demande, paiement, puis rendez-vous au Centre OBC." },
-            ].map((option) => {
+              { type: "DUPLICATA" as const, icon: RotateCcw, text: "Demande, paiement, puis retrait selon l'organisme responsable." },
+            ]
+              .filter((option) => isDocumentRequestAllowed(currentExam.diplomeType, option.type === "DUPLICATA" ? "DUPLICATA" : option.type))
+              .map((option) => {
               const isActive = selectedOption === option.type;
               return (
                 <Link
@@ -243,17 +266,26 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
               );
             })}
           </div>
+          {currentExam.diplomeType === "PROBATOIRE" ? (
+            <p className="rounded-md bg-amber-50 p-4 text-sm text-amber-800">
+              Le Probatoire ne donne pas lieu a la delivrance d&apos;un diplome. Seul le releve de notes est disponible.
+            </p>
+          ) : null}
         </section>
       ) : null}
 
-      {currentExam && selectedOption === "ORIGINAL" ? (
+      {currentExam && selectedOption === "ORIGINAL" && isDocumentRequestAllowed(currentExam.diplomeType, "ORIGINAL") ? (
         <section className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold text-slate-950">
                 Original du diplome du {diplomeLabels[currentExam.diplomeType]}
               </h3>
-              <p className="mt-1 text-sm text-slate-500">Retrait obligatoire au Centre OBC.</p>
+              <p className="mt-1 text-sm text-slate-500">
+                {originalRoute?.requiresAppointment
+                  ? "Retrait a l'antenne regionale OBC avec rendez-vous."
+                  : "Retrait direct au centre d'examen."}
+              </p>
             </div>
             <StatusBadge tone={originalDocument ? documentTone(originalDocument.statut) : "slate"}>
               {originalDocument ? getStatusLabel(originalDocument.statut) : "Non disponible"}
@@ -270,18 +302,24 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
             </div>
           ) : originalDocument?.statut === "DISPONIBLE" ? (
             <div className="mt-5 space-y-4">
-              <p className="text-sm text-slate-600">Lieu de retrait: Centre OBC</p>
-              {activeOriginalAppointment ? (
+              <p className="text-sm text-slate-600">
+                Lieu de retrait: {await getPickupLocation(originalDocument)}
+              </p>
+              {originalRoute?.requiresAppointment && activeOriginalAppointment ? (
                 <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
                   Rendez-vous confirme le {activeOriginalAppointment.dateRdv.toLocaleDateString("fr-FR")} ·{" "}
                   {activeOriginalAppointment.heureRdv}
                 </div>
-              ) : (
+              ) : originalRoute?.requiresAppointment ? (
                 <AppointmentDialog
                   documentId={originalDocument.id}
                   documentTitle={`Original du diplome du ${diplomeLabels[currentExam.diplomeType]}`}
                   disabled={false}
                 />
+              ) : (
+                <div className="rounded-md bg-emerald-50 p-4 text-sm text-emerald-800">
+                  Ce document se retire directement dans votre centre d&apos;examen. Aucun rendez-vous OBC n&apos;est requis.
+                </div>
               )}
             </div>
           ) : (
@@ -340,7 +378,9 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
             <p className="mt-1 text-sm text-slate-500">Selectionnez le document source du duplicata.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            {(["RELEVE_NOTES", "ORIGINAL"] as const).map((target) => {
+            {(["RELEVE_NOTES", "ORIGINAL"] as const).filter((target) =>
+              isDocumentRequestAllowed(currentExam.diplomeType, "DUPLICATA", target),
+            ).map((target) => {
               const isActive = selectedCible === target;
               return (
                 <Link
@@ -442,19 +482,25 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                       </div>
                     ) : duplicataDocument?.statut === "DISPONIBLE" ? (
                       <div className="space-y-3">
-                        <p className="text-sm text-slate-600">Lieu de retrait: Centre OBC</p>
-                        {activeDuplicataAppointment ? (
+                        <p className="text-sm text-slate-600">
+                          Lieu de retrait: {duplicataRoute?.location ?? "Centre d'examen"}
+                        </p>
+                        {duplicataRoute?.requiresAppointment && activeDuplicataAppointment ? (
                           <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
                             Rendez-vous confirme le {activeDuplicataAppointment.dateRdv.toLocaleDateString("fr-FR")} ·{" "}
                             {activeDuplicataAppointment.heureRdv}
                           </div>
-                        ) : duplicataDocument ? (
+                        ) : duplicataRoute?.requiresAppointment && duplicataDocument ? (
                           <AppointmentDialog
                             documentId={duplicataDocument.id}
                             documentTitle={getDuplicataTitle(currentExam.diplomeType, selectedCible)}
                             disabled={false}
                           />
-                        ) : null}
+                        ) : (
+                          <div className="rounded-md bg-emerald-50 p-4 text-sm text-emerald-800">
+                            Ce duplicata se retire directement au centre indique. Aucun rendez-vous OBC n&apos;est requis.
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p className="text-sm leading-6 text-slate-500">

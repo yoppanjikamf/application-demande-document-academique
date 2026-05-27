@@ -1,5 +1,6 @@
 import { getDocumentTitle } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
+import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBadge } from "@/components/dashboard/status-badge";
@@ -7,13 +8,13 @@ import { StatusBadge } from "@/components/dashboard/status-badge";
 export default async function AdminWithdrawalsPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin/withdrawals");
   const withdrawals = await prisma.rendezVous.findMany({
-    where: { statut: "HONORE" },
+    where: { statut: "HONORE", document: { is: getAdminDocumentScope(user) } },
     orderBy: [{ updatedAt: "desc" }],
     take: 100,
     include: {
       eleve: true,
       admin: true,
-      document: true,
+      document: { include: { organisme: true, antenneRegionale: true } },
     },
   });
 
@@ -47,6 +48,12 @@ export default async function AdminWithdrawalsPage() {
                     Service: {withdrawal.admin.prenom} {withdrawal.admin.nom} ·{" "}
                     {withdrawal.updatedAt.toLocaleDateString("fr-FR")}
                   </p>
+                  {withdrawal.document ? (
+                    <p className="text-sm text-slate-500">
+                      {withdrawal.document.organisme?.nom ?? "Organisme non defini"}
+                      {withdrawal.document.antenneRegionale ? ` · ${withdrawal.document.antenneRegionale.nom}` : ""}
+                    </p>
+                  ) : null}
                 </div>
                 <StatusBadge tone="blue">HONORE</StatusBadge>
               </div>

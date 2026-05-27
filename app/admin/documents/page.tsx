@@ -3,6 +3,7 @@ import Link from "next/link";
 import { updateDocumentStatusAction } from "@/app/admin/actions";
 import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
+import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBadge, documentTone } from "@/components/dashboard/status-badge";
@@ -24,16 +25,18 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
   const status = STATUSES.find((value) => value === params?.statut);
   const page = Math.max(1, Number(params?.page ?? "1") || 1);
 
-  const where = status ? { statut: status } : {};
+  const where = { ...getAdminDocumentScope(user), ...(status ? { statut: status } : {}) };
   const [documents, total] = await Promise.all([
     prisma.documentAcademique.findMany({
       where,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       orderBy: { updatedAt: "desc" },
-      include: {
-        eleve: true,
-        rendezVous: {
+        include: {
+          eleve: true,
+          organisme: true,
+          antenneRegionale: true,
+          rendezVous: {
           where: { statut: { in: ["PLANIFIE", "CONFIRME"] } },
           orderBy: { dateRdv: "asc" },
           take: 1,
@@ -79,6 +82,10 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
                 </div>
                 <p className="text-sm text-slate-500">
                   {document.eleve.prenom} {document.eleve.nom} · {document.eleve.matricule}
+                </p>
+                <p className="text-sm text-slate-500">
+                  {document.organisme?.nom ?? "Organisme non defini"}
+                  {document.antenneRegionale ? ` · ${document.antenneRegionale.nom}` : ""}
                 </p>
                 <p className="text-sm text-slate-500">
                   {document.rendezVous[0]

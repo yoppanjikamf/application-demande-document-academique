@@ -1,6 +1,7 @@
 import { updateAdminQuotaAction } from "@/app/admin/actions";
 import { OBC_SETTINGS_ID, formatDateKey, getActiveTimeSlots } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
+import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 
 export default async function AdminDisponibilitesPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin/rdv-disponibilites");
+  const documentScope = getAdminDocumentScope(user);
 
   const [settings, slots] = await Promise.all([
     prisma.parametreRendezVous.findUnique({ where: { id: OBC_SETTINGS_ID } }),
@@ -22,6 +24,7 @@ export default async function AdminDisponibilitesPage() {
     where: {
       dateRdv: { gte: monthStart, lte: monthEnd },
       statut: { in: ["PLANIFIE", "CONFIRME"] },
+      document: { is: documentScope },
     },
     select: { dateRdv: true },
   });

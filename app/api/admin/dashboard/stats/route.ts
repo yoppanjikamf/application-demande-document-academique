@@ -1,18 +1,20 @@
 import { handleApiError, json, requireApiUser } from "@/lib/api-utils";
+import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    await requireApiUser("ADMINISTRATEUR");
+    const admin = await requireApiUser("ADMINISTRATEUR");
+    const documentScope = getAdminDocumentScope(admin);
     const [students, documents, pendingDocuments, availableDocuments, retiredDocuments, appointments] =
       await Promise.all([
         prisma.user.count({ where: { role: "ELEVE" } }),
-        prisma.documentAcademique.count(),
-        prisma.documentAcademique.count({ where: { statut: "PAS_DISPONIBLE" } }),
-        prisma.documentAcademique.count({ where: { statut: "DISPONIBLE" } }),
-        prisma.documentAcademique.count({ where: { statut: "RETIRE" } }),
+        prisma.documentAcademique.count({ where: documentScope }),
+        prisma.documentAcademique.count({ where: { ...documentScope, statut: "PAS_DISPONIBLE" } }),
+        prisma.documentAcademique.count({ where: { ...documentScope, statut: "DISPONIBLE" } }),
+        prisma.documentAcademique.count({ where: { ...documentScope, statut: "RETIRE" } }),
         prisma.rendezVous.findMany({
-          where: { statut: "HONORE" },
+          where: { statut: "HONORE", document: { is: documentScope } },
           select: { createdAt: true, updatedAt: true },
         }),
       ]);
