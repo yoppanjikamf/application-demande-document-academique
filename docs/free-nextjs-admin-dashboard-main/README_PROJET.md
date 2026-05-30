@@ -2,7 +2,7 @@
 
 Ce dossier est une copie du template d'administration Next.js utilise comme inspiration UI.
 
-Il ne represente pas la documentation fonctionnelle du projet OBC/DECC. Pour la documentation a jour, utiliser plutot :
+Il ne represente pas la documentation fonctionnelle du projet DR-DOCSCOL. Pour la documentation a jour, utiliser plutot :
 
 - `../cahier_des_charges_mis_a_jour.md`
 - `../guide_api_mis_a_jour.md`

@@ -1,0 +1,27 @@
+sequenceDiagram
+    participant Admin as Administrateur
+    participant Systeme as Système
+    participant Service as Service documents
+    participant BDD as Base de données
+    participant Notif as Service notif / email
+    participant Eleve as Élève
+
+    Admin->>Systeme: sélectionne document + nouveau statut
+    Systeme->>Service: contrôle rôle et périmètre organisme / antenne
+    Service->>BDD: recherche document autorisé
+    BDD-->>Service: document + élève
+    Service->>Service: applique règles Probatoire / OBC / DECC
+    Service->>BDD: met à jour statut document
+    BDD-->>Service: document mis à jour
+    alt Statut devient DISPONIBLE
+        Service->>Notif: notifier document disponible
+        Notif->>BDD: crée notification et MailLog
+        Notif-->>Eleve: email de disponibilité
+    else Statut devient RETIRE
+        Service->>BDD: passe RDV actifs à HONORE
+        Service->>Notif: notifier retrait confirmé
+        Notif->>BDD: crée notification et MailLog
+        Notif-->>Eleve: email d'accusé de retrait
+    end
+    Service-->>Systeme: résultat de l'opération
+    Systeme-->>Admin: confirmation action effectuée

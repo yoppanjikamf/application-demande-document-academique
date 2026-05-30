@@ -59,7 +59,7 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Matricule</FormLabel>
               <FormControl>
-                <Input placeholder="OBC20260001" autoComplete="username" {...field} />
+                <Input placeholder="MAT20260001" autoComplete="username" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -72,7 +72,12 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="vous@example.com" type="email" autoComplete="email" {...field} />
+                <Input
+                  placeholder="vous@example.com"
+                  type="email"
+                  autoComplete="email"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -85,11 +90,7 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Mot de passe</FormLabel>
               <FormControl>
-                <PasswordInput
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  {...field}
-                />
+                <PasswordInput placeholder="••••••••" autoComplete="current-password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -100,13 +101,25 @@ export function LoginForm() {
           {pending ? "Connexion..." : "Se connecter"}
         </Button>
 
-        <p className="text-sm text-muted-foreground">
-          Pas encore inscrit ?{" "}
-          <Link href="/auth/register" className="text-foreground underline underline-offset-4">
-            Activer mon compte
-          </Link>
-          .
-        </p>
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>
+            Mot de passe oublié ?{" "}
+            <Link
+              href="/auth/password/forgot"
+              className="text-foreground underline underline-offset-4"
+            >
+              Réinitialiser
+            </Link>
+            .
+          </p>
+          <p>
+            Pas encore inscrit ?{" "}
+            <Link href="/auth/register" className="text-foreground underline underline-offset-4">
+              Activer mon compte
+            </Link>
+            .
+          </p>
+        </div>
       </form>
     </Form>
   );

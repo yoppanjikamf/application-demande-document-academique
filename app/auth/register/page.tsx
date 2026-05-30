@@ -9,7 +9,7 @@ export default function RegisterPage() {
       <main className="mx-auto flex max-w-6xl justify-center px-4 py-12">
         <AuthCard
           title="Activer mon compte"
-          description="Votre matricule et votre email doivent deja exister dans la base OBC."
+          description="Votre matricule et votre email doivent déjà exister dans la base DR-DOCSCOL."
         >
           <RegisterForm />
         </AuthCard>

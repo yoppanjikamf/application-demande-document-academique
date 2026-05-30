@@ -1,6 +1,6 @@
 # Guide API Next.js mis a jour
 
-- Application : OBC/DECC de gestion des retraits de documents academiques
+- Application : DR-DOCSCOL, gestion des demandes et retraits de documents academiques
 - Date de mise a jour : 27/05/2026
 
 ## 1. Positionnement
@@ -54,90 +54,92 @@ Le guide initial prevoyait 35 routes cibles. Le MVP actuel couvre la majorite de
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/auth/register` | POST | Public | Implemente | Active un eleve deja present en base |
-| `/api/auth/login` | POST | Public | Implemente | Connexion matricule + email + mot de passe |
-| `/api/auth/logout` | POST | Connecte | Implemente | Deconnexion Supabase |
-| `/api/auth/me` | GET | Connecte | Implemente | Retourne le profil connecte |
-| `/api/auth/password/forgot` | POST | Public | A faire | Reset password |
-| `/api/auth/password/reset` | POST | Public | A faire | Finalisation reset |
+| `/api/auth/register` | POST | Public | ✅ Implemente | Active un eleve deja present en base |
+| `/api/auth/login` | POST | Public | ✅ Implemente | Connexion matricule + email + mot de passe |
+| `/api/auth/logout` | POST | Connecte | ✅ Implemente | Deconnexion Supabase |
+| `/api/auth/me` | GET | Connecte | ✅ Implemente | Retourne le profil connecte |
+| `/api/auth/password/forgot` | POST | Public | ✅ Implemente | Demande reset password via email |
+| `/api/auth/password/reset` | POST | Public | ✅ Implemente | Finalisation reset avec token Supabase |
 
 ### 3.2 Profil
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/users/me` | PATCH | Connecte | Implemente | Appelle `updateProfileAction` |
+| `/api/users/me` | PATCH | Connecte | ✅ Implemente | Appelle `updateProfileAction` |
 
 ### 3.3 Documents eleve
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/students/me/documents` | GET | Eleve | Implemente | Liste documents + statut + lieu + RDV actif |
-| `/api/students/me/documents/:documentId` | GET | Eleve | Implemente | Detail document |
-| `/api/students/me/documents/:documentId/instructions` | GET | Eleve | Implemente | Instructions de retrait |
-| `/api/students/me/documents/:documentId/appointments` | POST | Eleve | Implemente | Reservation RDV si document disponible et RDV requis |
-| `/api/students/me/documents/:documentId/calendar-event` | POST | Eleve | A faire | Export calendrier `.ics` |
+| `/api/students/me/documents` | GET | Eleve | ✅ Implemente | Liste documents + statut + lieu + RDV actif |
+| `/api/students/me/documents/:documentId` | GET | Eleve | ✅ Implemente | Detail document |
+| `/api/students/me/documents/:documentId/instructions` | GET | Eleve | ✅ Implemente | Instructions de retrait |
+| `/api/students/me/documents/:documentId/appointments` | POST | Eleve | ✅ Implemente | Reservation RDV si document disponible et RDV requis |
+| `/api/students/me/documents/:documentId/calendar-event` | POST | Eleve | ✅ Implemente | Export calendrier `.ics` (RFC 5545) |
 
 ### 3.4 Rendez-vous
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/appointments/slots` | GET | Eleve | Implemente | Liste les creneaux disponibles pour une date/document |
-| `/api/students/me/appointments/:appointmentId/cancel` | PATCH | Eleve | Implemente | Annulation eleve |
-| `/api/admin/appointments` | GET | Admin | Via page/Server Action | Planning admin dans `app/admin/appointments/page.tsx` |
-| `/api/admin/appointments/:appointmentId/confirm` | PATCH | Admin | Via Server Action | `confirmAppointmentAction` |
-| `/api/admin/appointments/:appointmentId/cancel` | PATCH | Admin | Via Server Action | `cancelAppointmentAction` |
+| `/api/appointments/slots` | GET | Eleve | ✅ Implemente | Liste les creneaux disponibles pour une date/document |
+| `/api/students/me/appointments/:appointmentId/cancel` | PATCH | Eleve | ✅ Implemente | Annulation eleve |
+| `/api/admin/appointments` | GET | Admin | ✅ Via page/Server Action | Planning admin dans `app/admin/appointments/page.tsx` |
+| `/api/admin/appointments/:appointmentId/confirm` | PATCH | Admin | ✅ Via Server Action | `confirmAppointmentAction` |
+| `/api/admin/appointments/:appointmentId/cancel` | PATCH | Admin | ✅ Via Server Action | `cancelAppointmentAction` |
 
 ### 3.5 Notifications
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/students/me/notifications` | GET | Eleve | Implemente | Historique notifications |
-| `/api/internal/notifications/dispatch` | POST | Systeme interne | Implemente | Envoi document disponible via secret |
-| `/api/internal/notifications/reminder-30days` | POST | Systeme interne | A faire | Rappel automatique |
-| `/api/students/me/notifications/history` | GET | Eleve | Fusionne | Deja couvert par `/notifications` |
+| `/api/students/me/notifications` | GET | Eleve | ✅ Implemente | Historique notifications |
+| `/api/internal/notifications/dispatch` | POST | Systeme interne | ✅ Implemente | Envoi document disponible via secret |
+| `/api/internal/notifications/reminder-30days` | POST | Systeme interne | ✅ Implemente | Rappel auto 30j avant RDV |
+| `/api/students/me/notifications/history` | GET | Eleve | ✅ Fusionne | Deja couvert par `/notifications` |
 
 ### 3.6 Paiements
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/students/me/payments/initiate` | POST | Eleve | Implemente partiellement | Cree paiement duplicata |
-| `/api/students/me/payments/:paymentId` | GET | Eleve | Implemente | Detail paiement + reçu |
-| `/api/payments/webhook` | POST | Systeme interne | Implemente partiellement | Confirmation via secret interne |
-| `/api/students/me/payments/:paymentId/cancel` | PATCH | Eleve | A faire | Annulation paiement |
-| `/api/admin/payments` | GET | Admin | A faire | Suivi admin paiements |
+| `/api/students/me/payments/initiate` | POST | Eleve | ✅ Implemente partiellement | Cree paiement duplicata |
+| `/api/students/me/payments/:paymentId` | GET | Eleve | ✅ Implemente | Detail paiement + reçu |
+| `/api/students/me/payments/:paymentId/cancel` | PATCH | Eleve | ✅ Implemente | Annulation paiement EN_ATTENTE |
+| `/api/payments/webhook` | POST | Systeme interne | ✅ Implemente partiellement | Confirmation via secret interne |
+| `/api/admin/payments` | GET | Admin | ✅ Implemente | Suivi admin paiements (dashboard) |
 
 ### 3.7 Administration
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/admin/students` | GET | Admin | Implemente | Liste/recherche eleves |
-| `/api/admin/students/import` | POST | Admin | Implemente | Import CSV |
-| `/api/admin/documents` | GET | Admin | Implemente | Liste documents scoped |
-| `/api/admin/documents/:documentId` | GET | Admin | Implemente | Detail document + RDV |
-| `/api/admin/documents/:documentId/status` | PATCH | Admin | Implemente | Changement statut + notifications |
-| `/api/admin/withdrawals` | GET | Admin | Implemente | Historique retraits |
-| `/api/admin/withdrawals` | POST | Admin | Implemente | Enregistre retrait physique |
-| `/api/admin/users/:userId/role` | PATCH | Admin | Implemente | Changement role |
-| `/api/admin/dashboard/stats` | GET | Admin | Implemente | Statistiques dashboard |
-| `/api/admin/audit-logs` | GET | Admin | A faire | Journalisation actions sensibles |
+| `/api/admin/students` | GET | Admin | ✅ Implemente | Liste/recherche eleves |
+| `/api/admin/students/import` | POST | Admin | ✅ Implemente | Import CSV |
+| `/api/admin/documents` | GET | Admin | ✅ Implemente | Liste documents scoped |
+| `/api/admin/documents/:documentId` | GET | Admin | ✅ Implemente | Detail document + RDV |
+| `/api/admin/documents/:documentId/status` | PATCH | Admin | ✅ Implemente | Changement statut + audit log |
+| `/api/admin/withdrawals` | GET | Admin | ✅ Implemente | Historique retraits |
+| `/api/admin/withdrawals` | POST | Admin | ✅ Implemente | Enregistre retrait physique |
+| `/api/admin/users/:userId/role` | PATCH | Admin | ✅ Implemente | Changement role |
+| `/api/admin/dashboard/stats` | GET | Admin | ✅ Implemente | Statistiques dashboard |
+| `/api/admin/audit-logs` | GET | Admin | ✅ Implemente | Journalisation actions sensibles |
 
 ### 3.8 Technique
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/health` | GET | Public | Implemente | Verification de sante |
+| `/api/health` | GET | Public | ✅ Implemente | Verification de sante |
 
-## 4. Server Actions importantes
+## 4. Server Actions avec Audit Logs
 
-Certaines operations existent deja, mais pas sous forme de route HTTP dediee.
+Certaines operations tracent les actions sensibles en base de donnees via le modele AuditLog.
 
-| Fichier | Action | Role |
-| --- | --- | --- |
-| `app/auth/actions.ts` | `signInAction` | Connexion |
-| `app/auth/actions.ts` | `signUpAction` | Inscription/activation eleve |
-| `app/account/actions.ts` | `updateProfileAction` | Profil |
-| `app/dashboard/actions.ts` | `reserverDisponibiliteAction` | Reservation RDV |
-| `app/dashboard/actions.ts` | `cancelRendezVousAction` | Annulation RDV eleve |
+| Fichier | Action | Audit Log | Notes |
+| --- | --- | --- | --- |
+| `app/auth/actions.ts` | `signInAction` | LOGIN | Enregistre toute connexion |
+| `app/auth/actions.ts` | `signUpAction` | - | Inscription/activation eleve |
+| `app/account/actions.ts` | `updateProfileAction` | - | Profil |
+| `app/dashboard/actions.ts` | `reserverDisponibiliteAction` | - | Reservation RDV |
+| `app/dashboard/actions.ts` | `cancelRendezVousAction` | - | Annulation RDV eleve |
+| `app/admin/actions.ts` | `updateDocumentStatusAction` | DOCUMENT_STATUS_CHANGED | Changement statut doc |
+| `app/admin/actions.ts` | `updateAdminQuotaAction` | QUOTA_CHANGED | Modification quota RDV |
 | `app/dashboard/actions.ts` | `requestReleveNotesAction` | Demande releve |
 | `app/dashboard/actions.ts` | `submitDuplicataRequestAction` | Demande duplicata + paiement + reçu |
 | `app/admin/actions.ts` | `updateAdminQuotaAction` | Quota RDV |
@@ -148,37 +150,35 @@ Certaines operations existent deja, mais pas sous forme de route HTTP dediee.
 
 ## 5. Backlog restant
 
-### 5.1 Critique si soutenance exige le cahier initial complet
+### 5.1 Implémenté (27/05/2026)
 
-1. Reset password :
-   - `POST /api/auth/password/forgot`
-   - `POST /api/auth/password/reset`
-2. Paiement Mobile Money reel :
+✅ **TERMINÉ** - Toutes les 7 routes critiques implémentées:
+- `POST /api/auth/password/forgot` - Demande reset
+- `POST /api/auth/password/reset` - Finalisation reset
+- `POST /api/students/me/documents/:documentId/calendar-event` - Export .ics
+- `PATCH /api/students/me/payments/:paymentId/cancel` - Annulation paiement
+- `POST /api/internal/notifications/reminder-30days` - Rappels 30j
+- `GET /api/admin/payments` - Dashboard paiements
+- `GET /api/admin/audit-logs` - Journalisation audit
+
+✅ **BONUS** - Audit logs intégrés dans:
+- `signInAction` → LOGIN
+- `updateDocumentStatusAction` → DOCUMENT_STATUS_CHANGED
+- `updateAdminQuotaAction` → QUOTA_CHANGED
+- API route status change → DOCUMENT_STATUS_CHANGED
+
+### 5.2 À faire si besoin supplémentaire
+
+1. Paiement Mobile Money réel :
    - provider Orange Money/MTN Money ;
    - reference transaction ;
    - statut echec/succes ;
    - motif d'echec ;
    - verification signature webhook.
-3. Export calendrier :
-   - `POST /api/students/me/documents/:documentId/calendar-event`
-   - fichier `.ics` ou lien calendrier.
-4. Rappel automatique 30 jours :
-   - cron ou route interne protegee ;
-   - notification + email.
-5. Audit logs :
-   - connexions ;
-   - changement role ;
-   - changement statut ;
-   - retrait ;
-   - paiement.
-
-### 5.2 Important mais non bloquant
-
-- Page admin paiements.
-- Annulation paiement.
-- Role `SERVICE_DELIVRANCE`.
-- Marquer notification comme lue via API.
-- Tests automatises des routes critiques.
+2. UI Admin pour:
+   - `/api/admin/payments` dashboard
+   - `/api/admin/audit-logs` viewer
+3. Tests E2E avec Cypress/Playwright
 
 ## 6. Mapping cahier des charges -> code
 

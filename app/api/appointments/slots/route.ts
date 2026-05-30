@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 
-import { getAvailableSlots, parseDateKey } from "@/lib/appointment-service";
+import { formatDateKey, getAvailableSlots, isBeforeToday, parseDateKey } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
-import { resolveDocumentRoute } from "@/lib/document-routing";
+import { findLatestDuplicataForDocument, resolvePickupRouteForDocument } from "@/lib/duplicata-service";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ELEVE") {
-    return NextResponse.json({ error: "Acces refuse." }, { status: 403 });
+    return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }
 
   const url = new URL(request.url);
@@ -16,13 +16,14 @@ export async function GET(request: Request) {
   const dateValue = url.searchParams.get("date");
 
   if (!documentId || !dateValue) {
-    return NextResponse.json({ error: "Parametres manquants." }, { status: 400 });
+    return NextResponse.json({ error: "Paramètres manquants." }, { status: 400 });
   }
 
   const document = await prisma.documentAcademique.findFirst({
     where: { id: documentId, eleveId: user.id },
     select: {
       id: true,
+      eleveId: true,
       statut: true,
       diplomeType: true,
       typeDocument: true,
@@ -35,15 +36,26 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Document introuvable." }, { status: 404 });
   }
 
-  if (document.statut !== "DISPONIBLE" || !resolveDocumentRoute(document).requiresAppointment) {
+  if (document.typeDocument === "DUPLICATA") {
+    const latestDuplicata = await findLatestDuplicataForDocument(document);
+    if (latestDuplicata?.statut !== "DISPONIBLE") {
+      return NextResponse.json({
+        error:
+          "Votre duplicata n'est pas encore prêt. Les rendez-vous seront disponibles après confirmation de l'administration.",
+        slots: [],
+      });
+    }
+  }
+
+  if (document.statut !== "DISPONIBLE" || !(await resolvePickupRouteForDocument(document)).requiresAppointment) {
     return NextResponse.json({ slots: [] });
   }
 
   const date = parseDateKey(dateValue);
-  if (!date) {
+  if (!date || isBeforeToday(date)) {
     return NextResponse.json({ error: "Date invalide." }, { status: 400 });
   }
 
   const slots = await getAvailableSlots(date);
-  return NextResponse.json({ slots });
+  return NextResponse.json({ date: formatDateKey(date), slots });
 }

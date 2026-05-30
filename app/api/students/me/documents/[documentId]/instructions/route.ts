@@ -1,5 +1,6 @@
 import { getDocumentTitle, getPickupLocation } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, requireApiUser } from "@/lib/api-utils";
+import { resolvePickupRouteForDocument } from "@/lib/duplicata-service";
 import { prisma } from "@/lib/prisma";
 
 type RouteContext = {
@@ -18,11 +19,11 @@ export async function GET(_request: Request, { params }: RouteContext) {
       throw new ApiError("Document introuvable.", 404);
     }
 
-    const appointmentRequired = document.typeDocument !== "RELEVE_NOTES";
+    const route = await resolvePickupRouteForDocument(document);
     const pieces = ["Carte scolaire ou CNI", "Accuse de reception ou numero de demande"];
 
     if (document.typeDocument === "DUPLICATA") {
-      pieces.push("Recu de paiement du duplicata");
+      pieces.push("Reçu de paiement du duplicata");
     }
 
     return json({
@@ -30,7 +31,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
         documentId: document.id,
         title: getDocumentTitle(document),
         available: document.statut === "DISPONIBLE",
-        appointmentRequired,
+        appointmentRequired: route.requiresAppointment,
         location: await getPickupLocation(document),
         openingHours: "Lundi a vendredi, 08:00-16:00",
         estimatedDuration: "30 minutes",

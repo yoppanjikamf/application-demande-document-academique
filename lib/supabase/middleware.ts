@@ -16,6 +16,13 @@ export async function updateSession(request: NextRequest) {
     return response;
   }
 
+  const hasSupabaseCookie = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-"));
+  if (!hasSupabaseCookie) {
+    return response;
+  }
+
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll() {
@@ -29,8 +36,13 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // Refresh session if needed
-  await supabase.auth.getUser();
+  // Refresh session if needed. In local development, Supabase can be unreachable;
+  // the page-level guards will still enforce auth when protected routes are opened.
+  try {
+    await supabase.auth.getUser();
+  } catch (error) {
+    console.warn("Supabase session refresh failed:", error);
+  }
 
   return response;
 }

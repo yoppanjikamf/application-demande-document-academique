@@ -53,7 +53,7 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
       activePath="/admin/documents"
-      title="Documents academiques"
+      title="Documents académiques"
       subtitle="Verification physique, changement de statut et suivi des rendez-vous."
     >
       <div className="flex flex-wrap gap-2">
@@ -118,14 +118,14 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
       <div className="flex items-center justify-between">
         {page <= 1 ? (
           <Button variant="outline" disabled>
-            Precedent
+            Précédent
           </Button>
         ) : (
           <Button asChild variant="outline">
             <Link
               href={`/admin/documents?page=${Math.max(1, page - 1)}${status ? `&statut=${status}` : ""}`}
             >
-              Precedent
+              Précédent
             </Link>
           </Button>
         )}

@@ -23,7 +23,7 @@ Conditions importantes :
 
 1. Ouvre directement : <https://myaccount.google.com/apppasswords>
 2. Connecte-toi si Google le demande.
-3. Saisis un nom d'application, par exemple `OBC Documents`.
+3. Saisis un nom d'application, par exemple `DR-DOCSCOL`.
 4. Clique sur `Creer`.
 5. Copie le mot de passe genere par Google.
 
@@ -39,7 +39,7 @@ SMTP_PORT="465"
 SMTP_SECURE="true"
 SMTP_USER="ton-adresse@gmail.com"
 SMTP_PASSWORD="mot-de-passe-application-google"
-SMTP_FROM="OBC Documents <ton-adresse@gmail.com>"
+SMTP_FROM="DR-DOCSCOL <ton-adresse@gmail.com>"
 ```
 
 Notes :
@@ -79,7 +79,7 @@ Port: 465
 Username: ton-adresse@gmail.com
 Password: mot-de-passe-application-google
 Sender email: ton-adresse@gmail.com
-Sender name: OBC Documents
+Sender name: DR-DOCSCOL
 Secure / SSL / TLS: active
 ```
 

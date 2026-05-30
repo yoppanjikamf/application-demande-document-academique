@@ -52,7 +52,7 @@ export async function requireApiUser(role?: Role): Promise<AuthenticatedUser> {
   }
 
   if (role && user.role !== role) {
-    throw new ApiError("Acces refuse.", 403);
+    throw new ApiError("Accès refusé.", 403);
   }
 
   return user;
@@ -70,7 +70,7 @@ export function requireInternalRequest(request: Request) {
   const headerSecret = request.headers.get("x-internal-secret");
 
   if (bearer !== secret && headerSecret !== secret) {
-    throw new ApiError("Acces interne refuse.", 401);
+    throw new ApiError("Accès interne refusé.", 401);
   }
 }
 

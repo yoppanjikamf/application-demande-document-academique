@@ -1,0 +1,222 @@
+classDiagram
+    class Utilisateur {
+        - id : String
+        - authUserId : String
+        + role : Role
+        + email : String
+        + matricule : String
+        + nom : String
+        + prenom : String
+        + dateCreation : DateTime
+        + derniereConnexion : DateTime
+        + seConnecter(email, password) Boolean
+        + seDeconnecter() void
+        + modifierProfil() void
+        + changerMotDePasse() void
+    }
+
+    class Eleve {
+        + dateNaissance : Date
+        + consulterDocuments() DocumentAcademique[]
+        + demanderReleve(diplomeType) void
+        + demanderDuplicata(documentId) void
+        + prendreRendezVous(date, heure) RendezVous
+        + annulerRendezVous(rendezVousId) void
+        + effectuerPaiement() Paiement
+        + consulterNotifications() Notification[]
+    }
+
+    class Administrateur {
+        + nomService : String
+        + organismeId : String
+        + antenneRegionaleId : String
+        + maxRdvParJour : int
+        + importerCSV(fichier) void
+        + validerDocument(documentId) void
+        + publierDocument(documentId) void
+        + gererRendezVous(rendezVousId) void
+        + enregistrerRetrait(documentId) void
+        + envoyerNotification(userId) void
+    }
+
+    class Organisme {
+        - id : String
+        + nom : String
+        + ajouterAntenne(antenne) void
+    }
+
+    class AntenneRegionale {
+        - id : String
+        + nom : String
+        + region : String
+        + ville : String
+        + organismeId : String
+        + traiterDocument(documentId) void
+    }
+
+    class ExamenValide {
+        - id : String
+        + diplomeType : DiplomePrincipal
+        + anneeSession : int
+        + centreExamen : String
+        + regionComposition : String
+        + verifierEligibilite() Boolean
+    }
+
+    class DocumentAcademique {
+        - id : String
+        + eleveId : String
+        + typeDocument : TypeDocument
+        + diplomeType : DiplomePrincipal
+        + statut : StatutDocument
+        + centreExamen : String
+        + regionComposition : String
+        + organismeId : String
+        + antenneRegionaleId : String
+        + rendreDisponible() void
+        + marquerRetire() void
+        + verifierStatut() StatutDocument
+        + determinerLieuRetrait() String
+    }
+
+    class RendezVous {
+        - id : String
+        + dateRendezVous : Date
+        + heureRendezVous : String
+        + lieu : String
+        + statut : StatutRendezVous
+        + commentaire : String
+        + planifier() void
+        + annuler() void
+        + confirmer() void
+        + honorer() void
+    }
+
+    class DisponibiliteRdv {
+        - id : String
+        + dateRdv : Date
+        + heureRdv : String
+        + lieu : String
+        + statut : StatutDisponibilite
+        + reserver() void
+        + liberer() void
+    }
+
+    class ParametreRendezVous {
+        - id : String
+        + quotaJournalier : int
+        + lieuObc : String
+        + modifierQuota(quota) void
+    }
+
+    class CreneauHoraire {
+        - id : String
+        + heureDebut : String
+        + heureFin : String
+        + actif : Boolean
+        + activer() void
+        + desactiver() void
+    }
+
+    class JourFerie {
+        - id : String
+        + date : Date
+        + nom : String
+        + annuel : Boolean
+        + bloquerDate() void
+    }
+
+    class Paiement {
+        - id : String
+        + duplicataId : String
+        + documentAcademiqueId : String
+        + statut : StatutPaiement
+        + modePaiement : String
+        + montant : double
+        + motif : String
+        + initierPaiement() void
+        + confirmerPaiement() void
+        + annulerPaiement() void
+    }
+
+    class Recu {
+        - id : String
+        + numero : String
+        + montant : double
+        + dateEmission : DateTime
+        + modePaiement : String
+        + commentaire : String
+        + generer() void
+    }
+
+    class Notification {
+        - id : String
+        - typeNotification : String
+        - message : String
+        + statut : StatutNotification
+        + dateEnvoi : DateTime
+        + envoyer() void
+        + marquerCommeLu() void
+    }
+
+    class MailLog {
+        - id : String
+        + to : String
+        + subject : String
+        + status : String
+        + error : String
+        + journaliser() void
+    }
+
+    class Releve {
+        + nomReleve : String
+        + instruction : String
+        + faireDemandeReleve() void
+    }
+
+    class Duplicata {
+        - id : String
+        + nomDocument : String
+        + motifDemande : String
+        + instruction : String
+        + paiement : Boolean
+        + regionComposition : String
+        + creerDemande() void
+        + verifierPaiement() Boolean
+        + validerDuplicata() void
+    }
+
+    class Diplome {
+        + nomDiplome : String
+        + instruction : String
+        + anneeObtention : int
+        + faireDemandeDiplome() void
+    }
+
+    Utilisateur <|-- Eleve
+    Utilisateur <|-- Administrateur
+    DocumentAcademique <|-- Releve
+    DocumentAcademique <|-- Duplicata
+    DocumentAcademique <|-- Diplome
+
+    Organisme "1" --> "0..*" Administrateur : rattache
+    Organisme "1" --> "0..*" AntenneRegionale : possède
+    Organisme "1" --> "0..*" DocumentAcademique : gère
+    AntenneRegionale "1" --> "0..*" Administrateur : localise
+    AntenneRegionale "1" --> "0..*" DocumentAcademique : traite
+    Eleve "1" --> "0..*" ExamenValide : possède
+    Eleve "1" --> "1..*" DocumentAcademique : choisit
+    Eleve "1" --> "0..*" RendezVous : prend
+    Eleve "1" --> "0..*" Paiement : effectue
+    Eleve "1" --> "0..*" Notification : reçoit
+    Eleve "1" --> "0..*" Recu : reçoit
+    Administrateur "1" --> "0..*" RendezVous : confirme
+    Administrateur "1" --> "0..*" DocumentAcademique : met à jour
+    DocumentAcademique "1" --> "0..*" RendezVous : concerne
+    DocumentAcademique "0..1" --> "0..1" Paiement : finance
+    Duplicata "1" --> "0..1" Paiement : exige
+    Paiement "1" --> "0..*" Recu : génère
+    DisponibiliteRdv "0..1" --> "0..1" RendezVous : réserve
+    ParametreRendezVous "1" --> "0..*" CreneauHoraire : configure
+    JourFerie "0..*" --> "0..*" RendezVous : bloque
+    Notification "1" --> "0..*" MailLog : journalise

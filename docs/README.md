@@ -1,4 +1,4 @@
-# Documentation du projet OBC/DECC
+# Documentation du projet DR-DOCSCOL
 
 Ce dossier contient la documentation fonctionnelle et technique de l'application de gestion des demandes et retraits de documents academiques.
 
@@ -11,6 +11,8 @@ Ce dossier contient la documentation fonctionnelle et technique de l'application
 | `guide_api_mis_a_jour.md` | Guide API + statut des routes implementees |
 | `Guide_API_NextJS_OBC_Retraits_Documents.docx` | Version Word regeneree depuis le guide API mis a jour |
 | `diagrammes_uml_mis_a_jour.md` | Sources Mermaid des cas d'utilisation, classes, MCD/MLD et sequences |
+| `diagrammes-images/` | Images PNG/SVG regenerees depuis les diagrammes UML mis a jour |
+| `diagrammes-mermaid/` | Sources `.mmd` utilisees pour regenerer les images |
 | `CHANGELOG_UML.md` | Historique des modifications UML/documentation |
 | `configuration-gmail-nodemailer.md` | Configuration SMTP Gmail et usage dans l'application |
 | `test-data-eleves.csv` | Jeu de donnees CSV compatible avec l'import admin |
@@ -41,4 +43,4 @@ Les versions sources mises a jour sont dans les fichiers Markdown listes plus ha
 
 ## Dossier template dashboard
 
-Le dossier `docs/free-nextjs-admin-dashboard-main` est une copie de template. Il ne documente pas le metier OBC/DECC. Il peut servir de reference UI, mais il ne doit pas etre confondu avec la documentation fonctionnelle.
+Le dossier `docs/free-nextjs-admin-dashboard-main` est une copie de template. Il ne documente pas le metier de DR-DOCSCOL. Il peut servir de reference UI, mais il ne doit pas etre confondu avec la documentation fonctionnelle.

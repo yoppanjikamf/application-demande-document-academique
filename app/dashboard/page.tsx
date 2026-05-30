@@ -44,7 +44,7 @@ export default async function DashboardPage() {
       role="ELEVE"
       userName={`${user.prenom} ${user.nom}`}
       activePath="/dashboard"
-      title="Espace eleve"
+      title="Espace élève"
       subtitle={`Connecte en tant que ${user.prenom} ${user.nom} · ${user.matricule}`}
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -69,7 +69,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Acces rapides</h2>
+        <h2 className="text-lg font-semibold text-slate-950">Accès rapides</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/documents">Mes documents</Link>
@@ -121,7 +121,7 @@ export default async function DashboardPage() {
                   <div key={rdv.id} className="px-5 py-4">
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-medium text-slate-950">
-                        {rdv.document ? getDocumentTitle(rdv.document) : "Document academique"}
+                        {rdv.document ? getDocumentTitle(rdv.document) : "Document académique"}
                       </p>
                       <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>
                     </div>

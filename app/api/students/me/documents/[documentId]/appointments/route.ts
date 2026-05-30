@@ -2,17 +2,23 @@ import { z } from "zod";
 
 import {
   ACTIVE_RENDEZ_VOUS_STATUSES,
+  endOfDay,
   getAvailableSlots,
+  getActiveTimeSlots,
+  getAppointmentSettings,
   getDocumentTitle,
   getPickupLocation,
+  isBeforeToday,
   isHoliday,
   isWeekend,
   parseDateKey,
+  startOfDay,
 } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
-import { resolveDocumentRoute } from "@/lib/document-routing";
+import { findLatestDuplicataForDocument, resolvePickupRouteForDocument } from "@/lib/duplicata-service";
 import { notifyAppointmentConfirmed } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/generated/prisma/client";
 
 const appointmentSchema = z.object({
   dateRdv: z.string().trim().min(8),
@@ -31,7 +37,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     const input = await parseJson(request, appointmentSchema);
     const date = parseDateKey(input.dateRdv);
 
-    if (!date || isWeekend(date) || (await isHoliday(date))) {
+    if (!date || isBeforeToday(date) || isWeekend(date) || (await isHoliday(date))) {
       throw new ApiError("Date invalide.", 400);
     }
 
@@ -47,7 +53,17 @@ export async function POST(request: Request, { params }: RouteContext) {
       throw new ApiError("Ce document n'est pas encore disponible.", 409);
     }
 
-    const route = resolveDocumentRoute(document);
+    if (document.typeDocument === "DUPLICATA") {
+      const latestDuplicata = await findLatestDuplicataForDocument(document);
+      if (latestDuplicata?.statut !== "DISPONIBLE") {
+        throw new ApiError(
+          "Votre demande de duplicata est en cours de traitement. Vous pourrez prendre rendez-vous lorsque l'administration aura confirmé que le duplicata est prêt.",
+          409,
+        );
+      }
+    }
+
+    const route = await resolvePickupRouteForDocument(document);
     if (!route.requiresAppointment) {
       throw new ApiError("Ce document se retire directement au centre d'examen, sans rendez-vous.", 409);
     }
@@ -56,7 +72,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     const selectedSlot = availableSlots.find((slot) => slot.value === input.heureRdv);
 
     if (!selectedSlot || selectedSlot.disabled) {
-      throw new ApiError("Creneau indisponible.", 409);
+      throw new ApiError("Créneau indisponible.", 409);
     }
 
     const activeForDocument = await prisma.rendezVous.findFirst({
@@ -68,7 +84,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     });
 
     if (activeForDocument) {
-      throw new ApiError("Un rendez-vous actif existe deja pour ce document.", 409);
+      throw new ApiError("Un rendez-vous actif existe déjà pour ce document.", 409);
     }
 
     const admin = await prisma.user.findFirst({
@@ -86,18 +102,57 @@ export async function POST(request: Request, { params }: RouteContext) {
     }
 
     const location = await getPickupLocation(document);
-    const appointment = await prisma.rendezVous.create({
-      data: {
-        adminId: admin.id,
-        eleveId: user.id,
-        documentId: document.id,
-        dateRdv: date,
-        heureRdv: input.heureRdv,
-        lieu: location,
-        statut: "CONFIRME",
-        commentaire: input.commentaire?.trim() || "Reservation eleve",
+    const settings = await getAppointmentSettings();
+    const activeSlots = await getActiveTimeSlots();
+    const slotCapacity = Math.max(1, Math.ceil(settings.quotaJournalier / Math.max(1, activeSlots.length)));
+    const appointment = await prisma.$transaction(
+      async (tx) => {
+        const [dailyCount, slotCount, concurrentActiveForDocument] = await Promise.all([
+          tx.rendezVous.count({
+            where: {
+              dateRdv: { gte: startOfDay(date), lte: endOfDay(date) },
+              statut: { in: [...ACTIVE_RENDEZ_VOUS_STATUSES] },
+            },
+          }),
+          tx.rendezVous.count({
+            where: {
+              dateRdv: { gte: startOfDay(date), lte: endOfDay(date) },
+              heureRdv: input.heureRdv,
+              statut: { in: [...ACTIVE_RENDEZ_VOUS_STATUSES] },
+            },
+          }),
+          tx.rendezVous.findFirst({
+            where: {
+              documentId: document.id,
+              statut: { in: [...ACTIVE_RENDEZ_VOUS_STATUSES] },
+            },
+            select: { id: true },
+          }),
+        ]);
+
+        if (concurrentActiveForDocument) {
+          throw new ApiError("Un rendez-vous actif existe déjà pour ce document.", 409);
+        }
+
+        if (dailyCount >= settings.quotaJournalier || slotCount >= slotCapacity) {
+          throw new ApiError("Le quota de rendez-vous est atteint pour cette date. Veuillez choisir une autre date ouvrable.", 409);
+        }
+
+        return tx.rendezVous.create({
+          data: {
+            adminId: admin.id,
+            eleveId: user.id,
+            documentId: document.id,
+            dateRdv: date,
+            heureRdv: input.heureRdv,
+            lieu: location,
+            statut: "CONFIRME",
+            commentaire: input.commentaire?.trim() || "Réservation élève",
+          },
+        });
       },
-    });
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
 
     await notifyAppointmentConfirmed({
       userId: user.id,

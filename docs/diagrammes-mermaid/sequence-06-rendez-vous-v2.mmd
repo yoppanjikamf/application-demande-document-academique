@@ -1,0 +1,27 @@
+sequenceDiagram
+    participant Eleve as Élève
+    participant Systeme as Système
+    participant Service as Service RDV
+    participant BDD as Base de données
+    participant Admin as Administrateur
+
+    Eleve->>Systeme: clique "Réserver un rendez-vous"
+    Systeme->>Service: vérifie document, routage et besoin RDV
+    Service->>BDD: récupère quota, créneaux, RDV existants et jours fériés
+    BDD-->>Service: données calendrier
+    Service-->>Systeme: liste des créneaux disponibles
+    Systeme-->>Eleve: affiche calendrier des disponibilités
+    Eleve->>Systeme: sélectionne date + heure
+    Systeme->>Service: valide date, créneau et quota
+    Service->>BDD: vérifie absence RDV actif pour le document
+    BDD-->>Service: aucun RDV actif
+    Service->>BDD: crée RDV (statut = CONFIRMÉ)
+    BDD-->>Service: RDV créé
+    Systeme-->>Eleve: confirmation RDV + instructions de retrait
+    Systeme-->>Admin: RDV visible dans le planning
+    Note over Eleve,Systeme: Plus tard...
+    Eleve->>Systeme: clique "Annuler le rendez-vous"
+    Systeme->>BDD: met à jour statut → ANNULÉ
+    BDD-->>Systeme: RDV annulé
+    Systeme-->>Admin: notification "RDV annulé par l'élève"
+    Systeme-->>Eleve: confirmation annulation

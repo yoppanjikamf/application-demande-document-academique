@@ -1,9 +1,9 @@
-# Next.js + Supabase + Prisma Template
+# DR-DOCSCOL
 
 [![CI](https://github.com/DimitriTedom/NEXTJS-SUPABASE-TEMPLATE/actions/workflows/ci.yml/badge.svg)](https://github.com/DimitriTedom/NEXTJS-SUPABASE-TEMPLATE/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/DimitriTedom/NEXTJS-SUPABASE-TEMPLATE)](LICENSE)
 
-A clean starter for:
+Application de gestion des demandes et retraits de documents académiques, construite avec :
 
 - Next.js (App Router)
 - Supabase Auth (email + password)

@@ -42,7 +42,7 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
         toast.error(res.error);
         return;
       }
-      toast.success("Informations mises a jour.");
+      toast.success("Informations mises à jour.");
     });
   };
 
@@ -75,9 +75,9 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
           name="prenom"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Prenom</FormLabel>
+              <FormLabel>Prénom</FormLabel>
               <FormControl>
-                <Input placeholder="Prenom" autoComplete="given-name" {...field} />
+                <Input placeholder="Prénom" autoComplete="given-name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -104,13 +104,13 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
           <FormItem>
             <FormLabel>Service</FormLabel>
             <FormControl>
-              <Input value="OBC" disabled />
+              <Input value="Service administratif" disabled />
             </FormControl>
           </FormItem>
         ) : null}
 
         <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Mise a jour..." : "Mettre a jour"}
+          {pending ? "Mise à jour..." : "Mettre à jour"}
         </Button>
       </form>
     </Form>

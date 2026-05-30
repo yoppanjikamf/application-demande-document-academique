@@ -56,7 +56,7 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Matricule</FormLabel>
               <FormControl>
-                <Input placeholder="OBC20260001" autoComplete="username" {...field} />
+                <Input placeholder="MAT20260001" autoComplete="username" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

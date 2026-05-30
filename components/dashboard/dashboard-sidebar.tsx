@@ -41,12 +41,12 @@ export function DashboardSidebar({
           <div className="flex items-center justify-between">
             <Link href="/" className="flex min-w-0 items-center gap-3 px-2">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-blue-700 text-sm font-bold text-white">
-                OBC
+                DR
               </span>
               {isOpen ? (
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-slate-950">Retraits OBC</span>
-                  <span className="block text-xs text-slate-500">Documents academiques</span>
+                  <span className="block text-sm font-semibold text-slate-950">DR-DOCSCOL</span>
+                  <span className="block text-xs text-slate-500">Documents académiques</span>
                 </span>
               ) : null}
             </Link>

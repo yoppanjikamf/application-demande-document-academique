@@ -1,0 +1,24 @@
+sequenceDiagram
+    participant Eleve as Élève
+    participant Systeme as Système
+    participant Paiement as Service Paiement
+    participant Admin as Administrateur
+    participant BDD as Base de données
+
+    Eleve->>Systeme: sélectionne "Demander un duplicata"
+    Systeme-->>Eleve: affiche formulaire (diplôme, cible, session, centre, motif, mode paiement)
+    Eleve->>Systeme: soumet demande
+    Systeme->>BDD: vérifie examen validé et règle Probatoire
+    BDD-->>Systeme: élève éligible
+    Systeme->>BDD: crée ou met à jour DocumentAcademique DUPLICATA
+    Systeme->>BDD: crée demande Duplicata
+    Systeme-->>Eleve: affiche montant à payer
+    Eleve->>Paiement: initie paiement
+    Paiement-->>Systeme: paiement confirmé dans le MVP
+    Systeme->>BDD: crée Paiement statut EFFECTUE
+    Systeme->>BDD: génère Recu
+    Systeme->>BDD: crée notification DEMANDE_DUPLICATA
+    Systeme->>Admin: notification "Nouvelle demande de duplicata"
+    Admin->>Systeme: traite la demande
+    Systeme->>BDD: met à jour statut → DISPONIBLE
+    Systeme-->>Eleve: notification "Votre duplicata est disponible"

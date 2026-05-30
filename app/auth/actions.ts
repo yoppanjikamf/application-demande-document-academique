@@ -238,6 +238,23 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
     );
   }
 
+  // Créer un log d'audit pour la connexion réussie
+  await prisma.auditLog.create({
+    data: {
+      action: "LOGIN",
+      resource: "USER",
+      resourceId: dbUser.id,
+      userId: dbUser.id,
+      details: JSON.stringify({
+        email: dbUser.email,
+        role: dbUser.role,
+        timestamp: new Date().toISOString(),
+      }),
+    },
+  }).catch((err) => {
+    console.error("Failed to create login audit log:", err);
+  });
+
   return {
     ok: true as const,
     redirectTo: input.next ? safeNextPath(input.next) : getHomePathForRole(dbUser.role),
@@ -261,7 +278,7 @@ export async function signUpAction(input: z.infer<typeof signUpSchema>) {
   if (!dbUser || dbUser.email.toLowerCase() !== parsed.data.email) {
     return {
       ok: false as const,
-      error: "Aucun eleve ne correspond a ce matricule et cet email.",
+      error: "Aucun élève ne correspond à ce matricule et à cet email.",
     };
   }
 
@@ -275,7 +292,7 @@ export async function signUpAction(input: z.infer<typeof signUpSchema>) {
   if (dbUser.authUserId) {
     return {
       ok: false as const,
-      error: "Ce compte est deja active. Connectez-vous directement.",
+      error: "Ce compte est déjà activé. Connectez-vous directement.",
     };
   }
 

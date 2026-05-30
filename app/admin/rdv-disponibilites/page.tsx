@@ -40,8 +40,8 @@ export default async function AdminDisponibilitesPage() {
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
       activePath="/admin/rdv-disponibilites"
-      title="Disponibilites RDV"
-      subtitle="Definissez le quota journalier global du centre et consultez les jours reserves."
+      title="Disponibilités RDV"
+      subtitle="Définissez le quota journalier global du centre et consultez les jours réservés."
     >
       <form action={updateAdminQuotaAction} className="max-w-xl space-y-3 rounded-md border border-slate-200 bg-white p-5 shadow-sm">
         <label className="text-sm font-medium" htmlFor="quotaJournalier">
@@ -55,11 +55,11 @@ export default async function AdminDisponibilitesPage() {
           max={1000}
           defaultValue={quota}
         />
-        <Button type="submit">Mettre a jour le quota</Button>
+        <Button type="submit">Mettre à jour le quota</Button>
       </form>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-slate-950">Creneaux actifs</h2>
+        <h2 className="text-lg font-semibold text-slate-950">Créneaux actifs</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           {slots.map((slot) => (
             <div key={slot.id} className="rounded-md border border-slate-200 bg-white p-4 text-sm shadow-sm">
@@ -70,15 +70,15 @@ export default async function AdminDisponibilitesPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-slate-950">Reservations du mois</h2>
+        <h2 className="text-lg font-semibold text-slate-950">Réservations du mois</h2>
         {[...countByDay.entries()].length === 0 ? (
-          <p className="text-slate-500">Aucune reservation ce mois.</p>
+          <p className="text-slate-500">Aucune réservation ce mois.</p>
         ) : (
           <div className="space-y-3">
             {[...countByDay.entries()].map(([date, count]) => (
               <div key={date} className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="text-sm text-slate-500">{date}</div>
-                <div className="text-sm">Reservations: {count} / {quota}</div>
+                <div className="text-sm">Réservations : {count} / {quota}</div>
               </div>
             ))}
           </div>

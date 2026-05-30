@@ -1,0 +1,134 @@
+erDiagram
+  ORGANISMES ||--o{ USERS : possede
+  ORGANISMES ||--o{ ANTENNES_REGIONALES : possede
+  ORGANISMES ||--o{ DOCUMENTS : gere
+  ORGANISMES ||--o{ DUPLICATAS : gere
+
+  ANTENNES_REGIONALES ||--o{ USERS : rattache
+  ANTENNES_REGIONALES ||--o{ DOCUMENTS : traite
+  ANTENNES_REGIONALES ||--o{ DUPLICATAS : traite
+
+  USERS ||--o{ EXAMENS_VALIDES : obtient
+  USERS ||--o{ DOCUMENTS : demande
+  USERS ||--o{ RENDEZ_VOUS : prend
+  USERS ||--o{ NOTIFICATIONS : recoit
+  USERS ||--o{ MAIL_LOGS : journalise
+  USERS ||--o{ DUPLICATAS : demande
+  USERS ||--o{ RECUS : recoit
+
+  DOCUMENTS ||--o{ RENDEZ_VOUS : concerne
+  DOCUMENTS ||--o| PAIEMENTS : finance
+  DUPLICATAS ||--o| PAIEMENTS : exige
+  PAIEMENTS ||--o{ RECUS : genere
+  DISPONIBILITES_RDV ||--o| RENDEZ_VOUS : reserve
+
+  ORGANISMES {
+    string id PK
+    string nom UK
+  }
+
+  ANTENNES_REGIONALES {
+    string id PK
+    string nom
+    string region UK
+    string ville
+    string organismeId FK
+  }
+
+  USERS {
+    string id PK
+    string authUserId UK
+    string role
+    string email UK
+    string matricule UK
+    string nom
+    string prenom
+    datetime dateNaissance
+    string nomService
+    int maxRdvParJour
+    string organismeId FK
+    string antenneRegionaleId FK
+  }
+
+  EXAMENS_VALIDES {
+    string id PK
+    string diplomeType
+    int anneeSession
+    string centreExamen
+    string regionComposition
+    string eleveId FK
+  }
+
+  DOCUMENTS {
+    string id PK
+    string typeDocument
+    string diplomeType
+    string statut
+    string centreExamen
+    string regionComposition
+    string eleveId FK
+    string organismeId FK
+    string antenneRegionaleId FK
+  }
+
+  RENDEZ_VOUS {
+    string id PK
+    datetime dateRdv
+    string heureRdv
+    string lieu
+    string statut
+    string commentaire
+    string adminId FK
+    string eleveId FK
+    string documentId FK
+    string disponibiliteId FK
+  }
+
+  NOTIFICATIONS {
+    string id PK
+    string typeNotification
+    string statut
+    string message
+    datetime dateEnvoi
+    string userId FK
+  }
+
+  MAIL_LOGS {
+    string id PK
+    string to
+    string subject
+    string status
+    string error
+    string userId FK
+  }
+
+  DUPLICATAS {
+    string id PK
+    string typeDocument
+    string nomDuplicata
+    string statut
+    string intruction
+    string regionComposition
+    string eleveId FK
+    string organismeId FK
+    string antenneRegionaleId FK
+  }
+
+  PAIEMENTS {
+    string id PK
+    string statut
+    string modePaiment
+    string duplicataId FK
+    string documentAcademiqueId FK
+  }
+
+  RECUS {
+    string id PK
+    string numero UK
+    float montant
+    datetime dateEmission
+    string modePaiement
+    string commentaire
+    string userId FK
+    string paiementId FK
+  }

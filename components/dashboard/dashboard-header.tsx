@@ -29,7 +29,7 @@ export function DashboardHeader({
 
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase text-slate-500">
-            {role === "ADMINISTRATEUR" ? "Back-office OBC" : "Espace eleve"}
+            {role === "ADMINISTRATEUR" ? "Back-office DR-DOCSCOL" : "Espace élève"}
           </p>
           <h1 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{title}</h1>
           <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
@@ -47,7 +47,7 @@ export function DashboardHeader({
 
         <div className="hidden items-center gap-3 md:flex">
           <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 text-sm font-semibold text-white">
-            {(userName ?? "OBC")
+            {(userName ?? "DR-DOCSCOL")
               .split(" ")
               .filter(Boolean)
               .slice(0, 2)
@@ -60,7 +60,7 @@ export function DashboardHeader({
 
         <form action="/logout" method="post">
           <Button type="submit" variant="outline">
-            Deconnexion
+            Déconnexion
           </Button>
         </form>
       </div>

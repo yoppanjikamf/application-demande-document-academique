@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant Admin as Administrateur
+    participant Systeme as Système
+    participant Service as Service retraits
+    participant BDD as Base de données
+    participant Notif as Service notif / email
+    participant Eleve as Élève
+
+    Admin->>Systeme: confirme retrait physique
+    Systeme->>Service: transmet documentId et commentaire
+    Service->>BDD: vérifie document dans le périmètre admin
+    BDD-->>Service: document + élève
+    Service->>BDD: cherche RDV actif lié au document
+    BDD-->>Service: RDV trouvé ou absent
+    Service->>BDD: transaction document → RETIRE
+    alt RDV existe
+        Service->>BDD: met RDV → HONORE
+    else Aucun RDV
+        Service->>BDD: crée RDV HONORE comme trace de retrait
+    end
+    Service->>Notif: notifier retrait confirmé
+    Notif->>BDD: crée notification et MailLog
+    Notif-->>Eleve: email d'accusé de réception
+    Service-->>Systeme: retrait enregistré
+    Systeme-->>Admin: historique mis à jour

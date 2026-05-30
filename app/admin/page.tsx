@@ -24,7 +24,7 @@ export default async function AdminPage() {
     recentDocuments,
     nextAppointments,
   ] = await Promise.all([
-    prisma.user.count({ where: { role: "ELEVE" } }),
+    prisma.user.count({ where: { role: "ELEVE", documentsAcademique: { some: documentScope } } }),
     prisma.documentAcademique.count({ where: documentScope }),
     prisma.rendezVous.count({ where: { statut: { in: ["PLANIFIE", "CONFIRME"] }, document: { is: documentScope } } }),
     prisma.documentAcademique.count({ where: { ...documentScope, statut: "DISPONIBLE" } }),
@@ -53,7 +53,7 @@ export default async function AdminPage() {
       subtitle={`Connecte en tant que ${user.prenom} ${user.nom}${user.nomService ? ` · ${user.nomService}` : ""}`}
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Eleves" value={elevesCount} icon={<UsersRound className="h-5 w-5" />} />
+        <StatCard label="Élèves" value={elevesCount} icon={<UsersRound className="h-5 w-5" />} />
         <StatCard
           label="Documents"
           value={documentsCount}
@@ -87,7 +87,7 @@ export default async function AdminPage() {
             <Link href="/admin/documents">Verifier les documents</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/admin/rdv-disponibilites">Configurer les disponibilites</Link>
+            <Link href="/admin/rdv-disponibilites">Configurer les disponibilités</Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/admin/import">Importer CSV</Link>
@@ -127,7 +127,7 @@ export default async function AdminPage() {
                 <div key={rdv.id} className="flex items-center justify-between gap-4 px-5 py-4">
                   <div className="min-w-0">
                     <p className="truncate font-medium text-slate-950">
-                      {rdv.document ? getDocumentTitle(rdv.document) : "Document academique"}
+                      {rdv.document ? getDocumentTitle(rdv.document) : "Document académique"}
                     </p>
                     <p className="text-sm text-slate-500">
                       {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} · {rdv.eleve.matricule}

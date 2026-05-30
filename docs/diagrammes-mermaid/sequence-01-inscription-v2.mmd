@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant Eleve as Élève
+    participant Systeme as Système
+    participant Auth as Service Auth (Supabase)
+    participant BDD as Base de données
+    participant Admin as Administrateur
+
+    Eleve->>Systeme: soumet formulaire d'inscription (matricule, email, mot de passe)
+    Systeme->>BDD: vérifie existence du matricule et de l'email
+    BDD-->>Systeme: profil élève trouvé
+    Systeme->>Auth: crée ou met à jour le compte Supabase Auth
+    Auth-->>Systeme: compte auth activé
+    Systeme->>BDD: rattache authUserId au profil élève
+    BDD-->>Systeme: profil mis à jour
+    Systeme-->>Eleve: compte activé et session ouverte
+    Note over Admin,Systeme: Les comptes administrateurs sont créés par script ou validés automatiquement lors de la première connexion.

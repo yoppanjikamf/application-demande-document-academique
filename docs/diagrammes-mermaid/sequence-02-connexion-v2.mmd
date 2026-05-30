@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant Eleve as Élève / Admin
+    participant Systeme as Système
+    participant Auth as Service Auth (JWT / Supabase)
+    participant BDD as Base de données
+
+    Eleve->>Systeme: saisit matricule + email + mot de passe
+    Systeme->>BDD: recherche utilisateur par matricule
+    BDD-->>Systeme: données utilisateur trouvées
+    Systeme->>Auth: vérifie email + mot de passe
+    Auth-->>Systeme: session Supabase valide
+    Systeme->>BDD: met à jour derniereConnexion
+    BDD-->>Systeme: connexion enregistrée
+    Systeme-->>Eleve: connexion réussie — redirection selon le rôle
+    Note over Eleve,Systeme: Session active côté Supabase Auth
+    Eleve->>Systeme: clique "Se déconnecter"
+    Systeme->>Auth: invalide la session
+    Auth-->>Systeme: session fermée
+    Systeme-->>Eleve: redirection vers page de connexion

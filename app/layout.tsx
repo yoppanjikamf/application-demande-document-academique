@@ -13,10 +13,10 @@ const satoshi = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "OBC Documents Academiques",
-    template: "%s | OBC Documents Academiques",
+    default: "DR-DOCSCOL",
+    template: "%s | DR-DOCSCOL",
   },
-  description: "Gestion des demandes et retraits de documents academiques OBC.",
+  description: "Gestion des demandes et retraits de documents académiques.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

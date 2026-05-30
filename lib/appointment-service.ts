@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getAntenneForRegion, isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
+import { resolvePickupRouteForDocument } from "@/lib/duplicata-service";
 import type {
   DiplomePrincipal,
   DocumentAcademique,
@@ -18,7 +19,10 @@ export type AppointmentSlot = {
 };
 
 export function formatDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export function parseDateKey(value: string) {
@@ -47,6 +51,10 @@ export function endOfDay(date: Date) {
 export function isWeekend(date: Date) {
   const day = date.getDay();
   return day === 0 || day === 6;
+}
+
+export function isBeforeToday(date: Date) {
+  return startOfDay(date).getTime() < startOfDay(new Date()).getTime();
 }
 
 function annualHolidayKeys(date: Date) {
@@ -96,7 +104,7 @@ export async function getAppointmentSettings() {
   }
 
   return prisma.parametreRendezVous.create({
-    data: { id: OBC_SETTINGS_ID, quotaJournalier: 200, lieuObc: "Centre OBC" },
+    data: { id: OBC_SETTINGS_ID, quotaJournalier: 200, lieuObc: "Centre de retrait" },
   });
 }
 
@@ -123,10 +131,10 @@ export function getDocumentTitle(document: {
 }) {
   const diplome = document.diplomeType.replace("_", " ");
   if (document.typeDocument === "ORIGINAL") {
-    return `Diplome ${diplome}`;
+    return `Diplôme ${diplome}`;
   }
   if (document.typeDocument === "RELEVE_NOTES") {
-    return `Releve de notes du ${diplome}`;
+    return `Relevé de notes du ${diplome}`;
   }
   return `Duplicata du ${diplome}`;
 }
@@ -138,14 +146,25 @@ export function getStatusLabel(status: StatutDocument) {
   if (status === "DISPONIBLE") {
     return "Disponible";
   }
-  return "Retire";
+  return "Retiré";
 }
 
 export async function getPickupLocation(
   document: Pick<DocumentAcademique, "diplomeType" | "typeDocument" | "centreExamen" | "regionComposition"> & {
+    eleveId?: string;
     antenneRegionale?: { nom: string; ville: string | null; region: string } | null;
   },
 ) {
+  if (document.eleveId && document.typeDocument === "DUPLICATA") {
+    return (await resolvePickupRouteForDocument({
+      eleveId: document.eleveId,
+      diplomeType: document.diplomeType,
+      typeDocument: document.typeDocument,
+      centreExamen: document.centreExamen,
+      regionComposition: document.regionComposition,
+    })).location;
+  }
+
   return resolveDocumentRoute(document).location;
 }
 
@@ -187,6 +206,26 @@ export async function getAvailableSlots(date: Date): Promise<AppointmentSlot[]> 
       disabled: remaining <= 0,
     };
   });
+}
+
+export async function hasAvailableSlots(date: Date) {
+  const slots = await getAvailableSlots(date);
+  return slots.some((slot) => !slot.disabled);
+}
+
+export async function findNextAvailableAppointmentDate(startDate: Date, maxDays = 60) {
+  const cursor = startOfDay(startDate);
+
+  for (let offset = 0; offset <= maxDays; offset += 1) {
+    const candidate = new Date(cursor);
+    candidate.setDate(cursor.getDate() + offset);
+
+    if (await hasAvailableSlots(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
 }
 
 export async function ensureDocumentsForValidatedExams(eleveId: string) {

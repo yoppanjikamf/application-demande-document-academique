@@ -83,13 +83,14 @@ export function resolveDocumentRoute(document: RoutableDocument): DocumentRoute 
   const isBacDiplome = document.diplomeType === "BACCALAUREAT" && document.typeDocument === "ORIGINAL";
   const pickupType: PickupType = isBacDiplome ? "ANTENNE_REGIONALE" : "CENTRE_EXAMEN";
   const antenne = organismeName === "OBC" ? getAntenneForRegion(document.regionComposition) : null;
+  const antennaLocation = antenne ? `${antenne.nom}${antenne.ville ? ` - ${antenne.ville}` : ""}` : centreExamen;
 
   return {
     organismeName,
     organismeId,
     antenneRegionaleId: antenne?.id ?? null,
     pickupType,
-    location: antenne ? `${antenne.nom}${antenne.ville ? ` - ${antenne.ville}` : ""}` : centreExamen,
+    location: pickupType === "ANTENNE_REGIONALE" ? antennaLocation : centreExamen,
     requiresAppointment: pickupType === "ANTENNE_REGIONALE",
   };
 }

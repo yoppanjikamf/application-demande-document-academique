@@ -34,7 +34,7 @@ export default async function RendezVousPage({ searchParams }: RendezVousPagePro
       userName={`${user.prenom} ${user.nom}`}
       activePath="/dashboard/rendez-vous"
       title="Mes rendez-vous"
-      subtitle="Suivi des rendez-vous de retrait lies a vos documents academiques."
+      subtitle="Suivi des rendez-vous de retrait liés à vos documents académiques."
     >
       {rendezVous.length === 0 ? (
         <div className="space-y-3 rounded-md border border-slate-200 bg-white p-5 shadow-sm">
@@ -53,7 +53,7 @@ export default async function RendezVousPage({ searchParams }: RendezVousPagePro
             <div key={rdv.id} className="grid gap-3 border-b px-4 py-4 last:border-0 sm:grid-cols-[1fr_auto]">
               <div>
                 <p className="text-lg font-semibold text-slate-950">
-                  {rdv.document ? getDocumentTitle(rdv.document) : "Document academique"}
+                  {rdv.document ? getDocumentTitle(rdv.document) : "Document académique"}
                 </p>
                 <p className="text-sm text-slate-500">
                   {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} · {rdv.lieu}

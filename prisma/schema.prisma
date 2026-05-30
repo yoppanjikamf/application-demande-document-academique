@@ -49,6 +49,7 @@ enum StatutDocument {
 enum StatutPaiement {
   EN_ATTENTE
   EFFECTUE
+  ANNULE
 }
 
 enum TypeDocument {
@@ -139,6 +140,7 @@ model User {
   mailLogs            MailLog[]
   duplicatas          Duplicata[]          @relation("EleveDuplicatas")
   recu                Recu[]
+  auditLogs           AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -388,7 +390,7 @@ model ExamenValide {
 model ParametreRendezVous {
   id              String @id @default("GLOBAL")
   quotaJournalier Int    @default(200)
-  lieuObc         String @default("Centre OBC")
+  lieuObc         String @default("Centre de retrait")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -445,4 +447,24 @@ model Recu {
   updatedAt DateTime @updatedAt
 
   @@map("recus")
+}
+
+// ==================== AUDIT LOG ====================
+model AuditLog {
+  id       String @id @default(uuid())
+  action   String // ex: "LOGIN", "CHANGE_ROLE", "CHANGE_STATUS", "WITHDRAWAL", "PAYMENT"
+  resource String // ex: "USER", "DOCUMENT", "PAYMENT", "APPOINTMENT"
+  resourceId String // ID de la ressource affectée
+  details  String? // Détails JSON des changements
+  ipAddress String?
+  
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

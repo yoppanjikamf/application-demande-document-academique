@@ -6,19 +6,30 @@ import { z } from "zod";
 
 import {
   ACTIVE_RENDEZ_VOUS_STATUSES,
+  endOfDay,
   getAvailableSlots,
+  getActiveTimeSlots,
   getDocumentTitle,
+  getAppointmentSettings,
   getPickupLocation,
+  isBeforeToday,
   isHoliday,
   isWeekend,
   parseDateKey,
+  startOfDay,
 } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
 import { getAntenneForRegion, isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
-import { notifyAppointmentConfirmed, notifyDuplicataRequestRegistered } from "@/lib/mail-service";
+import {
+  findLatestDuplicataForDocument,
+  getActiveDuplicataForDiplome,
+  getDuplicataRequestState,
+  resolvePickupRouteForDocument,
+} from "@/lib/duplicata-service";
+import { notifyAppointmentConfirmed, notifyDuplicataRequestRegistered, notifyPaymentConfirmed } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { reservationSchema } from "@/lib/validations";
-import type { DiplomePrincipal, TypeDocument } from "@/lib/generated/prisma/client";
+import { Prisma, type DiplomePrincipal, type TypeDocument } from "@/lib/generated/prisma/client";
 
 const DUPLICATA_FEE = 5000;
 
@@ -45,8 +56,8 @@ function parseDuplicataTarget(value: FormDataEntryValue | null): Extract<TypeDoc
 
 function getDuplicataTitle(diplomeType: DiplomePrincipal, target: Extract<TypeDocument, "ORIGINAL" | "RELEVE_NOTES">) {
   return target === "ORIGINAL"
-    ? `Duplicata du diplome original du ${diplomeType}`
-    : `Duplicata du releve de notes du ${diplomeType}`;
+    ? `Duplicata du diplôme original du ${diplomeType}`
+    : `Duplicata du relevé de notes du ${diplomeType}`;
 }
 
 function receiptNumber() {
@@ -56,7 +67,7 @@ function receiptNumber() {
 export async function reserverDisponibiliteAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ELEVE") {
-    throw new Error("Acces refuse.");
+    throw new Error("Accès refusé.");
   }
 
   const parsed = reservationSchema.safeParse({
@@ -71,7 +82,7 @@ export async function reserverDisponibiliteAction(formData: FormData) {
   }
 
   const date = parseDateKey(parsed.data.dateRdv);
-  if (!date || isWeekend(date) || (await isHoliday(date))) {
+  if (!date || isBeforeToday(date) || isWeekend(date) || (await isHoliday(date))) {
     throw new Error("Date invalide.");
   }
 
@@ -89,7 +100,7 @@ export async function reserverDisponibiliteAction(formData: FormData) {
 
   if (document.typeDocument === "ORIGINAL" && document.statut === "RETIRE") {
     throw new Error(
-      "Diplome deja retire. Veuillez faire une demande de duplicata si necessaire.",
+      "Diplôme déjà retiré. Veuillez faire une demande de duplicata si nécessaire.",
     );
   }
 
@@ -97,7 +108,16 @@ export async function reserverDisponibiliteAction(formData: FormData) {
     throw new Error("Ce document n'est pas encore disponible.");
   }
 
-  const route = resolveDocumentRoute(document);
+  if (document.typeDocument === "DUPLICATA") {
+    const latestDuplicata = await findLatestDuplicataForDocument(document);
+    if (latestDuplicata?.statut !== "DISPONIBLE") {
+      throw new Error(
+        "Votre demande de duplicata est en cours de traitement. Vous pourrez prendre rendez-vous lorsque l'administration aura confirmé que le duplicata est prêt.",
+      );
+    }
+  }
+
+  const route = await resolvePickupRouteForDocument(document);
   if (!route.requiresAppointment) {
     throw new Error("Ce document se retire directement au centre d'examen, sans rendez-vous.");
   }
@@ -105,7 +125,7 @@ export async function reserverDisponibiliteAction(formData: FormData) {
   const availableSlots = await getAvailableSlots(date);
   const selectedSlot = availableSlots.find((slot) => slot.value === parsed.data.heureRdv);
   if (!selectedSlot || selectedSlot.disabled) {
-    throw new Error("Creneau indisponible.");
+    throw new Error("Créneau indisponible.");
   }
 
   const activeForDocument = await prisma.rendezVous.findFirst({
@@ -135,20 +155,59 @@ export async function reserverDisponibiliteAction(formData: FormData) {
   }
 
   const location = await getPickupLocation(document);
-  const commentaire = parsed.data.commentaire?.trim() || "Reservation eleve";
+  const commentaire = parsed.data.commentaire?.trim() || "Réservation élève";
+  const settings = await getAppointmentSettings();
+  const activeSlots = await getActiveTimeSlots();
+  const slotCapacity = Math.max(1, Math.ceil(settings.quotaJournalier / Math.max(1, activeSlots.length)));
 
-  await prisma.rendezVous.create({
-    data: {
-      adminId: admin.id,
-      eleveId: user.id,
-      documentId: document.id,
-      dateRdv: date,
-      heureRdv: parsed.data.heureRdv,
-      lieu: location,
-      statut: "CONFIRME",
-      commentaire,
+  await prisma.$transaction(
+    async (tx) => {
+      const [dailyCount, slotCount, concurrentActiveForDocument] = await Promise.all([
+        tx.rendezVous.count({
+          where: {
+            dateRdv: { gte: startOfDay(date), lte: endOfDay(date) },
+            statut: { in: [...ACTIVE_RENDEZ_VOUS_STATUSES] },
+          },
+        }),
+        tx.rendezVous.count({
+          where: {
+            dateRdv: { gte: startOfDay(date), lte: endOfDay(date) },
+            heureRdv: parsed.data.heureRdv,
+            statut: { in: [...ACTIVE_RENDEZ_VOUS_STATUSES] },
+          },
+        }),
+        tx.rendezVous.findFirst({
+          where: {
+            documentId: document.id,
+            statut: { in: [...ACTIVE_RENDEZ_VOUS_STATUSES] },
+          },
+          select: { id: true },
+        }),
+      ]);
+
+      if (concurrentActiveForDocument) {
+        throw new Error("Un rendez-vous actif existe déjà pour ce document.");
+      }
+
+      if (dailyCount >= settings.quotaJournalier || slotCount >= slotCapacity) {
+        throw new Error("Le quota de rendez-vous est atteint pour cette date. Veuillez choisir une autre date ouvrable.");
+      }
+
+      await tx.rendezVous.create({
+        data: {
+          adminId: admin.id,
+          eleveId: user.id,
+          documentId: document.id,
+          dateRdv: date,
+          heureRdv: parsed.data.heureRdv,
+          lieu: location,
+          statut: "CONFIRME",
+          commentaire,
+        },
+      });
     },
-  });
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+  );
 
   await notifyAppointmentConfirmed({
     userId: user.id,
@@ -167,7 +226,7 @@ export async function reserverDisponibiliteAction(formData: FormData) {
 export async function cancelRendezVousAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ELEVE") {
-    throw new Error("Acces refuse.");
+    throw new Error("Accès refusé.");
   }
 
   const rendezVousId = String(formData.get("rendezVousId") ?? "");
@@ -183,7 +242,7 @@ export async function cancelRendezVousAction(formData: FormData) {
     },
     data: {
       statut: "ANNULE",
-      commentaire: "Annulation eleve",
+      commentaire: "Annulation élève",
     },
   });
 
@@ -194,7 +253,7 @@ export async function cancelRendezVousAction(formData: FormData) {
 export async function requestReleveNotesAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ELEVE") {
-    throw new Error("Acces refuse.");
+    throw new Error("Accès refusé.");
   }
 
   const diplomeType = parseDiplome(formData.get("diplomeType"));
@@ -208,7 +267,7 @@ export async function requestReleveNotesAction(formData: FormData) {
   });
 
   if (!exam) {
-    throw new Error("Examen non trouve pour cet eleve.");
+    throw new Error("Examen introuvable pour cet élève.");
   }
 
   await prisma.documentAcademique.upsert({
@@ -252,7 +311,7 @@ export async function requestReleveNotesAction(formData: FormData) {
       userId: user.id,
       typeNotification: "DEMANDE_RELEVE",
       message:
-        "Votre demande de releve de notes a ete enregistree. Vous serez notifie des sa mise a disposition dans votre centre d'examen.",
+        "Votre demande de relevé de notes a été enregistrée. Vous serez notifié dès sa mise à disposition dans votre centre d'examen.",
     },
   });
 
@@ -262,7 +321,7 @@ export async function requestReleveNotesAction(formData: FormData) {
 export async function submitDuplicataRequestAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ELEVE") {
-    throw new Error("Acces refuse.");
+    throw new Error("Accès refusé.");
   }
 
   const schema = z.object({
@@ -275,7 +334,7 @@ export async function submitDuplicataRequestAction(formData: FormData) {
   const diplomeType = parseDiplome(formData.get("diplomeType"));
   const cibleDocument = parseDuplicataTarget(formData.get("cibleDocument"));
   if (!isDocumentRequestAllowed(diplomeType, "DUPLICATA", cibleDocument)) {
-    throw new Error("Le Probatoire ne donne pas lieu a un diplome.");
+    throw new Error("Le Probatoire ne donne pas lieu à la délivrance d'un diplôme.");
   }
 
   const parsed = schema.safeParse({
@@ -299,7 +358,29 @@ export async function submitDuplicataRequestAction(formData: FormData) {
   });
 
   if (!exam) {
-    throw new Error("Examen non trouve pour cet eleve.");
+    throw new Error("Examen introuvable pour cet élève.");
+  }
+
+  const activeDuplicataForDiplome = await getActiveDuplicataForDiplome(user.id, diplomeType);
+  const requestState = await getDuplicataRequestState(user.id, diplomeType, cibleDocument);
+  if (activeDuplicataForDiplome && activeDuplicataForDiplome.id !== requestState.activeRequest?.id) {
+    throw new Error(
+      "Une autre demande de duplicata est déjà en cours pour cet examen. Veuillez attendre sa clôture avant d'en introduire une nouvelle.",
+    );
+  }
+
+  if (requestState.activeRequest) {
+    if (requestState.activeRequest.statut === "DISPONIBLE") {
+      throw new Error("Votre duplicata est déjà prêt. Veuillez prendre rendez-vous ou vous présenter au service indiqué.");
+    }
+
+    throw new Error("Une demande de duplicata est déjà en cours de traitement pour ce document.");
+  }
+
+  if (!requestState.allowed && requestState.nextAllowedAt) {
+    throw new Error(
+      `Vous avez déjà retiré ce type de duplicata. Une nouvelle demande sera possible à partir du ${requestState.nextAllowedAt.toLocaleDateString("fr-FR")}. Avant ce délai, veuillez vous rapprocher du service concerné.`,
+    );
   }
 
   const justificatif = formData.get("piecesJustificatives");
@@ -326,6 +407,7 @@ export async function submitDuplicataRequestAction(formData: FormData) {
       regionComposition: exam.regionComposition,
       organismeId: route.organismeId,
       antenneRegionaleId: antenne?.id ?? null,
+      statut: "PAS_DISPONIBLE",
     },
     create: {
       eleveId: user.id,
@@ -367,7 +449,7 @@ export async function submitDuplicataRequestAction(formData: FormData) {
     },
   });
 
-  await prisma.recu.create({
+  const receipt = await prisma.recu.create({
     data: {
       numero: receiptNumber(),
       montant: DUPLICATA_FEE,
@@ -382,6 +464,17 @@ export async function submitDuplicataRequestAction(formData: FormData) {
     userId: user.id,
     to: user.email,
     documentTitle,
+  });
+
+  await notifyPaymentConfirmed({
+    userId: user.id,
+    to: user.email,
+    recipientName: `${user.prenom} ${user.nom}`.trim(),
+    documentTitle,
+    paymentMode: parsed.data.modePaiement,
+    receiptNumber: receipt.numero,
+    amount: receipt.montant,
+    paymentDate: receipt.dateEmission,
   });
 
   revalidatePath("/dashboard/documents");

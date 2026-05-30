@@ -1,0 +1,83 @@
+graph TB
+    Etudiant(("👤\nÉtudiant"))
+    Admin(("👤\nAdministration"))
+    SystemeInterne(("⚙️\nSystème interne"))
+
+    subgraph Systeme["Gestion de retrait de documents académiques"]
+        UC1((authentifier))
+        UC2((activer compte\nélève))
+        UC3((modifier profil))
+        UC4((demander retrait\nde document))
+        UC5((demander retrait\nde diplôme))
+        UC6((demander retrait\nde relevé))
+        UC7((demander retrait\nde duplicata))
+        UC8((vérifier\ndisponibilité))
+        UC9((vérifier disponibilité\ndiplôme))
+        UC10((vérifier disponibilité\nrelevé))
+        UC11((vérifier disponibilité\nduplicata))
+        UC12((prendre rdv))
+        UC13((annuler rdv))
+        UC14((effectuer\npaiement))
+        UC15((consulter reçu))
+        UC16((consulter\nnotifications))
+        UC17((mettre à jour))
+        UC18((mettre à jour\ndisponibilité))
+        UC19((mettre à jour\nstatut document))
+        UC20((importer CSV))
+        UC21((gérer élèves))
+        UC22((gérer documents))
+        UC23((gérer rendez-vous))
+        UC24((enregistrer retrait))
+        UC25((consulter historique\nretraits))
+        UC26((consulter statistiques))
+        UC27((modifier rôle\nutilisateur))
+        UC28((configurer quota\nrdv))
+        UC29((envoyer notification))
+        UC30((journaliser email))
+        UC31((confirmer paiement\nwebhook))
+    end
+
+    Etudiant --> UC1
+    Etudiant --> UC2
+    Etudiant --> UC3
+    Etudiant --> UC4
+    Etudiant --> UC12
+    Etudiant --> UC13
+    Etudiant --> UC14
+    Etudiant --> UC15
+    Etudiant --> UC16
+
+    Admin --> UC1
+    Admin --> UC3
+    Admin --> UC17
+    Admin --> UC20
+    Admin --> UC21
+    Admin --> UC22
+    Admin --> UC23
+    Admin --> UC24
+    Admin --> UC25
+    Admin --> UC26
+    Admin --> UC27
+    Admin --> UC28
+
+    SystemeInterne --> UC29
+    SystemeInterne --> UC30
+    SystemeInterne --> UC31
+
+    UC12 -.->|"<<include>>"| UC1
+    UC13 -.->|"<<include>>"| UC1
+    UC4 -.->|"<<include>>"| UC8
+    UC7 -.->|"<<include>>"| UC14
+    UC29 -.->|"<<include>>"| UC30
+    UC19 -.->|"<<extend>>"| UC29
+    UC24 -.->|"<<extend>>"| UC29
+    UC12 -.->|"<<extend>>"| UC29
+
+    UC4 --> UC5
+    UC4 --> UC6
+    UC4 --> UC7
+    UC8 --> UC9
+    UC8 --> UC10
+    UC8 --> UC11
+    UC17 --> UC18
+    UC17 --> UC19

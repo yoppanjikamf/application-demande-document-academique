@@ -6,12 +6,14 @@ export const signInSchema = z.object({
   password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caracteres."),
 });
 
-export const signUpSchema = signInSchema.extend({
-  confirmPassword: z.string().min(8, "Veuillez confirmer le mot de passe."),
-}).refine((value) => value.password === value.confirmPassword, {
-  message: "Les mots de passe ne correspondent pas.",
-  path: ["confirmPassword"],
-});
+export const signUpSchema = signInSchema
+  .extend({
+    confirmPassword: z.string().min(8, "Veuillez confirmer le mot de passe."),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas.",
+    path: ["confirmPassword"],
+  });
 
 const optionalDateString = z
   .string()
@@ -49,3 +51,31 @@ export const documentStatusUpdateSchema = z.object({
   documentId: z.string().trim().min(10),
   statut: z.enum(["PAS_DISPONIBLE", "DISPONIBLE", "RETIRE"]),
 });
+
+export const passwordForgotSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Veuillez entrer une adresse email valide."),
+});
+
+export const passwordResetSchema = z
+  .object({
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email("Veuillez entrer une adresse email valide.")
+      .optional(),
+    token: z.string().trim().min(10, "Le token est invalide.").optional(),
+    newPassword: z.string().min(8, "Le mot de passe doit contenir au moins 8 caracteres."),
+    confirmPassword: z.string().min(8, "Veuillez confirmer le mot de passe."),
+  })
+  .refine((value) => value.newPassword === value.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas.",
+    path: ["confirmPassword"],
+  })
+  .refine(
+    (value) => (!value.email && !value.token) || (Boolean(value.email) && Boolean(value.token)),
+    {
+      message: "Le token et l'email doivent etre fournis ensemble.",
+      path: ["token"],
+    },
+  );

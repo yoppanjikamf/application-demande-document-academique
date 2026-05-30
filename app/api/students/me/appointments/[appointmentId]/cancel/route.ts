@@ -26,14 +26,14 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     });
 
     if (!appointment) {
-      throw new ApiError("Rendez-vous introuvable ou deja cloture.", 404);
+      throw new ApiError("Rendez-vous introuvable ou déjà clôturé.", 404);
     }
 
     const updated = await prisma.rendezVous.update({
       where: { id: appointment.id },
       data: {
         statut: "ANNULE",
-        commentaire: input.motif?.trim() || "Annulation eleve",
+        commentaire: input.motif?.trim() || "Annulation élève",
       },
     });
 

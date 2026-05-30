@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getDocumentTitle, getPickupLocation } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
 import { getAdminDocumentScope, isDocumentRequestAllowed } from "@/lib/document-routing";
+import { syncLatestDuplicataStatus } from "@/lib/duplicata-service";
 import { notifyDocumentAvailable, notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 
@@ -29,13 +30,37 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     if (!isDocumentRequestAllowed(document.diplomeType, document.typeDocument)) {
-      throw new ApiError("Le Probatoire ne donne pas lieu a un diplome.", 422);
+      throw new ApiError("Le Probatoire ne donne pas lieu à la délivrance d'un diplôme.", 422);
     }
 
     const previousStatus = document.statut;
     const updated = await prisma.documentAcademique.update({
       where: { id: document.id },
       data: { statut: input.statut },
+    });
+
+    if (document.typeDocument === "DUPLICATA") {
+      await syncLatestDuplicataStatus(document, input.statut);
+    }
+
+    // Créer un log d'audit
+    await prisma.auditLog.create({
+      data: {
+        action: "DOCUMENT_STATUS_CHANGED",
+        resource: "DOCUMENT",
+        resourceId: document.id,
+        userId: admin.id,
+        details: JSON.stringify({
+          documentId: document.id,
+          eleveMatricule: document.eleve.matricule,
+          previousStatus: previousStatus,
+          newStatus: input.statut,
+          documentType: document.typeDocument,
+          diplomeType: document.diplomeType,
+        }),
+      },
+    }).catch((err) => {
+      console.error("Failed to create audit log:", err);
     });
 
     const documentTitle = getDocumentTitle(document);

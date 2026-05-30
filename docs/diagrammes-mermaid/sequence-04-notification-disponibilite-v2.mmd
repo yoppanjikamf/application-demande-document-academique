@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant Admin as Admin
+    participant Systeme as Système
+    participant ServiceNotif as Service notif / email
+    participant BDD as Base de données
+    participant Etudiant as Étudiant
+
+    Admin->>Systeme: met à jour statut document → DISPONIBLE
+    Systeme->>BDD: vérifie document dans le périmètre admin
+    BDD-->>Systeme: document + élève trouvés
+    Systeme->>BDD: met à jour statut document
+    BDD-->>Systeme: statut mis à jour
+    Systeme->>ServiceNotif: déclenche notification DOCUMENT_DISPONIBLE
+    ServiceNotif->>BDD: crée notification applicative
+    ServiceNotif->>Etudiant: envoie email de disponibilité
+    Etudiant-->>ServiceNotif: réception email
+    ServiceNotif->>BDD: journalise email dans MailLog
+    BDD-->>ServiceNotif: journal créé
+    ServiceNotif-->>Systeme: confirmation envoi
+    Systeme-->>Admin: confirmation mise à jour effectuée
+    Etudiant->>Systeme: consulte document disponible
+    Systeme-->>Etudiant: affiche détails + instructions retrait
+    Etudiant->>Systeme: consulte notification

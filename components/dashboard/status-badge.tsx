@@ -54,3 +54,13 @@ export function appointmentTone(status: "PLANIFIE" | "CONFIRME" | "ANNULE" | "HO
   }
   return "amber" as const;
 }
+
+export function paymentTone(status: "EN_ATTENTE" | "EFFECTUE" | "ANNULE") {
+  if (status === "EFFECTUE") {
+    return "green" as const;
+  }
+  if (status === "ANNULE") {
+    return "red" as const;
+  }
+  return "amber" as const;
+}

@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant Eleve as Élève
+    participant Systeme as Système
+    participant Service as Service documents / routage
+    participant BDD as Base de données
+
+    Eleve->>Systeme: accède à "Mes Documents"
+    Systeme->>BDD: récupère l'élève connecté
+    BDD-->>Systeme: profil élève
+    Systeme->>Service: garantit les documents issus des examens validés
+    Service->>BDD: upsert documents manquants si nécessaire
+    BDD-->>Service: documents synchronisés
+    Systeme->>BDD: requête documents de l'élève
+    BDD-->>Systeme: liste des documents avec statuts et RDV actifs
+    Systeme->>Service: calcule titre, statut lisible et lieu de retrait
+    Service-->>Systeme: informations formatées
+    Systeme-->>Eleve: affiche liste avec statuts et actions possibles
+    Eleve->>Systeme: clique sur un document disponible
+    Systeme->>BDD: récupère détail et instructions
+    BDD-->>Systeme: adresse, horaires, pièces requises
+    Systeme-->>Eleve: affiche détails + instructions de retrait

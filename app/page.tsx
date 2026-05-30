@@ -15,8 +15,8 @@ export default function HomePage() {
           <div className="absolute right-24 top-40 hidden h-64 w-80 rotate-3 rounded-md border border-slate-200 bg-white p-6 shadow-2xl lg:block">
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <p className="text-xs font-semibold uppercase text-blue-700">Dossier OBC</p>
-                <p className="mt-1 text-lg font-semibold text-slate-950">Baccalaureat</p>
+                <p className="text-xs font-semibold uppercase text-blue-700">DR-DOCSCOL</p>
+                <p className="mt-1 text-lg font-semibold text-slate-950">Baccalauréat</p>
               </div>
               <GraduationCap className="h-8 w-8 text-blue-700" />
             </div>
@@ -30,18 +30,18 @@ export default function HomePage() {
           </div>
           <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col justify-center px-4 py-16">
             <div className="max-w-3xl">
-              <p className="text-sm font-semibold uppercase text-blue-700">Office du Baccalaureat du Cameroun</p>
+              <p className="text-sm font-semibold uppercase text-blue-700">DR-DOCSCOL</p>
               <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-                Retraits de documents academiques
+                Retraits de documents académiques
               </h1>
               <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-                Consultez la disponibilite de vos diplomes, releves et duplicatas, planifiez votre rendez-vous
-                et suivez chaque retrait dans un espace securise.
+                Consultez la disponibilité de vos diplômes, relevés et duplicatas, puis planifiez votre rendez-vous
+                et suivez chaque retrait dans un espace sécurisé.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild size="lg">
                   <Link href="/auth/login">
-                    Acceder a mon espace
+                    Accéder à mon espace
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -55,18 +55,18 @@ export default function HomePage() {
               {[
                 {
                   icon: FileCheck2,
-                  title: "Statuts centralises",
-                  text: "Disponibilite, centre de retrait et historique du document.",
+                  title: "Statuts centralisés",
+                  text: "Disponibilité, centre de retrait et historique du document.",
                 },
                 {
                   icon: CalendarCheck,
                   title: "Rendez-vous maitrises",
-                  text: "Creneaux controles par quota journalier et suivi par le service OBC.",
+                  text: "Créneaux contrôlés par quota journalier et suivis dans DR-DOCSCOL.",
                 },
                 {
                   icon: ShieldCheck,
-                  title: "Acces par role",
-                  text: "Espace eleve et back-office administration separes.",
+                  title: "Accès par rôle",
+                  text: "Espace élève et back-office administration séparés.",
                 },
               ].map((item) => (
                 <div key={item.title} className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">

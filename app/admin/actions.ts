@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { getDocumentTitle, getPickupLocation, OBC_SETTINGS_ID } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
 import { canAdminAccessDocument, getAdminDocumentScope, isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
+import { syncLatestDuplicataStatus } from "@/lib/duplicata-service";
 import { notifyDocumentAvailable, notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { adminQuotaSchema, documentStatusUpdateSchema } from "@/lib/validations";
 import {
   DiplomePrincipal,
@@ -60,63 +60,10 @@ function normalizeUpper(value: string) {
   return value.trim().toUpperCase();
 }
 
-async function findSupabaseUserIdByEmail(email: string) {
-  const supabase = createSupabaseAdminClient();
-  const perPage = 1000;
-
-  for (let page = 1; page <= 10; page += 1) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
-
-    if (error) {
-      throw error;
-    }
-
-    const found = data.users.find((user) => user.email?.toLowerCase() === email);
-    if (found) {
-      return found.id;
-    }
-
-    if (data.users.length < perPage) {
-      return null;
-    }
-  }
-
-  throw new Error("Impossible de verifier tous les utilisateurs Supabase Auth.");
-}
-
-async function ensureSupabaseEleve(email: string, password: string, matricule: string) {
-  const supabase = createSupabaseAdminClient();
-  const existingUserId = await findSupabaseUserIdByEmail(email);
-  const payload = {
-    password,
-    email_confirm: true,
-    app_metadata: {
-      role: Role.ELEVE,
-      matricule,
-    },
-    user_metadata: {
-      matricule,
-    },
-  };
-
-  const { data, error } = existingUserId
-    ? await supabase.auth.admin.updateUserById(existingUserId, payload)
-    : await supabase.auth.admin.createUser({
-        email,
-        ...payload,
-      });
-
-  if (error) {
-    throw error;
-  }
-
-  return data.user.id;
-}
-
 export async function updateAdminQuotaAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMINISTRATEUR") {
-    throw new Error("Acces refuse.");
+    throw new Error("Accès refusé.");
   }
 
   const parsed = adminQuotaSchema.safeParse({
@@ -127,14 +74,34 @@ export async function updateAdminQuotaAction(formData: FormData) {
     throw new Error("Quota invalide.");
   }
 
+  const oldSettings = await prisma.parametreRendezVous.findUnique({
+    where: { id: OBC_SETTINGS_ID },
+  });
+
   await prisma.parametreRendezVous.upsert({
     where: { id: OBC_SETTINGS_ID },
     update: { quotaJournalier: parsed.data.quotaJournalier },
     create: {
       id: OBC_SETTINGS_ID,
       quotaJournalier: parsed.data.quotaJournalier,
-      lieuObc: "Centre OBC",
+      lieuObc: "Centre de retrait",
     },
+  });
+
+  // Créer un log d'audit
+  await prisma.auditLog.create({
+    data: {
+      action: "QUOTA_CHANGED",
+      resource: "PARAMETER",
+      resourceId: OBC_SETTINGS_ID,
+      userId: user.id,
+      details: JSON.stringify({
+        previousQuota: oldSettings?.quotaJournalier || null,
+        newQuota: parsed.data.quotaJournalier,
+      }),
+    },
+  }).catch((err) => {
+    console.error("Failed to create audit log:", err);
   });
 
   revalidatePath("/admin/rdv-disponibilites");
@@ -143,7 +110,7 @@ export async function updateAdminQuotaAction(formData: FormData) {
 export async function updateDocumentStatusAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMINISTRATEUR") {
-    throw new Error("Acces refuse.");
+    throw new Error("Accès refusé.");
   }
 
   const parsed = documentStatusUpdateSchema.safeParse({
@@ -165,7 +132,7 @@ export async function updateDocumentStatusAction(formData: FormData) {
   }
 
   if (!isDocumentRequestAllowed(document.diplomeType, document.typeDocument)) {
-    throw new Error("Le Probatoire ne donne pas lieu a un diplome.");
+    throw new Error("Le Probatoire ne donne pas lieu à la délivrance d'un diplôme.");
   }
 
   const previousStatus = document.statut;
@@ -174,6 +141,30 @@ export async function updateDocumentStatusAction(formData: FormData) {
   await prisma.documentAcademique.update({
     where: { id: document.id },
     data: { statut: nextStatus },
+  });
+
+  if (document.typeDocument === "DUPLICATA") {
+    await syncLatestDuplicataStatus(document, nextStatus);
+  }
+
+  // Créer un log d'audit
+  await prisma.auditLog.create({
+    data: {
+      action: "DOCUMENT_STATUS_CHANGED",
+      resource: "DOCUMENT",
+      resourceId: document.id,
+      userId: user.id,
+      details: JSON.stringify({
+        documentId: document.id,
+        eleveMatricule: document.eleve.matricule,
+        previousStatus: previousStatus,
+        newStatus: nextStatus,
+        documentType: document.typeDocument,
+        diplomeType: document.diplomeType,
+      }),
+    },
+  }).catch((err) => {
+    console.error("Failed to create audit log:", err);
   });
 
   const documentTitle = getDocumentTitle(document);
@@ -211,7 +202,7 @@ export async function updateDocumentStatusAction(formData: FormData) {
 export async function importTestDataAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMINISTRATEUR") {
-    throw new Error("Acces refuse.");
+    throw new Error("Accès refusé.");
   }
 
   const file = formData.get("file");
@@ -229,21 +220,17 @@ export async function importTestDataAction(formData: FormData) {
   for (const row of rows) {
     const matricule = normalizeUpper(row.eleve_matricule || "");
     const email = normalize(row.eleve_email || "").toLowerCase();
-    const password = normalize(row.eleve_password || "");
     const nom = normalize(row.eleve_nom || "");
     const prenom = normalize(row.eleve_prenom || "");
     const dateNaissance = parseDate(row.eleve_date_naissance || "") ?? undefined;
 
-    if (!matricule || !email || !password || !nom || !prenom) {
-      throw new Error("Ligne CSV invalide: donnees eleve manquantes.");
+    if (!matricule || !email || !nom || !prenom) {
+      throw new Error("Ligne CSV invalide : données élève manquantes.");
     }
-
-    const authUserId = await ensureSupabaseEleve(email, password, matricule);
 
     const eleve = await prisma.user.upsert({
       where: { matricule },
       update: {
-        authUserId,
         email,
         nom,
         prenom,
@@ -252,7 +239,6 @@ export async function importTestDataAction(formData: FormData) {
         dateNaissance: dateNaissance ?? null,
       },
       create: {
-        authUserId,
         email,
         matricule,
         nom,
@@ -289,7 +275,7 @@ export async function importTestDataAction(formData: FormData) {
       }
 
       if (!isDocumentRequestAllowed(diplomeType, type)) {
-        throw new Error(`Le document ${type} n'est pas autorise pour ${diplomeType}.`);
+        throw new Error(`Le document ${type} n'est pas autorisé pour ${diplomeType}.`);
       }
 
       const route = resolveDocumentRoute({
@@ -424,7 +410,7 @@ export async function importTestDataAction(formData: FormData) {
 export async function confirmAppointmentAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMINISTRATEUR") {
-    throw new Error("Acces refuse.");
+    throw new Error("Accès refusé.");
   }
 
   const rendezVousId = String(formData.get("rendezVousId") ?? "");
@@ -444,7 +430,7 @@ export async function confirmAppointmentAction(formData: FormData) {
 export async function cancelAppointmentAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMINISTRATEUR") {
-    throw new Error("Acces refuse.");
+    throw new Error("Accès refusé.");
   }
 
   const rendezVousId = String(formData.get("rendezVousId") ?? "");
@@ -456,7 +442,7 @@ export async function cancelAppointmentAction(formData: FormData) {
     where: { id: rendezVousId, document: { is: getAdminDocumentScope(user) } },
     data: {
       statut: "ANNULE",
-      commentaire: "Annulation service OBC",
+      commentaire: "Annulation par le service administratif",
     },
   });
 

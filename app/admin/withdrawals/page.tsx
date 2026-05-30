@@ -24,7 +24,7 @@ export default async function AdminWithdrawalsPage() {
       userName={`${user.prenom} ${user.nom}`}
       activePath="/admin/withdrawals"
       title="Historique des retraits"
-      subtitle="Trace des documents remis physiquement aux eleves."
+      subtitle="Trace des documents remis physiquement aux élèves."
     >
       <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
         <div className="grid grid-cols-[1fr_auto] border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium text-slate-500">
@@ -39,7 +39,7 @@ export default async function AdminWithdrawalsPage() {
               <div key={withdrawal.id} className="grid gap-4 px-5 py-4 md:grid-cols-[1fr_auto]">
                 <div>
                   <p className="font-medium text-slate-950">
-                    {withdrawal.document ? getDocumentTitle(withdrawal.document) : "Document academique"}
+                    {withdrawal.document ? getDocumentTitle(withdrawal.document) : "Document académique"}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
                     {withdrawal.eleve.prenom} {withdrawal.eleve.nom} · {withdrawal.eleve.matricule}

@@ -25,7 +25,7 @@ export default async function AdminAppointmentsPage() {
       userName={`${user.prenom} ${user.nom}`}
       activePath="/admin/appointments"
       title="Planning des retraits"
-      subtitle="Rendez-vous actifs a confirmer ou annuler par le service OBC."
+      subtitle="Rendez-vous actifs à confirmer ou à annuler dans DR-DOCSCOL."
     >
       <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
         <div className="grid grid-cols-[1fr_auto] border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium text-slate-500">
@@ -41,7 +41,7 @@ export default async function AdminAppointmentsPage() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium text-slate-950">
-                      {appointment.document ? getDocumentTitle(appointment.document) : "Document academique"}
+                      {appointment.document ? getDocumentTitle(appointment.document) : "Document académique"}
                     </p>
                     <StatusBadge tone={appointmentTone(appointment.statut)}>{appointment.statut}</StatusBadge>
                   </div>

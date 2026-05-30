@@ -55,8 +55,8 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
       activePath="/admin/students"
-      title="Eleves"
-      subtitle="Recherche et suivi des comptes eleves rattaches aux documents academiques."
+      title="Élèves"
+      subtitle="Recherche et suivi des comptes élèves rattachés aux documents académiques."
     >
       <form className="max-w-xl">
         <div className="relative">
@@ -67,13 +67,13 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
 
       <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
         <div className="grid grid-cols-[1.2fr_1fr_auto] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium text-slate-500">
-          <span>Eleve</span>
+          <span>Élève</span>
           <span className="hidden md:block">Contact</span>
           <span>Dossier</span>
         </div>
         <div className="divide-y divide-slate-100">
           {students.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-slate-500">Aucun eleve trouve.</p>
+            <p className="px-5 py-6 text-sm text-slate-500">Aucun élève trouvé.</p>
           ) : (
             students.map((student) => (
               <div key={student.id} className="grid gap-4 px-5 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center">

@@ -8,7 +8,7 @@ export async function GET() {
     const documentScope = getAdminDocumentScope(admin);
     const [students, documents, pendingDocuments, availableDocuments, retiredDocuments, appointments] =
       await Promise.all([
-        prisma.user.count({ where: { role: "ELEVE" } }),
+        prisma.user.count({ where: { role: "ELEVE", documentsAcademique: { some: documentScope } } }),
         prisma.documentAcademique.count({ where: documentScope }),
         prisma.documentAcademique.count({ where: { ...documentScope, statut: "PAS_DISPONIBLE" } }),
         prisma.documentAcademique.count({ where: { ...documentScope, statut: "DISPONIBLE" } }),
