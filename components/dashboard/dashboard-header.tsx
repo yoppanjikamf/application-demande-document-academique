@@ -11,11 +11,13 @@ export function DashboardHeader({
   userName,
   title,
   subtitle,
+  scopeLabel,
 }: {
   role: Role;
   userName?: string;
   title: string;
   subtitle: string;
+  scopeLabel?: string;
 }) {
   const { toggleSidebar } = useSidebarContext();
 
@@ -33,6 +35,11 @@ export function DashboardHeader({
           </p>
           <h1 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{title}</h1>
           <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+          {scopeLabel ? (
+            <p className="mt-2 inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+              Région OBC: {scopeLabel}
+            </p>
+          ) : null}
         </div>
 
         <div className="hidden min-w-[260px] items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 xl:flex">

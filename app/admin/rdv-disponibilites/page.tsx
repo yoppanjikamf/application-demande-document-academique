@@ -1,7 +1,7 @@
-import { updateAdminQuotaAction } from "@/app/admin/actions";
+import { updateAdminQuotaAction, upsertHolidayAction, deleteHolidayAction, toggleWeekendBookingsAction } from "@/app/admin/actions";
 import { OBC_SETTINGS_ID, formatDateKey, getActiveTimeSlots } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,16 @@ import { Input } from "@/components/ui/input";
 export default async function AdminDisponibilitesPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin/rdv-disponibilites");
   const documentScope = getAdminDocumentScope(user);
+  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
 
   const [settings, slots] = await Promise.all([
     prisma.parametreRendezVous.findUnique({ where: { id: OBC_SETTINGS_ID } }),
     getActiveTimeSlots(),
   ]);
   const quota = settings?.quotaJournalier ?? 200;
+  const allowWeekend = settings?.allowWeekendBookings ?? false;
+
+  const holidays = await prisma.jourFerie.findMany({ orderBy: { date: "asc" } });
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -39,6 +43,7 @@ export default async function AdminDisponibilitesPage() {
     <DashboardShell
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
+      scopeLabel={regionLabel}
       activePath="/admin/rdv-disponibilites"
       title="Disponibilités RDV"
       subtitle="Définissez le quota journalier global du centre et consultez les jours réservés."
@@ -79,6 +84,49 @@ export default async function AdminDisponibilitesPage() {
               <div key={date} className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="text-sm text-slate-500">{date}</div>
                 <div className="text-sm">Réservations : {count} / {quota}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-slate-950">Paramètres RDV</h2>
+        <form action={toggleWeekendBookingsAction} className="flex items-center gap-3">
+          <input type="hidden" name="allow" value={String(!allowWeekend)} />
+          <div className="text-sm">Autoriser prises de RDV le weekend</div>
+          <Button type="submit">{allowWeekend ? "Désactiver" : "Activer"}</Button>
+        </form>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-slate-950">Jours fériés</h2>
+        <form action={upsertHolidayAction} className="flex max-w-xl items-end gap-3 rounded-md border border-slate-200 bg-white p-4">
+          <div>
+            <label className="text-sm block">Date</label>
+            <Input id="date" name="date" type="date" />
+          </div>
+          <div>
+            <label className="text-sm block">Nom</label>
+            <Input id="nom" name="nom" type="text" />
+          </div>
+          <Button type="submit">Ajouter / Mettre à jour</Button>
+        </form>
+
+        {holidays.length === 0 ? (
+          <p className="text-slate-500">Aucun jour férié défini.</p>
+        ) : (
+          <div className="space-y-2">
+            {holidays.map((h) => (
+              <div key={h.id} className="flex items-center justify-between rounded-md border border-slate-200 bg-white p-3">
+                <div>
+                  <div className="text-sm text-slate-500">{h.date.toISOString().slice(0, 10)}</div>
+                  <div className="font-medium">{h.nom}</div>
+                </div>
+                <form action={deleteHolidayAction}>
+                  <input type="hidden" name="date" value={h.date.toISOString().slice(0, 10)} />
+                  <Button type="submit" variant="destructive">Supprimer</Button>
+                </form>
               </div>
             ))}
           </div>

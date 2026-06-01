@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarDays, FileText, ListChecks, UsersRound } from "lucide-react";
 
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -13,6 +13,7 @@ import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 export default async function AdminPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin");
   const documentScope = getAdminDocumentScope(user);
+  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
 
   const [
     elevesCount,
@@ -48,6 +49,7 @@ export default async function AdminPage() {
     <DashboardShell
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
+      scopeLabel={regionLabel}
       activePath="/admin"
       title={`Administration ${user.nomService ?? ""}`.trim()}
       subtitle={`Connecte en tant que ${user.prenom} ${user.nom}${user.nomService ? ` · ${user.nomService}` : ""}`}

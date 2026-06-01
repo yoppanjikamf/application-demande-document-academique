@@ -9,7 +9,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50">
       <SiteHeader />
       <main className="mx-auto flex max-w-6xl justify-center px-4 py-12">
-        <AuthCard title="Connexion" description="Connectez-vous avec votre matricule, email et mot de passe.">
+        <AuthCard
+          title="Connexion"
+          description="Connectez-vous avec votre matricule, email et mot de passe. Les administrateurs OBC valident ensuite leur region et la cle associee."
+        >
           <Suspense fallback={null}>
             <LoginForm />
           </Suspense>

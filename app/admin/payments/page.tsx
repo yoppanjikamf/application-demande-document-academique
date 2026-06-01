@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CreditCard } from "lucide-react";
 
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
 import { Prisma, type StatutPaiement } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
@@ -44,6 +44,7 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
   const statut = STATUSES.find((value) => value === params?.statut);
   const page = Math.max(1, Number(params?.page ?? "1") || 1);
   const documentScope = getAdminDocumentScope(user);
+  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
   const where: Prisma.PaiementWhereInput = {
     OR: [{ documentAcademique: { is: documentScope } }, { duplicata: { is: documentScope } }],
     ...(statut ? { statut } : {}),
@@ -88,6 +89,7 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
     <DashboardShell
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
+      scopeLabel={regionLabel}
       activePath="/admin/payments"
       title="Paiements"
       subtitle="Suivi des paiements de duplicata, reçus et annulations."

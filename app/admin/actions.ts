@@ -107,6 +107,65 @@ export async function updateAdminQuotaAction(formData: FormData) {
   revalidatePath("/admin/rdv-disponibilites");
 }
 
+export async function upsertHolidayAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMINISTRATEUR") {
+    throw new Error("Accès refusé.");
+  }
+
+  const dateStr = String(formData.get("date") ?? "");
+  const nom = String(formData.get("nom") ?? "Jour férié");
+  if (!dateStr) {
+    throw new Error("Date manquante.");
+  }
+
+  const date = new Date(dateStr);
+  date.setHours(0, 0, 0, 0);
+
+  await prisma.jourFerie.upsert({
+    where: { date },
+    update: { nom },
+    create: { date, nom, annuel: false },
+  });
+
+  revalidatePath("/admin/rdv-disponibilites");
+}
+
+export async function deleteHolidayAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMINISTRATEUR") {
+    throw new Error("Accès refusé.");
+  }
+
+  const dateStr = String(formData.get("date") ?? "");
+  if (!dateStr) {
+    throw new Error("Date manquante.");
+  }
+
+  const date = new Date(dateStr);
+  date.setHours(0, 0, 0, 0);
+
+  await prisma.jourFerie.deleteMany({ where: { date } });
+  revalidatePath("/admin/rdv-disponibilites");
+}
+
+export async function toggleWeekendBookingsAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMINISTRATEUR") {
+    throw new Error("Accès refusé.");
+  }
+
+  const allow = String(formData.get("allow")) === "true";
+
+  await prisma.parametreRendezVous.upsert({
+    where: { id: OBC_SETTINGS_ID },
+    update: { allowWeekendBookings: allow },
+    create: { id: OBC_SETTINGS_ID, quotaJournalier: 200, lieuObc: "Centre de retrait", allowWeekendBookings: allow },
+  });
+
+  revalidatePath("/admin/rdv-disponibilites");
+}
+
 export async function updateDocumentStatusAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMINISTRATEUR") {

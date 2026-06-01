@@ -47,6 +47,10 @@ export const adminQuotaSchema = z.object({
   quotaJournalier: z.coerce.number().int().min(1).max(1000),
 });
 
+export const adminRegionAccessSchema = z.object({
+  accessKey: z.string().trim().min(6, "La cle d'acces est obligatoire.").max(64),
+});
+
 export const documentStatusUpdateSchema = z.object({
   documentId: z.string().trim().min(10),
   statut: z.enum(["PAS_DISPONIBLE", "DISPONIBLE", "RETIRE"]),

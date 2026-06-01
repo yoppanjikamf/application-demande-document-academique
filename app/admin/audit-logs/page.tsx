@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ScrollText } from "lucide-react";
 
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
@@ -50,6 +50,7 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
   const q = params?.q?.trim();
   const page = Math.max(1, Number(params?.page ?? "1") || 1);
   const documentScope = getAdminDocumentScope(user);
+  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
   const scopedDocuments = await prisma.documentAcademique.findMany({
     where: documentScope,
     select: { id: true, eleveId: true },
@@ -107,6 +108,7 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
     <DashboardShell
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
+      scopeLabel={regionLabel}
       activePath="/admin/audit-logs"
       title="Journaux d'audit"
       subtitle="Historique des actions sensibles sur les comptes, documents, paiements et rendez-vous."

@@ -1,9 +1,10 @@
 import Link from "next/link";
 
 import { updateDocumentStatusAction } from "@/app/admin/actions";
+import type { StatutDocument } from "@/lib/generated/prisma/client";
 import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBadge, documentTone } from "@/components/dashboard/status-badge";
@@ -24,8 +25,12 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
   const params = await searchParams;
   const status = STATUSES.find((value) => value === params?.statut);
   const page = Math.max(1, Number(params?.page ?? "1") || 1);
+  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
 
-  const where = { ...getAdminDocumentScope(user), ...(status ? { statut: status } : {}) };
+  const where = {
+    ...getAdminDocumentScope(user),
+    ...(status ? { statut: status } : { statut: { not: "RETIRE" as StatutDocument } }),
+  };
   const [documents, total] = await Promise.all([
     prisma.documentAcademique.findMany({
       where,
@@ -52,6 +57,7 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
     <DashboardShell
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
+      scopeLabel={regionLabel}
       activePath="/admin/documents"
       title="Documents académiques"
       subtitle="Verification physique, changement de statut et suivi des rendez-vous."

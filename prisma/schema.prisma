@@ -92,6 +92,7 @@ model AntenneRegionale {
   nom    String
   region String @unique
   ville  String?
+  accessKey String?
 
   organismeId String
   organisme   Organisme @relation(fields: [organismeId], references: [id])
@@ -391,6 +392,7 @@ model ParametreRendezVous {
   id              String @id @default("GLOBAL")
   quotaJournalier Int    @default(200)
   lieuObc         String @default("Centre de retrait")
+  allowWeekendBookings Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

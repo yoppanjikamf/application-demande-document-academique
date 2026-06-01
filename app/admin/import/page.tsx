@@ -1,16 +1,19 @@
 import { importTestDataAction } from "@/app/admin/actions";
 import { requireRole } from "@/lib/auth";
+import { getAntenneById } from "@/lib/document-routing";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default async function AdminImportPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin/import");
+  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
 
   return (
     <DashboardShell
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
+      scopeLabel={regionLabel}
       activePath="/admin/import"
       title="Import CSV"
       subtitle="Importer des élèves, documents et rendez-vous depuis un fichier CSV structuré."

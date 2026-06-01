@@ -9,6 +9,7 @@ export function DashboardShell({
   userName,
   title,
   subtitle,
+  scopeLabel,
   activePath,
   children,
 }: {
@@ -16,6 +17,7 @@ export function DashboardShell({
   userName?: string;
   title: string;
   subtitle: string;
+  scopeLabel?: string;
   activePath: string;
   children: ReactNode;
 }) {
@@ -25,7 +27,7 @@ export function DashboardShell({
         <DashboardSidebar role={role} activePath={activePath} />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <DashboardHeader role={role} userName={userName} title={title} subtitle={subtitle} />
+          <DashboardHeader role={role} userName={userName} title={title} subtitle={subtitle} scopeLabel={scopeLabel} />
           <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
         </div>
       </div>

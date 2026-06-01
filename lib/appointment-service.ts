@@ -104,7 +104,7 @@ export async function getAppointmentSettings() {
   }
 
   return prisma.parametreRendezVous.create({
-    data: { id: OBC_SETTINGS_ID, quotaJournalier: 200, lieuObc: "Centre de retrait" },
+    data: { id: OBC_SETTINGS_ID, quotaJournalier: 200, lieuObc: "Centre de retrait", allowWeekendBookings: false },
   });
 }
 
@@ -171,7 +171,9 @@ export async function getPickupLocation(
 export async function getAvailableSlots(date: Date): Promise<AppointmentSlot[]> {
   const slots = await getActiveTimeSlots();
 
-  if (isWeekend(date) || (await isHoliday(date))) {
+  const settings = await getAppointmentSettings();
+
+  if ((isWeekend(date) && !settings.allowWeekendBookings) || (await isHoliday(date))) {
     return slots.map((slot) => ({
       value: `${slot.heureDebut}-${slot.heureFin}`,
       label: `${slot.heureDebut} - ${slot.heureFin}`,
@@ -180,7 +182,6 @@ export async function getAvailableSlots(date: Date): Promise<AppointmentSlot[]> 
     }));
   }
 
-  const settings = await getAppointmentSettings();
   const dayStart = startOfDay(date);
   const dayEnd = endOfDay(date);
   const appointments = await prisma.rendezVous.findMany({

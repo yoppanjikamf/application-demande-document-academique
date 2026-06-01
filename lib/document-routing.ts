@@ -8,16 +8,16 @@ export const ORGANISME_IDS = {
 export const DEFAULT_REGION = "Centre";
 
 export const OBC_REGIONAL_ANTENNAS = [
-  { id: "antenne-adamaoua", region: "Adamaoua", nom: "Antenne regionale OBC Adamaoua", ville: "Ngaoundere" },
-  { id: "antenne-centre", region: "Centre", nom: "Antenne regionale OBC Centre", ville: "Yaounde" },
-  { id: "antenne-est", region: "Est", nom: "Antenne regionale OBC Est", ville: "Bertoua" },
-  { id: "antenne-extreme-nord", region: "Extreme-Nord", nom: "Antenne regionale OBC Extreme-Nord", ville: "Maroua" },
-  { id: "antenne-littoral", region: "Littoral", nom: "Antenne regionale OBC Littoral", ville: "Douala" },
-  { id: "antenne-nord", region: "Nord", nom: "Antenne regionale OBC Nord", ville: "Garoua" },
-  { id: "antenne-nord-ouest", region: "Nord-Ouest", nom: "Antenne regionale OBC Nord-Ouest", ville: "Bamenda" },
-  { id: "antenne-ouest", region: "Ouest", nom: "Antenne regionale OBC Ouest", ville: "Bafoussam" },
-  { id: "antenne-sud", region: "Sud", nom: "Antenne regionale OBC Sud", ville: "Ebolowa" },
-  { id: "antenne-sud-ouest", region: "Sud-Ouest", nom: "Antenne regionale OBC Sud-Ouest", ville: "Buea" },
+  { id: "antenne-adamaoua", region: "Adamaoua", nom: "Antenne regionale OBC Adamaoua", ville: "Ngaoundere", accessKey: "OBC-ADAMAOUA-2026" },
+  { id: "antenne-centre", region: "Centre", nom: "Antenne regionale OBC Centre", ville: "Yaounde", accessKey: "OBC-CENTRE-2026" },
+  { id: "antenne-est", region: "Est", nom: "Antenne regionale OBC Est", ville: "Bertoua", accessKey: "OBC-EST-2026" },
+  { id: "antenne-extreme-nord", region: "Extreme-Nord", nom: "Antenne regionale OBC Extreme-Nord", ville: "Maroua", accessKey: "OBC-EXTREME-NORD-2026" },
+  { id: "antenne-littoral", region: "Littoral", nom: "Antenne regionale OBC Littoral", ville: "Douala", accessKey: "OBC-LITTORAL-2026" },
+  { id: "antenne-nord", region: "Nord", nom: "Antenne regionale OBC Nord", ville: "Garoua", accessKey: "OBC-NORD-2026" },
+  { id: "antenne-nord-ouest", region: "Nord-Ouest", nom: "Antenne regionale OBC Nord-Ouest", ville: "Bamenda", accessKey: "OBC-NORD-OUEST-2026" },
+  { id: "antenne-ouest", region: "Ouest", nom: "Antenne regionale OBC Ouest", ville: "Bafoussam", accessKey: "OBC-OUEST-2026" },
+  { id: "antenne-sud", region: "Sud", nom: "Antenne regionale OBC Sud", ville: "Ebolowa", accessKey: "OBC-SUD-2026" },
+  { id: "antenne-sud-ouest", region: "Sud-Ouest", nom: "Antenne regionale OBC Sud-Ouest", ville: "Buea", accessKey: "OBC-SUD-OUEST-2026" },
 ] as const;
 
 export type OrganismeName = keyof typeof ORGANISME_IDS;
@@ -54,6 +54,23 @@ export function normalizeRegion(region?: string | null) {
 export function getAntenneForRegion(region?: string | null) {
   const normalized = normalizeRegion(region);
   return OBC_REGIONAL_ANTENNAS.find((antenne) => antenne.region === normalized) ?? OBC_REGIONAL_ANTENNAS[1];
+}
+
+export function getAntenneById(id?: string | null) {
+  if (!id) {
+    return null;
+  }
+
+  return OBC_REGIONAL_ANTENNAS.find((antenne) => antenne.id === id) ?? null;
+}
+
+export function getAntenneByAccessKey(accessKey?: string | null) {
+  const normalized = accessKey?.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  return OBC_REGIONAL_ANTENNAS.find((antenne) => antenne.accessKey === normalized) ?? null;
 }
 
 export function getOrganismeForDiplome(diplomeType: DiplomePrincipal): OrganismeName {

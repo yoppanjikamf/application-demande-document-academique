@@ -1,7 +1,7 @@
 import { Mail, Search } from "lucide-react";
 
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
   const params = await searchParams;
   const q = params?.q?.trim();
   const documentScope = getAdminDocumentScope(user);
+  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
   const where = {
     role: "ELEVE" as const,
     documentsAcademique: { some: documentScope },
@@ -54,6 +55,7 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
     <DashboardShell
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
+      scopeLabel={regionLabel}
       activePath="/admin/students"
       title="Élèves"
       subtitle="Recherche et suivi des comptes élèves rattachés aux documents académiques."

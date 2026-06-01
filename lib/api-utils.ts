@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getCurrentUser, type AuthenticatedUser } from "@/lib/auth";
+import { ORGANISME_IDS } from "@/lib/document-routing";
 import type { Role } from "@/lib/generated/prisma/client";
 
 export class ApiError extends Error {
@@ -53,6 +54,10 @@ export async function requireApiUser(role?: Role): Promise<AuthenticatedUser> {
 
   if (role && user.role !== role) {
     throw new ApiError("Accès refusé.", 403);
+  }
+
+  if (user.role === "ADMINISTRATEUR" && user.organismeId === ORGANISME_IDS.OBC && !user.antenneRegionaleId) {
+    throw new ApiError("Selection de region requise.", 403);
   }
 
   return user;

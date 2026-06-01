@@ -2,11 +2,12 @@
 
 import { z } from "zod";
 
-import { getHomePathForRole } from "@/lib/auth";
+import { getCurrentUser, getHomePathForRole } from "@/lib/auth";
+import { getAntenneByAccessKey, ORGANISME_IDS } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { signInSchema, signUpSchema } from "@/lib/validations";
+import { adminRegionAccessSchema, signInSchema, signUpSchema } from "@/lib/validations";
 
 function normalizeMatricule(matricule: string) {
   return matricule.trim().toUpperCase();
@@ -15,6 +16,14 @@ function normalizeMatricule(matricule: string) {
 function safeNextPath(next?: string) {
   if (!next?.startsWith("/") || next.startsWith("//")) {
     return "/dashboard";
+  }
+
+  return next;
+}
+
+function safeAdminNextPath(next?: string) {
+  if (!next?.startsWith("/") || next.startsWith("//")) {
+    return "/admin";
   }
 
   return next;
@@ -137,7 +146,16 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
   const dbUser = await withDatabaseRetry(() =>
     prisma.user.findUnique({
       where: { matricule },
-      select: { id: true, authUserId: true, email: true, role: true, nom: true, prenom: true, matricule: true },
+      select: {
+        id: true,
+        authUserId: true,
+        email: true,
+        role: true,
+        nom: true,
+        prenom: true,
+        matricule: true,
+        organismeId: true,
+      },
     }),
   );
 
@@ -205,7 +223,12 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
 
       return {
         ok: true as const,
-        redirectTo: input.next ? safeNextPath(input.next) : getHomePathForRole(dbUser.role),
+        redirectTo:
+          dbUser.role === "ADMINISTRATEUR" && dbUser.organismeId === ORGANISME_IDS.OBC
+            ? `/auth/admin-region?next=${encodeURIComponent(safeAdminNextPath(input.next))}`
+            : input.next
+              ? safeNextPath(input.next)
+              : getHomePathForRole(dbUser.role),
       };
     } catch (adminError) {
       return {
@@ -258,6 +281,38 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
   return {
     ok: true as const,
     redirectTo: input.next ? safeNextPath(input.next) : getHomePathForRole(dbUser.role),
+  };
+}
+
+export async function unlockAdminRegionAction(input: { accessKey: string; next?: string }) {
+  const parsed = adminRegionAccessSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: "Cle invalide." };
+  }
+
+  const user = await getCurrentUser();
+
+  if (!user || user.role !== "ADMINISTRATEUR" || user.organismeId !== ORGANISME_IDS.OBC) {
+    return { ok: false as const, error: "Acces refuse." };
+  }
+
+  const antenna = getAntenneByAccessKey(parsed.data.accessKey);
+
+  if (!antenna) {
+    return { ok: false as const, error: "Cle incorrecte pour une region OBC." };
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      antenneRegionaleId: antenna.id,
+      nomService: antenna.nom,
+    },
+  });
+
+  return {
+    ok: true as const,
+    redirectTo: input.next ? safeAdminNextPath(input.next) : "/admin",
   };
 }
 

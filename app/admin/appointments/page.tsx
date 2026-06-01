@@ -1,7 +1,7 @@
 import { cancelAppointmentAction, confirmAppointmentAction } from "@/app/admin/actions";
 import { getDocumentTitle } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBadge, appointmentTone } from "@/components/dashboard/status-badge";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 export default async function AdminAppointmentsPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin/appointments");
+  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
   const appointments = await prisma.rendezVous.findMany({
     where: { statut: { in: ["PLANIFIE", "CONFIRME"] }, document: { is: getAdminDocumentScope(user) } },
     orderBy: [{ dateRdv: "asc" }, { heureRdv: "asc" }],
@@ -23,6 +24,7 @@ export default async function AdminAppointmentsPage() {
     <DashboardShell
       role="ADMINISTRATEUR"
       userName={`${user.prenom} ${user.nom}`}
+      scopeLabel={regionLabel}
       activePath="/admin/appointments"
       title="Planning des retraits"
       subtitle="Rendez-vous actifs à confirmer ou à annuler dans DR-DOCSCOL."
