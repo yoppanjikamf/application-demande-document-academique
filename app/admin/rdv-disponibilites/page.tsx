@@ -1,16 +1,25 @@
-import { updateAdminQuotaAction, upsertHolidayAction, deleteHolidayAction, toggleWeekendBookingsAction } from "@/app/admin/actions";
+import {
+  updateAdminQuotaAction,
+  upsertHolidayAction,
+  deleteHolidayAction,
+  toggleWeekendBookingsAction,
+} from "@/app/admin/actions";
 import { OBC_SETTINGS_ID, formatDateKey, getActiveTimeSlots } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAdminScopeLabel, ORGANISME_IDS } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { redirect } from "next/navigation";
 
 export default async function AdminDisponibilitesPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin/rdv-disponibilites");
+  if (user.organismeId === ORGANISME_IDS.DECC) {
+    redirect("/admin");
+  }
   const documentScope = getAdminDocumentScope(user);
-  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
+  const scopeLabel = getAdminScopeLabel(user);
 
   const [settings, slots] = await Promise.all([
     prisma.parametreRendezVous.findUnique({ where: { id: OBC_SETTINGS_ID } }),
@@ -42,13 +51,17 @@ export default async function AdminDisponibilitesPage() {
   return (
     <DashboardShell
       role="ADMINISTRATEUR"
+      organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
-      scopeLabel={regionLabel}
+      scopeLabel={scopeLabel}
       activePath="/admin/rdv-disponibilites"
       title="Disponibilités RDV"
       subtitle="Définissez le quota journalier global du centre et consultez les jours réservés."
     >
-      <form action={updateAdminQuotaAction} className="max-w-xl space-y-3 rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+      <form
+        action={updateAdminQuotaAction}
+        className="max-w-xl space-y-3 rounded-md border border-slate-200 bg-white p-5 shadow-sm"
+      >
         <label className="text-sm font-medium" htmlFor="quotaJournalier">
           Quota journalier global
         </label>
@@ -67,7 +80,10 @@ export default async function AdminDisponibilitesPage() {
         <h2 className="text-lg font-semibold text-slate-950">Créneaux actifs</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           {slots.map((slot) => (
-            <div key={slot.id} className="rounded-md border border-slate-200 bg-white p-4 text-sm shadow-sm">
+            <div
+              key={slot.id}
+              className="rounded-md border border-slate-200 bg-white p-4 text-sm shadow-sm"
+            >
               {slot.heureDebut} - {slot.heureFin}
             </div>
           ))}
@@ -83,7 +99,9 @@ export default async function AdminDisponibilitesPage() {
             {[...countByDay.entries()].map(([date, count]) => (
               <div key={date} className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="text-sm text-slate-500">{date}</div>
-                <div className="text-sm">Réservations : {count} / {quota}</div>
+                <div className="text-sm">
+                  Réservations : {count} / {quota}
+                </div>
               </div>
             ))}
           </div>
@@ -101,13 +119,16 @@ export default async function AdminDisponibilitesPage() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-slate-950">Jours fériés</h2>
-        <form action={upsertHolidayAction} className="flex max-w-xl items-end gap-3 rounded-md border border-slate-200 bg-white p-4">
+        <form
+          action={upsertHolidayAction}
+          className="flex max-w-xl items-end gap-3 rounded-md border border-slate-200 bg-white p-4"
+        >
           <div>
-            <label className="text-sm block">Date</label>
+            <label className="block text-sm">Date</label>
             <Input id="date" name="date" type="date" />
           </div>
           <div>
-            <label className="text-sm block">Nom</label>
+            <label className="block text-sm">Nom</label>
             <Input id="nom" name="nom" type="text" />
           </div>
           <Button type="submit">Ajouter / Mettre à jour</Button>
@@ -118,14 +139,19 @@ export default async function AdminDisponibilitesPage() {
         ) : (
           <div className="space-y-2">
             {holidays.map((h) => (
-              <div key={h.id} className="flex items-center justify-between rounded-md border border-slate-200 bg-white p-3">
+              <div
+                key={h.id}
+                className="flex items-center justify-between rounded-md border border-slate-200 bg-white p-3"
+              >
                 <div>
                   <div className="text-sm text-slate-500">{h.date.toISOString().slice(0, 10)}</div>
                   <div className="font-medium">{h.nom}</div>
                 </div>
                 <form action={deleteHolidayAction}>
                   <input type="hidden" name="date" value={h.date.toISOString().slice(0, 10)} />
-                  <Button type="submit" variant="destructive">Supprimer</Button>
+                  <Button type="submit" variant="destructive">
+                    Supprimer
+                  </Button>
                 </form>
               </div>
             ))}

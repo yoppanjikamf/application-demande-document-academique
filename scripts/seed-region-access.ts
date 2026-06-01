@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import { PrismaClient } from "../lib/generated/prisma/client";
-import { OBC_REGIONAL_ANTENNAS, ORGANISME_IDS } from "../lib/document-routing";
+import { ORGANISME_IDS, REGIONAL_ANTENNAS } from "../lib/document-routing";
 
 const prisma = new PrismaClient();
 
@@ -11,8 +11,13 @@ async function main() {
     update: { nom: "OBC" },
     create: { id: ORGANISME_IDS.OBC, nom: "OBC" },
   });
+  await prisma.organisme.upsert({
+    where: { id: ORGANISME_IDS.DECC },
+    update: { nom: "DECC" },
+    create: { id: ORGANISME_IDS.DECC, nom: "DECC" },
+  });
 
-  for (const antenna of OBC_REGIONAL_ANTENNAS) {
+  for (const antenna of REGIONAL_ANTENNAS) {
     await prisma.antenneRegionale.upsert({
       where: { id: antenna.id },
       update: {
@@ -20,7 +25,7 @@ async function main() {
         region: antenna.region,
         ville: antenna.ville,
         accessKey: antenna.accessKey,
-        organismeId: ORGANISME_IDS.OBC,
+        organismeId: antenna.organismeId,
       },
       create: {
         id: antenna.id,
@@ -28,13 +33,13 @@ async function main() {
         region: antenna.region,
         ville: antenna.ville,
         accessKey: antenna.accessKey,
-        organismeId: ORGANISME_IDS.OBC,
+        organismeId: antenna.organismeId,
       },
     });
   }
 
-  const total = await prisma.antenneRegionale.count({ where: { organismeId: ORGANISME_IDS.OBC } });
-  console.log(`Clés régionales OBC mises à jour: ${total}`);
+  const total = await prisma.antenneRegionale.count();
+  console.log(`Clés régionales mises à jour: ${total}`);
 }
 
 main()

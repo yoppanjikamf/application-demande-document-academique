@@ -75,7 +75,7 @@ model Organisme {
   id  String @id @default(uuid())
   nom String @unique
 
-  users                User[]
+  users               User[]
   antennesRegionale   AntenneRegionale[]
   documentsAcademique DocumentAcademique[]
   duplicatas          Duplicata[]
@@ -86,24 +86,25 @@ model Organisme {
   @@map("organismes")
 }
 
-// ==================== ANTENNES REGIONALES OBC ====================
+// ==================== ANTENNES REGIONALES ====================
 model AntenneRegionale {
-  id     String @id @default(uuid())
-  nom    String
-  region String @unique
-  ville  String?
+  id        String  @id @default(uuid())
+  nom       String
+  region    String
+  ville     String?
   accessKey String?
 
   organismeId String
   organisme   Organisme @relation(fields: [organismeId], references: [id])
 
-  users                User[]
+  users               User[]
   documentsAcademique DocumentAcademique[]
   duplicatas          Duplicata[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([organismeId, region])
   @@index([organismeId])
   @@map("antennes_regionales")
 }
@@ -124,10 +125,10 @@ model User {
   dateNaissance DateTime?
 
   // Champs spécifiques à l'admin (nulables si l'user est élève)
-  nomService    String?
-  maxRdvParJour Int?    @default(10)
-  organismeId   String?
-  organisme     Organisme? @relation(fields: [organismeId], references: [id])
+  nomService         String?
+  maxRdvParJour      Int?              @default(10)
+  organismeId        String?
+  organisme          Organisme?        @relation(fields: [organismeId], references: [id])
   antenneRegionaleId String?
   antenneRegionale   AntenneRegionale? @relation(fields: [antenneRegionaleId], references: [id])
 
@@ -234,11 +235,11 @@ model MailLog {
 
 // ==================== DOCUMENTACADEMIQUE ====================
 model DocumentAcademique {
-  id           String           @id @default(uuid())
-  typeDocument TypeDocument
-  diplomeType  DiplomePrincipal @default(BACCALAUREAT)
-  statut       StatutDocument   @default(PAS_DISPONIBLE)
-  centreExamen String?
+  id                String           @id @default(uuid())
+  typeDocument      TypeDocument
+  diplomeType       DiplomePrincipal @default(BACCALAUREAT)
+  statut            StatutDocument   @default(PAS_DISPONIBLE)
+  centreExamen      String?
   regionComposition String?
 
   // Élève qui demande
@@ -246,8 +247,8 @@ model DocumentAcademique {
   eleve   User   @relation("EleveDocuments", fields: [eleveId], references: [id])
 
   // Organisme et antenne responsables de la demande
-  organismeId String?
-  organisme   Organisme? @relation(fields: [organismeId], references: [id])
+  organismeId        String?
+  organisme          Organisme?        @relation(fields: [organismeId], references: [id])
   antenneRegionaleId String?
   antenneRegionale   AntenneRegionale? @relation(fields: [antenneRegionaleId], references: [id])
 
@@ -275,11 +276,11 @@ model DocumentAcademique {
 
 // ==================== DUPLICATA ====================
 model Duplicata {
-  id           String         @id @default(uuid())
-  typeDocument TypeDocument
-  nomDuplicata String
-  statut       StatutDocument @default(PAS_DISPONIBLE)
-  intruction   String
+  id                String         @id @default(uuid())
+  typeDocument      TypeDocument
+  nomDuplicata      String
+  statut            StatutDocument @default(PAS_DISPONIBLE)
+  intruction        String
   regionComposition String?
 
   // Élève qui demande
@@ -287,8 +288,8 @@ model Duplicata {
   eleve   User   @relation("EleveDuplicatas", fields: [eleveId], references: [id])
 
   // Organisme et antenne responsables de la demande
-  organismeId String?
-  organisme   Organisme? @relation(fields: [organismeId], references: [id])
+  organismeId        String?
+  organisme          Organisme?        @relation(fields: [organismeId], references: [id])
   antenneRegionaleId String?
   antenneRegionale   AntenneRegionale? @relation(fields: [antenneRegionaleId], references: [id])
 
@@ -370,10 +371,10 @@ model Diplome {
 
 // ==================== EXAMEN VALIDE ====================
 model ExamenValide {
-  id           String           @id @default(uuid())
-  diplomeType  DiplomePrincipal
-  anneeSession Int?
-  centreExamen String?
+  id                String           @id @default(uuid())
+  diplomeType       DiplomePrincipal
+  anneeSession      Int?
+  centreExamen      String?
   regionComposition String?
 
   eleveId String
@@ -389,9 +390,9 @@ model ExamenValide {
 
 // ==================== PARAMETRES RENDEZ-VOUS ====================
 model ParametreRendezVous {
-  id              String @id @default("GLOBAL")
-  quotaJournalier Int    @default(200)
-  lieuObc         String @default("Centre de retrait")
+  id                   String  @id @default("GLOBAL")
+  quotaJournalier      Int     @default(200)
+  lieuObc              String  @default("Centre de retrait")
   allowWeekendBookings Boolean @default(false)
 
   createdAt DateTime @default(now())
@@ -453,13 +454,13 @@ model Recu {
 
 // ==================== AUDIT LOG ====================
 model AuditLog {
-  id       String @id @default(uuid())
-  action   String // ex: "LOGIN", "CHANGE_ROLE", "CHANGE_STATUS", "WITHDRAWAL", "PAYMENT"
-  resource String // ex: "USER", "DOCUMENT", "PAYMENT", "APPOINTMENT"
+  id         String  @id @default(uuid())
+  action     String // ex: "LOGIN", "CHANGE_ROLE", "CHANGE_STATUS", "WITHDRAWAL", "PAYMENT"
+  resource   String // ex: "USER", "DOCUMENT", "PAYMENT", "APPOINTMENT"
   resourceId String // ID de la ressource affectée
-  details  String? // Détails JSON des changements
-  ipAddress String?
-  
+  details    String? // Détails JSON des changements
+  ipAddress  String?
+
   userId String?
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 

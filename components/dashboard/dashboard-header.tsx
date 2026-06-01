@@ -24,7 +24,13 @@ export function DashboardHeader({
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="flex flex-wrap items-center gap-4 px-4 py-4 lg:px-6">
-        <Button type="button" variant="outline" size="icon" className="lg:hidden" onClick={toggleSidebar}>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="lg:hidden"
+          onClick={toggleSidebar}
+        >
           <Menu className="h-4 w-4" />
           <span className="sr-only">Ouvrir le menu</span>
         </Button>
@@ -33,11 +39,13 @@ export function DashboardHeader({
           <p className="text-xs font-semibold uppercase text-slate-500">
             {role === "ADMINISTRATEUR" ? "Back-office DR-DOCSCOL" : "Espace élève"}
           </p>
-          <h1 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{title}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+            {title}
+          </h1>
           <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
           {scopeLabel ? (
             <p className="mt-2 inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-              Région OBC: {scopeLabel}
+              Périmètre: {scopeLabel}
             </p>
           ) : null}
         </div>

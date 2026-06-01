@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getCurrentUser, type AuthenticatedUser } from "@/lib/auth";
-import { ORGANISME_IDS } from "@/lib/document-routing";
 import type { Role } from "@/lib/generated/prisma/client";
 
 export class ApiError extends Error {
@@ -56,7 +55,7 @@ export async function requireApiUser(role?: Role): Promise<AuthenticatedUser> {
     throw new ApiError("Accès refusé.", 403);
   }
 
-  if (user.role === "ADMINISTRATEUR" && user.organismeId === ORGANISME_IDS.OBC && !user.antenneRegionaleId) {
+  if (user.role === "ADMINISTRATEUR" && user.organismeId && !user.antenneRegionaleId) {
     throw new ApiError("Selection de region requise.", 403);
   }
 
@@ -71,7 +70,9 @@ export function requireInternalRequest(request: Request) {
   }
 
   const authorization = request.headers.get("authorization");
-  const bearer = authorization?.startsWith("Bearer ") ? authorization.slice("Bearer ".length) : null;
+  const bearer = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : null;
   const headerSecret = request.headers.get("x-internal-secret");
 
   if (bearer !== secret && headerSecret !== secret) {
@@ -82,7 +83,10 @@ export function requireInternalRequest(request: Request) {
 export function getPageParams(request: Request, pageSize = 20) {
   const url = new URL(request.url);
   const page = Math.max(1, Number(url.searchParams.get("page") ?? "1") || 1);
-  const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit") ?? pageSize) || pageSize));
+  const limit = Math.min(
+    100,
+    Math.max(1, Number(url.searchParams.get("limit") ?? pageSize) || pageSize),
+  );
 
   return {
     page,

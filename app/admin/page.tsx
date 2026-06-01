@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarDays, FileText, ListChecks, UsersRound } from "lucide-react";
 
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAdminScopeLabel, ORGANISME_IDS } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -13,7 +13,8 @@ import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 export default async function AdminPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin");
   const documentScope = getAdminDocumentScope(user);
-  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
+  const scopeLabel = getAdminScopeLabel(user);
+  const isObcAdmin = user.organismeId === ORGANISME_IDS.OBC;
 
   const [
     elevesCount,
@@ -27,7 +28,9 @@ export default async function AdminPage() {
   ] = await Promise.all([
     prisma.user.count({ where: { role: "ELEVE", documentsAcademique: { some: documentScope } } }),
     prisma.documentAcademique.count({ where: documentScope }),
-    prisma.rendezVous.count({ where: { statut: { in: ["PLANIFIE", "CONFIRME"] }, document: { is: documentScope } } }),
+    prisma.rendezVous.count({
+      where: { statut: { in: ["PLANIFIE", "CONFIRME"] }, document: { is: documentScope } },
+    }),
     prisma.documentAcademique.count({ where: { ...documentScope, statut: "DISPONIBLE" } }),
     prisma.documentAcademique.count({ where: { ...documentScope, statut: "PAS_DISPONIBLE" } }),
     prisma.rendezVous.count({ where: { statut: "HONORE", document: { is: documentScope } } }),
@@ -48,8 +51,9 @@ export default async function AdminPage() {
   return (
     <DashboardShell
       role="ADMINISTRATEUR"
+      organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
-      scopeLabel={regionLabel}
+      scopeLabel={scopeLabel}
       activePath="/admin"
       title={`Administration ${user.nomService ?? ""}`.trim()}
       subtitle={`Connecte en tant que ${user.prenom} ${user.nom}${user.nomService ? ` · ${user.nomService}` : ""}`}
@@ -88,9 +92,11 @@ export default async function AdminPage() {
           <Button asChild variant="outline">
             <Link href="/admin/documents">Verifier les documents</Link>
           </Button>
-          <Button asChild variant="outline">
-            <Link href="/admin/rdv-disponibilites">Configurer les disponibilités</Link>
-          </Button>
+          {isObcAdmin ? (
+            <Button asChild variant="outline">
+              <Link href="/admin/rdv-disponibilites">Configurer les disponibilités</Link>
+            </Button>
+          ) : null}
           <Button asChild variant="outline">
             <Link href="/admin/import">Importer CSV</Link>
           </Button>
@@ -106,12 +112,16 @@ export default async function AdminPage() {
             {recentDocuments.map((document) => (
               <div key={document.id} className="flex items-center justify-between gap-4 px-5 py-4">
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-slate-950">{getDocumentTitle(document)}</p>
+                  <p className="truncate font-medium text-slate-950">
+                    {getDocumentTitle(document)}
+                  </p>
                   <p className="text-sm text-slate-500">
                     {document.eleve.prenom} {document.eleve.nom} · {document.eleve.matricule}
                   </p>
                 </div>
-                <StatusBadge tone={documentTone(document.statut)}>{getStatusLabel(document.statut)}</StatusBadge>
+                <StatusBadge tone={documentTone(document.statut)}>
+                  {getStatusLabel(document.statut)}
+                </StatusBadge>
               </div>
             ))}
           </div>
@@ -132,7 +142,8 @@ export default async function AdminPage() {
                       {rdv.document ? getDocumentTitle(rdv.document) : "Document académique"}
                     </p>
                     <p className="text-sm text-slate-500">
-                      {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} · {rdv.eleve.matricule}
+                      {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} ·{" "}
+                      {rdv.eleve.matricule}
                     </p>
                   </div>
                   <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>

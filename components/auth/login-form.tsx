@@ -21,10 +21,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import type { OrganismeName } from "@/lib/document-routing";
 
 type Values = z.infer<typeof signInSchema>;
 
-export function LoginForm() {
+export function LoginForm({ loginOrganisme }: { loginOrganisme?: OrganismeName }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? undefined;
@@ -38,7 +39,7 @@ export function LoginForm() {
 
   const onSubmit = (values: Values) => {
     startTransition(async () => {
-      const res = await signInAction({ ...values, next });
+      const res = await signInAction({ ...values, next, loginOrganisme });
       if (!res.ok) {
         toast.error(res.error);
         return;

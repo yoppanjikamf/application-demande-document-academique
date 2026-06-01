@@ -1,7 +1,7 @@
 import { Mail, Search } from "lucide-react";
 
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAdminScopeLabel } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
   const params = await searchParams;
   const q = params?.q?.trim();
   const documentScope = getAdminDocumentScope(user);
-  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
+  const scopeLabel = getAdminScopeLabel(user);
   const where = {
     role: "ELEVE" as const,
     documentsAcademique: { some: documentScope },
@@ -54,8 +54,9 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
   return (
     <DashboardShell
       role="ADMINISTRATEUR"
+      organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
-      scopeLabel={regionLabel}
+      scopeLabel={scopeLabel}
       activePath="/admin/students"
       title="Élèves"
       subtitle="Recherche et suivi des comptes élèves rattachés aux documents académiques."
@@ -63,7 +64,12 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
       <form className="max-w-xl">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input name="q" defaultValue={q ?? ""} placeholder="Matricule, nom ou email" className="pl-9" />
+          <Input
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="Matricule, nom ou email"
+            className="pl-9"
+          />
         </div>
       </form>
 
@@ -78,7 +84,10 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
             <p className="px-5 py-6 text-sm text-slate-500">Aucun élève trouvé.</p>
           ) : (
             students.map((student) => (
-              <div key={student.id} className="grid gap-4 px-5 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center">
+              <div
+                key={student.id}
+                className="grid gap-4 px-5 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center"
+              >
                 <div>
                   <p className="font-medium text-slate-950">
                     {student.prenom} {student.nom}
@@ -90,7 +99,8 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
                   {student.email}
                 </p>
                 <p className="text-sm text-slate-600">
-                  {student._count.documentsAcademique} documents · {student._count.eleveRendezVous} RDV
+                  {student._count.documentsAcademique} documents · {student._count.eleveRendezVous}{" "}
+                  RDV
                 </p>
               </div>
             ))

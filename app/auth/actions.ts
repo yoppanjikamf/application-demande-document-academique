@@ -3,7 +3,12 @@
 import { z } from "zod";
 
 import { getCurrentUser, getHomePathForRole } from "@/lib/auth";
-import { getAntenneByAccessKey, ORGANISME_IDS } from "@/lib/document-routing";
+import {
+  getAntenneByAccessKey,
+  getOrganismeNameById,
+  ORGANISME_IDS,
+  type OrganismeName,
+} from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -23,6 +28,10 @@ function safeNextPath(next?: string) {
 
 function safeAdminNextPath(next?: string) {
   if (!next?.startsWith("/") || next.startsWith("//")) {
+    return "/admin";
+  }
+
+  if (!next.startsWith("/admin") && next !== "/account") {
     return "/admin";
   }
 
@@ -87,12 +96,16 @@ async function ensureAdminAuthUser(options: {
   matricule: string;
   nom: string;
   prenom: string;
+  organismeId: string | null;
+  antenneRegionaleId: string | null;
   authUserId: string | null;
 }) {
   const supabaseAdmin = createSupabaseAdminClient();
   const appMetadata = {
     role: "ADMINISTRATEUR",
     matricule: options.matricule,
+    organismeId: options.organismeId,
+    antenneRegionaleId: options.antenneRegionaleId,
   };
   const userMetadata = {
     matricule: options.matricule,
@@ -136,7 +149,9 @@ async function ensureAdminAuthUser(options: {
   return data.user.id;
 }
 
-export async function signInAction(input: z.infer<typeof signInSchema> & { next?: string }) {
+export async function signInAction(
+  input: z.infer<typeof signInSchema> & { next?: string; loginOrganisme?: OrganismeName },
+) {
   const parsed = signInSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false as const, error: "Informations de connexion invalides." };
@@ -155,12 +170,30 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
         prenom: true,
         matricule: true,
         organismeId: true,
+        antenneRegionaleId: true,
       },
     }),
   );
 
   if (!dbUser || dbUser.email.toLowerCase() !== parsed.data.email) {
     return { ok: false as const, error: "Matricule ou email incorrect." };
+  }
+
+  const expectedOrganismeId = input.loginOrganisme ? ORGANISME_IDS[input.loginOrganisme] : null;
+  if (dbUser.role === "ADMINISTRATEUR" && !expectedOrganismeId) {
+    return { ok: false as const, error: "Utilisez la page de connexion admin OBC ou DECC." };
+  }
+
+  if (dbUser.role !== "ADMINISTRATEUR" && expectedOrganismeId) {
+    return { ok: false as const, error: "Cette connexion est reservee aux administrateurs." };
+  }
+
+  if (expectedOrganismeId && dbUser.organismeId !== expectedOrganismeId) {
+    const actual = getOrganismeNameById(dbUser.organismeId) ?? "un autre organisme";
+    return {
+      ok: false as const,
+      error: `Ce compte appartient a ${actual}. Utilisez la bonne page de connexion.`,
+    };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -181,6 +214,8 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
         matricule: dbUser.matricule,
         nom: dbUser.nom,
         prenom: dbUser.prenom,
+        organismeId: dbUser.organismeId,
+        antenneRegionaleId: dbUser.antenneRegionaleId,
         authUserId: dbUser.authUserId,
       });
 
@@ -224,10 +259,12 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
       return {
         ok: true as const,
         redirectTo:
-          dbUser.role === "ADMINISTRATEUR" && dbUser.organismeId === ORGANISME_IDS.OBC
+          dbUser.role === "ADMINISTRATEUR" && !dbUser.antenneRegionaleId
             ? `/auth/admin-region?next=${encodeURIComponent(safeAdminNextPath(input.next))}`
             : input.next
-              ? safeNextPath(input.next)
+              ? dbUser.role === "ADMINISTRATEUR"
+                ? safeAdminNextPath(input.next)
+                : safeNextPath(input.next)
               : getHomePathForRole(dbUser.role),
       };
     } catch (adminError) {
@@ -262,25 +299,34 @@ export async function signInAction(input: z.infer<typeof signInSchema> & { next?
   }
 
   // Créer un log d'audit pour la connexion réussie
-  await prisma.auditLog.create({
-    data: {
-      action: "LOGIN",
-      resource: "USER",
-      resourceId: dbUser.id,
-      userId: dbUser.id,
-      details: JSON.stringify({
-        email: dbUser.email,
-        role: dbUser.role,
-        timestamp: new Date().toISOString(),
-      }),
-    },
-  }).catch((err) => {
-    console.error("Failed to create login audit log:", err);
-  });
+  await prisma.auditLog
+    .create({
+      data: {
+        action: "LOGIN",
+        resource: "USER",
+        resourceId: dbUser.id,
+        userId: dbUser.id,
+        details: JSON.stringify({
+          email: dbUser.email,
+          role: dbUser.role,
+          timestamp: new Date().toISOString(),
+        }),
+      },
+    })
+    .catch((err) => {
+      console.error("Failed to create login audit log:", err);
+    });
 
   return {
     ok: true as const,
-    redirectTo: input.next ? safeNextPath(input.next) : getHomePathForRole(dbUser.role),
+    redirectTo:
+      dbUser.role === "ADMINISTRATEUR" && !dbUser.antenneRegionaleId
+        ? `/auth/admin-region?next=${encodeURIComponent(safeAdminNextPath(input.next))}`
+        : input.next
+          ? dbUser.role === "ADMINISTRATEUR"
+            ? safeAdminNextPath(input.next)
+            : safeNextPath(input.next)
+          : getHomePathForRole(dbUser.role),
   };
 }
 
@@ -292,14 +338,14 @@ export async function unlockAdminRegionAction(input: { accessKey: string; next?:
 
   const user = await getCurrentUser();
 
-  if (!user || user.role !== "ADMINISTRATEUR" || user.organismeId !== ORGANISME_IDS.OBC) {
+  if (!user || user.role !== "ADMINISTRATEUR" || !user.organismeId) {
     return { ok: false as const, error: "Acces refuse." };
   }
 
   const antenna = getAntenneByAccessKey(parsed.data.accessKey);
 
-  if (!antenna) {
-    return { ok: false as const, error: "Cle incorrecte pour une region OBC." };
+  if (!antenna || antenna.organismeId !== user.organismeId) {
+    return { ok: false as const, error: "Cle incorrecte pour votre organisme." };
   }
 
   await prisma.user.update({

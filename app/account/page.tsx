@@ -1,17 +1,18 @@
 import { requireUser } from "@/lib/auth";
+import { getAdminScopeLabel } from "@/lib/document-routing";
 import { ProfileForm } from "@/components/account/profile-form";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 export default async function AccountPage() {
   const user = await requireUser("/account");
-  const dateValue = user.dateNaissance
-    ? user.dateNaissance.toISOString().split("T")[0]
-    : "";
+  const dateValue = user.dateNaissance ? user.dateNaissance.toISOString().split("T")[0] : "";
 
   return (
     <DashboardShell
       role={user.role}
+      organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
+      scopeLabel={user.role === "ADMINISTRATEUR" ? getAdminScopeLabel(user) : undefined}
       activePath="/account"
       title="Compte"
       subtitle="Coordonnees et informations personnelles du profil connecte."

@@ -1,7 +1,12 @@
 import "dotenv/config";
 
-import { PrismaClient, Role, type DiplomePrincipal, type TypeDocument } from "../lib/generated/prisma/client";
-import { OBC_REGIONAL_ANTENNAS, ORGANISME_IDS, resolveDocumentRoute } from "../lib/document-routing";
+import {
+  PrismaClient,
+  Role,
+  type DiplomePrincipal,
+  type TypeDocument,
+} from "../lib/generated/prisma/client";
+import { ORGANISME_IDS, REGIONAL_ANTENNAS, resolveDocumentRoute } from "../lib/document-routing";
 import { createSupabaseAdminClient } from "../lib/supabase/admin";
 
 const prisma = new PrismaClient();
@@ -59,21 +64,23 @@ async function ensureOrganismesAndAntennes() {
     create: { id: ORGANISME_IDS.DECC, nom: "DECC" },
   });
 
-  for (const antenne of OBC_REGIONAL_ANTENNAS) {
+  for (const antenne of REGIONAL_ANTENNAS) {
     await prisma.antenneRegionale.upsert({
       where: { id: antenne.id },
       update: {
         nom: antenne.nom,
         region: antenne.region,
         ville: antenne.ville,
-        organismeId: ORGANISME_IDS.OBC,
+        accessKey: antenne.accessKey,
+        organismeId: antenne.organismeId,
       },
       create: {
         id: antenne.id,
         nom: antenne.nom,
         region: antenne.region,
         ville: antenne.ville,
-        organismeId: ORGANISME_IDS.OBC,
+        accessKey: antenne.accessKey,
+        organismeId: antenne.organismeId,
       },
     });
   }
@@ -259,7 +266,9 @@ async function main() {
   console.log(`  Email: ${TEST_USER.email}`);
   console.log(`  Mot de passe: ${TEST_USER.password}`);
   console.log(`  Examens valides: ${EXAMS.length}`);
-  console.log(`  Documents disponibles: ${EXAMS.reduce((sum, exam) => sum + DOCUMENT_TYPES_BY_EXAM[exam.diplomeType].length, 0)}`);
+  console.log(
+    `  Documents disponibles: ${EXAMS.reduce((sum, exam) => sum + DOCUMENT_TYPES_BY_EXAM[exam.diplomeType].length, 0)}`,
+  );
 }
 
 main()

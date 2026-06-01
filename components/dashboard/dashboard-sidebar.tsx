@@ -10,13 +10,15 @@ import { useSidebarContext } from "@/components/dashboard/sidebar-context";
 
 export function DashboardSidebar({
   role,
+  organismeId,
   activePath,
 }: {
   role: Role;
+  organismeId?: string | null;
   activePath: string;
 }) {
   const { isOpen, isMobile, setIsOpen, toggleSidebar } = useSidebarContext();
-  const sections = getNavSections(role);
+  const sections = getNavSections(role, organismeId);
 
   return (
     <>
@@ -65,12 +67,15 @@ export function DashboardSidebar({
             {sections.map((section) => (
               <div key={section.label} className="mb-7">
                 {isOpen ? (
-                  <p className="mb-3 px-3 text-xs font-semibold uppercase text-slate-400">{section.label}</p>
+                  <p className="mb-3 px-3 text-xs font-semibold uppercase text-slate-400">
+                    {section.label}
+                  </p>
                 ) : null}
                 <nav className="space-y-1">
                   {section.items.map((item) => {
                     const Icon = item.icon;
-                    const isActive = activePath === item.url || activePath.startsWith(`${item.url}/`);
+                    const isActive =
+                      activePath === item.url || activePath.startsWith(`${item.url}/`);
 
                     return (
                       <Link

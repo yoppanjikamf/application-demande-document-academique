@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import type { Role } from "@/lib/generated/prisma/client";
+import { ORGANISME_IDS } from "@/lib/document-routing";
 
 export type NavItem = {
   title: string;
@@ -25,7 +26,7 @@ export type NavSection = {
   items: NavItem[];
 };
 
-const adminSections: NavSection[] = [
+const obcAdminSections: NavSection[] = [
   {
     label: "Administration",
     items: [
@@ -36,6 +37,21 @@ const adminSections: NavSection[] = [
       { title: "Paiements", url: "/admin/payments", icon: CreditCard },
       { title: "Audit logs", url: "/admin/audit-logs", icon: ScrollText },
       { title: "Disponibilités", url: "/admin/rdv-disponibilites", icon: CalendarDays },
+      { title: "Import CSV", url: "/admin/import", icon: Import },
+      { title: "Compte", url: "/account", icon: UserRound },
+    ],
+  },
+];
+
+const deccAdminSections: NavSection[] = [
+  {
+    label: "Administration DECC",
+    items: [
+      { title: "Vue d'ensemble", url: "/admin", icon: LayoutDashboard },
+      { title: "Élèves", url: "/admin/students", icon: UsersRound },
+      { title: "Documents BEPC", url: "/admin/documents", icon: FolderCheck },
+      { title: "Paiements", url: "/admin/payments", icon: CreditCard },
+      { title: "Audit logs", url: "/admin/audit-logs", icon: ScrollText },
       { title: "Import CSV", url: "/admin/import", icon: Import },
       { title: "Compte", url: "/account", icon: UserRound },
     ],
@@ -56,6 +72,10 @@ const eleveSections: NavSection[] = [
   },
 ];
 
-export function getNavSections(role: Role) {
-  return role === "ADMINISTRATEUR" ? adminSections : eleveSections;
+export function getNavSections(role: Role, organismeId?: string | null) {
+  if (role !== "ADMINISTRATEUR") {
+    return eleveSections;
+  }
+
+  return organismeId === ORGANISME_IDS.DECC ? deccAdminSections : obcAdminSections;
 }

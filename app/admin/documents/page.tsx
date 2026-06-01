@@ -4,7 +4,7 @@ import { updateDocumentStatusAction } from "@/app/admin/actions";
 import type { StatutDocument } from "@/lib/generated/prisma/client";
 import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope, getAntenneById } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAdminScopeLabel } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBadge, documentTone } from "@/components/dashboard/status-badge";
@@ -25,7 +25,7 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
   const params = await searchParams;
   const status = STATUSES.find((value) => value === params?.statut);
   const page = Math.max(1, Number(params?.page ?? "1") || 1);
-  const regionLabel = getAntenneById(user.antenneRegionaleId)?.region ?? undefined;
+  const scopeLabel = getAdminScopeLabel(user);
 
   const where = {
     ...getAdminDocumentScope(user),
@@ -37,11 +37,11 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       orderBy: { updatedAt: "desc" },
-        include: {
-          eleve: true,
-          organisme: true,
-          antenneRegionale: true,
-          rendezVous: {
+      include: {
+        eleve: true,
+        organisme: true,
+        antenneRegionale: true,
+        rendezVous: {
           where: { statut: { in: ["PLANIFIE", "CONFIRME"] } },
           orderBy: { dateRdv: "asc" },
           take: 1,
@@ -56,8 +56,9 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
   return (
     <DashboardShell
       role="ADMINISTRATEUR"
+      organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
-      scopeLabel={regionLabel}
+      scopeLabel={scopeLabel}
       activePath="/admin/documents"
       title="Documents académiques"
       subtitle="Verification physique, changement de statut et suivi des rendez-vous."
@@ -83,8 +84,12 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-lg font-semibold text-slate-950">{getDocumentTitle(document)}</p>
-                  <StatusBadge tone={documentTone(document.statut)}>{getStatusLabel(document.statut)}</StatusBadge>
+                  <p className="text-lg font-semibold text-slate-950">
+                    {getDocumentTitle(document)}
+                  </p>
+                  <StatusBadge tone={documentTone(document.statut)}>
+                    {getStatusLabel(document.statut)}
+                  </StatusBadge>
                 </div>
                 <p className="text-sm text-slate-500">
                   {document.eleve.prenom} {document.eleve.nom} · {document.eleve.matricule}
@@ -99,7 +104,10 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
                     : "Aucun rendez-vous actif"}
                 </p>
               </div>
-              <form action={updateDocumentStatusAction} className="flex flex-wrap items-center gap-2">
+              <form
+                action={updateDocumentStatusAction}
+                className="flex flex-wrap items-center gap-2"
+              >
                 <input type="hidden" name="documentId" value={document.id} />
                 <select
                   name="statut"

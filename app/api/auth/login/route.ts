@@ -6,6 +6,7 @@ import { signInSchema } from "@/lib/validations";
 
 const apiSignInSchema = signInSchema.extend({
   next: z.string().optional(),
+  loginOrganisme: z.enum(["OBC", "DECC"]).optional(),
 });
 
 export async function POST(request: Request) {

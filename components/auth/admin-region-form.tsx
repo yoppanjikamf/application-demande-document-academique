@@ -42,7 +42,7 @@ export function AdminRegionForm() {
           id="accessKey"
           name="accessKey"
           type="password"
-          placeholder="Ex: OBC-CENTRE-2026"
+          placeholder="Ex: OBC-CENTRE-2026 ou DECC-CENTRE-2026"
           autoComplete="off"
           value={accessKey}
           onChange={(event) => setAccessKey(event.target.value)}

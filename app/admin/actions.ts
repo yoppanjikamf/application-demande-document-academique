@@ -3,7 +3,13 @@ import { revalidatePath } from "next/cache";
 
 import { getDocumentTitle, getPickupLocation, OBC_SETTINGS_ID } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
-import { canAdminAccessDocument, getAdminDocumentScope, isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
+import {
+  ORGANISME_IDS,
+  canAdminAccessDocument,
+  getAdminDocumentScope,
+  isDocumentRequestAllowed,
+  resolveDocumentRoute,
+} from "@/lib/document-routing";
 import { syncLatestDuplicataStatus } from "@/lib/duplicata-service";
 import { notifyDocumentAvailable, notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
@@ -60,11 +66,18 @@ function normalizeUpper(value: string) {
   return value.trim().toUpperCase();
 }
 
+function assertObcAdmin(user: { role: Role; organismeId: string | null }) {
+  if (user.role !== "ADMINISTRATEUR" || user.organismeId !== ORGANISME_IDS.OBC) {
+    throw new Error("Outil reserve aux administrateurs OBC.");
+  }
+}
+
 export async function updateAdminQuotaAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
+  assertObcAdmin(user);
 
   const parsed = adminQuotaSchema.safeParse({
     quotaJournalier: formData.get("quotaJournalier"),
@@ -89,20 +102,22 @@ export async function updateAdminQuotaAction(formData: FormData) {
   });
 
   // Créer un log d'audit
-  await prisma.auditLog.create({
-    data: {
-      action: "QUOTA_CHANGED",
-      resource: "PARAMETER",
-      resourceId: OBC_SETTINGS_ID,
-      userId: user.id,
-      details: JSON.stringify({
-        previousQuota: oldSettings?.quotaJournalier || null,
-        newQuota: parsed.data.quotaJournalier,
-      }),
-    },
-  }).catch((err) => {
-    console.error("Failed to create audit log:", err);
-  });
+  await prisma.auditLog
+    .create({
+      data: {
+        action: "QUOTA_CHANGED",
+        resource: "PARAMETER",
+        resourceId: OBC_SETTINGS_ID,
+        userId: user.id,
+        details: JSON.stringify({
+          previousQuota: oldSettings?.quotaJournalier || null,
+          newQuota: parsed.data.quotaJournalier,
+        }),
+      },
+    })
+    .catch((err) => {
+      console.error("Failed to create audit log:", err);
+    });
 
   revalidatePath("/admin/rdv-disponibilites");
 }
@@ -112,6 +127,7 @@ export async function upsertHolidayAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
+  assertObcAdmin(user);
 
   const dateStr = String(formData.get("date") ?? "");
   const nom = String(formData.get("nom") ?? "Jour férié");
@@ -136,6 +152,7 @@ export async function deleteHolidayAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
+  assertObcAdmin(user);
 
   const dateStr = String(formData.get("date") ?? "");
   if (!dateStr) {
@@ -154,13 +171,19 @@ export async function toggleWeekendBookingsAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
+  assertObcAdmin(user);
 
   const allow = String(formData.get("allow")) === "true";
 
   await prisma.parametreRendezVous.upsert({
     where: { id: OBC_SETTINGS_ID },
     update: { allowWeekendBookings: allow },
-    create: { id: OBC_SETTINGS_ID, quotaJournalier: 200, lieuObc: "Centre de retrait", allowWeekendBookings: allow },
+    create: {
+      id: OBC_SETTINGS_ID,
+      quotaJournalier: 200,
+      lieuObc: "Centre de retrait",
+      allowWeekendBookings: allow,
+    },
   });
 
   revalidatePath("/admin/rdv-disponibilites");
@@ -207,24 +230,26 @@ export async function updateDocumentStatusAction(formData: FormData) {
   }
 
   // Créer un log d'audit
-  await prisma.auditLog.create({
-    data: {
-      action: "DOCUMENT_STATUS_CHANGED",
-      resource: "DOCUMENT",
-      resourceId: document.id,
-      userId: user.id,
-      details: JSON.stringify({
-        documentId: document.id,
-        eleveMatricule: document.eleve.matricule,
-        previousStatus: previousStatus,
-        newStatus: nextStatus,
-        documentType: document.typeDocument,
-        diplomeType: document.diplomeType,
-      }),
-    },
-  }).catch((err) => {
-    console.error("Failed to create audit log:", err);
-  });
+  await prisma.auditLog
+    .create({
+      data: {
+        action: "DOCUMENT_STATUS_CHANGED",
+        resource: "DOCUMENT",
+        resourceId: document.id,
+        userId: user.id,
+        details: JSON.stringify({
+          documentId: document.id,
+          eleveMatricule: document.eleve.matricule,
+          previousStatus: previousStatus,
+          newStatus: nextStatus,
+          documentType: document.typeDocument,
+          diplomeType: document.diplomeType,
+        }),
+      },
+    })
+    .catch((err) => {
+      console.error("Failed to create audit log:", err);
+    });
 
   const documentTitle = getDocumentTitle(document);
   if (previousStatus !== "DISPONIBLE" && nextStatus === "DISPONIBLE") {
@@ -345,7 +370,9 @@ export async function importTestDataAction(formData: FormData) {
       });
 
       if (!canAdminAccessDocument(user, route)) {
-        throw new Error("Vous ne pouvez pas importer une demande d'un autre organisme ou d'une autre antenne.");
+        throw new Error(
+          "Vous ne pouvez pas importer une demande d'un autre organisme ou d'une autre antenne.",
+        );
       }
 
       await prisma.examenValide.upsert({
@@ -471,6 +498,7 @@ export async function confirmAppointmentAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
+  assertObcAdmin(user);
 
   const rendezVousId = String(formData.get("rendezVousId") ?? "");
   if (!rendezVousId) {
@@ -491,6 +519,7 @@ export async function cancelAppointmentAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
+  assertObcAdmin(user);
 
   const rendezVousId = String(formData.get("rendezVousId") ?? "");
   if (!rendezVousId) {

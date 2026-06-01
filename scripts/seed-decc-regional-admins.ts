@@ -1,36 +1,25 @@
 import "dotenv/config";
 
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+
 import { PrismaClient, Role } from "../lib/generated/prisma/client";
-import {
-  DEFAULT_REGION,
-  ORGANISME_IDS,
-  REGIONAL_ANTENNAS,
-  getAntennesForOrganisme,
-  normalizeRegion,
-} from "../lib/document-routing";
+import { DECC_REGIONAL_ANTENNAS, ORGANISME_IDS, REGIONAL_ANTENNAS } from "../lib/document-routing";
 import { createSupabaseAdminClient } from "../lib/supabase/admin";
 
-type AdminInput = {
+type RegionalAdminSeed = {
+  region: string;
+  antenneRegionaleId: string;
   email: string;
   password: string;
   matricule: string;
   nom: string;
   prenom: string;
   nomService: string;
-  organismeId: string;
-  antenneRegionaleId: string | null;
 };
 
 const prisma = new PrismaClient();
-
-function requiredEnv(name: string) {
-  const value = process.env[name]?.trim();
-  if (!value) {
-    throw new Error(`Variable d'environnement manquante: ${name}`);
-  }
-
-  return value;
-}
+const DOC_PATH = path.join(process.cwd(), "docs", "admins-decc-regionaux-test.md");
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -40,25 +29,33 @@ function normalizeMatricule(matricule: string) {
   return matricule.trim().toUpperCase();
 }
 
-function readAdminInput(): AdminInput {
-  const organismeName = (process.env.ADMIN_ORGANISME?.trim().toUpperCase() || "OBC") as
-    | "OBC"
-    | "DECC";
-  const organismeId = organismeName === "DECC" ? ORGANISME_IDS.DECC : ORGANISME_IDS.OBC;
-  const region = normalizeRegion(process.env.ADMIN_ANTENNE_REGION?.trim() || DEFAULT_REGION);
-  const antennas = getAntennesForOrganisme(organismeName);
-  const antenne = antennas.find((item) => item.region === region) ?? antennas[1];
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
-  return {
-    email: normalizeEmail(requiredEnv("ADMIN_EMAIL")),
-    password: requiredEnv("ADMIN_PASSWORD"),
-    matricule: normalizeMatricule(requiredEnv("ADMIN_MATRICULE")),
-    nom: requiredEnv("ADMIN_NOM"),
-    prenom: requiredEnv("ADMIN_PRENOM"),
-    nomService: process.env.ADMIN_SERVICE?.trim() || organismeName,
-    organismeId,
-    antenneRegionaleId: antenne?.id ?? null,
-  };
+function compactRegion(value: string) {
+  return value.replace(/[^a-zA-Z0-9]/g, "");
+}
+
+function buildRegionalAdmins(): RegionalAdminSeed[] {
+  return DECC_REGIONAL_ANTENNAS.map((antenne, index) => {
+    const regionSlug = slugify(antenne.region);
+    const regionCompact = compactRegion(antenne.region);
+
+    return {
+      region: antenne.region,
+      antenneRegionaleId: antenne.id,
+      email: normalizeEmail(`admin.decc.${regionSlug}@example.com`),
+      password: `Decc${regionCompact}2026!`,
+      matricule: normalizeMatricule(`DECC-${String(index + 1).padStart(2, "0")}-${regionSlug}`),
+      nom: "Admin",
+      prenom: `DECC ${antenne.region}`,
+      nomService: `DECC ${antenne.region}`,
+    };
+  });
 }
 
 async function ensureOrganismesAndAntennes() {
@@ -67,6 +64,7 @@ async function ensureOrganismesAndAntennes() {
     update: { nom: "OBC" },
     create: { id: ORGANISME_IDS.OBC, nom: "OBC" },
   });
+
   await prisma.organisme.upsert({
     where: { id: ORGANISME_IDS.DECC },
     update: { nom: "DECC" },
@@ -119,26 +117,31 @@ async function findSupabaseUserIdByEmail(email: string) {
   throw new Error("Impossible de verifier tous les utilisateurs Supabase Auth.");
 }
 
-async function ensureSupabaseAdmin(input: AdminInput) {
+async function ensureSupabaseAdmin(input: RegionalAdminSeed) {
   const supabase = createSupabaseAdminClient();
   const existingUserId = await findSupabaseUserIdByEmail(input.email);
+  const userAttributes = {
+    password: input.password,
+    email_confirm: true,
+    app_metadata: {
+      role: Role.ADMINISTRATEUR,
+      matricule: input.matricule,
+      organismeId: ORGANISME_IDS.DECC,
+      antenneRegionaleId: input.antenneRegionaleId,
+    },
+    user_metadata: {
+      matricule: input.matricule,
+      nom: input.nom,
+      prenom: input.prenom,
+      region: input.region,
+    },
+  };
 
   if (existingUserId) {
-    const { data, error } = await supabase.auth.admin.updateUserById(existingUserId, {
-      password: input.password,
-      email_confirm: true,
-      app_metadata: {
-        role: Role.ADMINISTRATEUR,
-        matricule: input.matricule,
-        organismeId: input.organismeId,
-        antenneRegionaleId: input.antenneRegionaleId,
-      },
-      user_metadata: {
-        matricule: input.matricule,
-        nom: input.nom,
-        prenom: input.prenom,
-      },
-    });
+    const { data, error } = await supabase.auth.admin.updateUserById(
+      existingUserId,
+      userAttributes,
+    );
 
     if (error) {
       throw error;
@@ -149,19 +152,7 @@ async function ensureSupabaseAdmin(input: AdminInput) {
 
   const { data, error } = await supabase.auth.admin.createUser({
     email: input.email,
-    password: input.password,
-    email_confirm: true,
-    app_metadata: {
-      role: Role.ADMINISTRATEUR,
-      matricule: input.matricule,
-      organismeId: input.organismeId,
-      antenneRegionaleId: input.antenneRegionaleId,
-    },
-    user_metadata: {
-      matricule: input.matricule,
-      nom: input.nom,
-      prenom: input.prenom,
-    },
+    ...userAttributes,
   });
 
   if (error) {
@@ -171,7 +162,7 @@ async function ensureSupabaseAdmin(input: AdminInput) {
   return data.user.id;
 }
 
-async function ensurePrismaAdmin(input: AdminInput, authUserId: string) {
+async function ensurePrismaAdmin(input: RegionalAdminSeed, authUserId: string) {
   return prisma.user.upsert({
     where: { matricule: input.matricule },
     update: {
@@ -180,7 +171,7 @@ async function ensurePrismaAdmin(input: AdminInput, authUserId: string) {
       nom: input.nom,
       prenom: input.prenom,
       nomService: input.nomService,
-      organismeId: input.organismeId,
+      organismeId: ORGANISME_IDS.DECC,
       antenneRegionaleId: input.antenneRegionaleId,
       role: Role.ADMINISTRATEUR,
       dateNaissance: null,
@@ -192,20 +183,56 @@ async function ensurePrismaAdmin(input: AdminInput, authUserId: string) {
       nom: input.nom,
       prenom: input.prenom,
       nomService: input.nomService,
-      organismeId: input.organismeId,
+      organismeId: ORGANISME_IDS.DECC,
       antenneRegionaleId: input.antenneRegionaleId,
       role: Role.ADMINISTRATEUR,
     },
   });
 }
 
-async function main() {
-  const input = readAdminInput();
-  await ensureOrganismesAndAntennes();
-  const authUserId = await ensureSupabaseAdmin(input);
-  const admin = await ensurePrismaAdmin(input, authUserId);
+async function writeCredentialsDoc(admins: RegionalAdminSeed[]) {
+  const rows = admins
+    .map(
+      (admin) =>
+        `| ${admin.region} | ${admin.email} | ${admin.password} | ${admin.matricule} | ${admin.antenneRegionaleId} |`,
+    )
+    .join("\n");
 
-  console.log(`Administrateur pret: ${admin.email} (${admin.matricule})`);
+  const content = `# Admins DECC regionaux de test
+
+Ces comptes sont rattaches a l'organisme DECC. Chaque administrateur DECC gere uniquement les demandes BEPC de sa region.
+
+| Region | Email | Mot de passe | Matricule | Antenne |
+| --- | --- | --- | --- | --- |
+${rows}
+
+## Connexion
+
+Utilise la page \`/auth/login/decc\`. Un admin OBC est bloque sur cette page, meme avec un bon mot de passe.
+
+## Commande
+
+\`\`\`bash
+npm run seed:decc-admins
+\`\`\`
+`;
+
+  await mkdir(path.dirname(DOC_PATH), { recursive: true });
+  await writeFile(DOC_PATH, content, "utf8");
+}
+
+async function main() {
+  const admins = buildRegionalAdmins();
+  await ensureOrganismesAndAntennes();
+
+  for (const input of admins) {
+    const authUserId = await ensureSupabaseAdmin(input);
+    await ensurePrismaAdmin(input, authUserId);
+    console.log(`Admin DECC ${input.region} pret: ${input.email} (${input.matricule})`);
+  }
+
+  await writeCredentialsDoc(admins);
+  console.log(`Fichier genere: ${DOC_PATH}`);
 }
 
 main()

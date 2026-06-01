@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 
-import { ORGANISME_IDS } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Role } from "@/lib/generated/prisma/client";
@@ -74,7 +73,7 @@ export async function requireRole(role: Role, nextPath: string) {
 
   if (
     user.role === "ADMINISTRATEUR" &&
-    user.organismeId === ORGANISME_IDS.OBC &&
+    user.organismeId &&
     !user.antenneRegionaleId &&
     nextPath !== "/auth/admin-region"
   ) {
