@@ -71,7 +71,9 @@ export async function getLatestDuplicataForTarget(
     include: { paiement: { include: { recu: true } } },
   });
 
-  return duplicatas.find((duplicata) => isDuplicataForTarget(duplicata, diplomeType, target)) ?? null;
+  return (
+    duplicatas.find((duplicata) => isDuplicataForTarget(duplicata, diplomeType, target)) ?? null
+  );
 }
 
 export async function getDuplicataRequestState(
@@ -83,7 +85,9 @@ export async function getDuplicataRequestState(
     where: { eleveId },
     orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
   });
-  const matching = duplicatas.filter((duplicata) => isDuplicataForTarget(duplicata, diplomeType, target));
+  const matching = duplicatas.filter((duplicata) =>
+    isDuplicataForTarget(duplicata, diplomeType, target),
+  );
   const activeRequest = matching.find((duplicata) => duplicata.statut !== "RETIRE") ?? null;
   const lastRetired = matching.find((duplicata) => duplicata.statut === "RETIRE") ?? null;
   const availability = getDuplicataRequestAvailability(lastRetired?.updatedAt ?? null);
@@ -104,10 +108,12 @@ export async function getActiveDuplicataForDiplome(eleveId: string, diplomeType:
     orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
   });
 
-  return duplicatas.find((duplicata) => {
-    const meta = parseDuplicataInstruction(duplicata.intruction);
-    return meta.diplomeType === diplomeType;
-  }) ?? null;
+  return (
+    duplicatas.find((duplicata) => {
+      const meta = parseDuplicataInstruction(duplicata.intruction);
+      return meta.diplomeType === diplomeType;
+    }) ?? null
+  );
 }
 
 export async function findLatestDuplicataForDocument(document: {
@@ -124,10 +130,12 @@ export async function findLatestDuplicataForDocument(document: {
     orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
   });
 
-  return duplicatas.find((duplicata) => {
-    const meta = parseDuplicataInstruction(duplicata.intruction);
-    return meta.diplomeType === document.diplomeType;
-  }) ?? null;
+  return (
+    duplicatas.find((duplicata) => {
+      const meta = parseDuplicataInstruction(duplicata.intruction);
+      return meta.diplomeType === document.diplomeType;
+    }) ?? null
+  );
 }
 
 export async function resolvePickupRouteForDocument(document: {
@@ -146,17 +154,20 @@ export async function resolvePickupRouteForDocument(document: {
 
   return resolveDocumentRoute({
     diplomeType: document.diplomeType,
-    typeDocument: "RELEVE_NOTES",
+    typeDocument: "DUPLICATA",
     centreExamen: meta?.centreExamen ?? document.centreExamen,
     regionComposition: document.regionComposition,
   });
 }
 
-export async function syncLatestDuplicataStatus(document: {
-  eleveId: string;
-  diplomeType: DiplomePrincipal;
-  typeDocument: TypeDocument;
-}, statut: "PAS_DISPONIBLE" | "DISPONIBLE" | "RETIRE") {
+export async function syncLatestDuplicataStatus(
+  document: {
+    eleveId: string;
+    diplomeType: DiplomePrincipal;
+    typeDocument: TypeDocument;
+  },
+  statut: "PAS_DISPONIBLE" | "DISPONIBLE" | "RETIRE",
+) {
   const latestDuplicata = await findLatestDuplicataForDocument(document);
 
   if (!latestDuplicata) {

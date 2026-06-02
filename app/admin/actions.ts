@@ -259,6 +259,7 @@ export async function updateDocumentStatusAction(formData: FormData) {
       to: document.eleve.email,
       documentTitle,
       typeDocument: document.typeDocument,
+      diplomeType: document.diplomeType,
       location,
     });
   }
@@ -276,6 +277,7 @@ export async function updateDocumentStatusAction(formData: FormData) {
       userId: document.eleve.id,
       to: document.eleve.email,
       documentTitle,
+      diplomeType: document.diplomeType,
     });
   }
 

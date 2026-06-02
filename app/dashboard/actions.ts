@@ -19,19 +19,27 @@ import {
   startOfDay,
 } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
-import { getAntenneForRegion, isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
+import {
+  getAntenneForRegion,
+  isDocumentRequestAllowed,
+  resolveDocumentRoute,
+} from "@/lib/document-routing";
 import {
   findLatestDuplicataForDocument,
   getActiveDuplicataForDiplome,
   getDuplicataRequestState,
   resolvePickupRouteForDocument,
 } from "@/lib/duplicata-service";
-import { notifyAppointmentConfirmed, notifyDuplicataRequestRegistered, notifyPaymentConfirmed } from "@/lib/mail-service";
+import {
+  notifyAppointmentConfirmed,
+  notifyDuplicataRequestRegistered,
+  notifyPaymentConfirmed,
+} from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { reservationSchema } from "@/lib/validations";
 import { Prisma, type DiplomePrincipal, type TypeDocument } from "@/lib/generated/prisma/client";
 
-const DUPLICATA_FEE = 5000;
+const DUPLICATA_FEE = 25000;
 
 const diplomeValues = ["BEPC", "PROBATOIRE", "BACCALAUREAT"] as const;
 const duplicataTargets = ["ORIGINAL", "RELEVE_NOTES"] as const;
@@ -45,7 +53,9 @@ function parseDiplome(value: FormDataEntryValue | null): DiplomePrincipal {
   return diplome as DiplomePrincipal;
 }
 
-function parseDuplicataTarget(value: FormDataEntryValue | null): Extract<TypeDocument, "ORIGINAL" | "RELEVE_NOTES"> {
+function parseDuplicataTarget(
+  value: FormDataEntryValue | null,
+): Extract<TypeDocument, "ORIGINAL" | "RELEVE_NOTES"> {
   const target = String(value ?? "").toUpperCase();
   if (!duplicataTargets.includes(target as (typeof duplicataTargets)[number])) {
     throw new Error("Type de duplicata invalide.");
@@ -54,7 +64,10 @@ function parseDuplicataTarget(value: FormDataEntryValue | null): Extract<TypeDoc
   return target as Extract<TypeDocument, "ORIGINAL" | "RELEVE_NOTES">;
 }
 
-function getDuplicataTitle(diplomeType: DiplomePrincipal, target: Extract<TypeDocument, "ORIGINAL" | "RELEVE_NOTES">) {
+function getDuplicataTitle(
+  diplomeType: DiplomePrincipal,
+  target: Extract<TypeDocument, "ORIGINAL" | "RELEVE_NOTES">,
+) {
   return target === "ORIGINAL"
     ? `Duplicata du diplôme original du ${diplomeType}`
     : `Duplicata du relevé de notes du ${diplomeType}`;
@@ -99,9 +112,7 @@ export async function reserverDisponibiliteAction(formData: FormData) {
   }
 
   if (document.typeDocument === "ORIGINAL" && document.statut === "RETIRE") {
-    throw new Error(
-      "Diplôme déjà retiré. Veuillez faire une demande de duplicata si nécessaire.",
-    );
+    throw new Error("Diplôme déjà retiré. Veuillez faire une demande de duplicata si nécessaire.");
   }
 
   if (document.statut !== "DISPONIBLE") {
@@ -158,7 +169,10 @@ export async function reserverDisponibiliteAction(formData: FormData) {
   const commentaire = parsed.data.commentaire?.trim() || "Réservation élève";
   const settings = await getAppointmentSettings();
   const activeSlots = await getActiveTimeSlots();
-  const slotCapacity = Math.max(1, Math.ceil(settings.quotaJournalier / Math.max(1, activeSlots.length)));
+  const slotCapacity = Math.max(
+    1,
+    Math.ceil(settings.quotaJournalier / Math.max(1, activeSlots.length)),
+  );
 
   await prisma.$transaction(
     async (tx) => {
@@ -190,7 +204,9 @@ export async function reserverDisponibiliteAction(formData: FormData) {
       }
 
       if (dailyCount >= settings.quotaJournalier || slotCount >= slotCapacity) {
-        throw new Error("Le quota de rendez-vous est atteint pour cette date. Veuillez choisir une autre date ouvrable.");
+        throw new Error(
+          "Le quota de rendez-vous est atteint pour cette date. Veuillez choisir une autre date ouvrable.",
+        );
       }
 
       await tx.rendezVous.create({
@@ -213,6 +229,7 @@ export async function reserverDisponibiliteAction(formData: FormData) {
     userId: user.id,
     to: user.email,
     documentTitle: getDocumentTitle(document),
+    diplomeType: document.diplomeType,
     documentType: document.typeDocument,
     date,
     time: parsed.data.heureRdv,
@@ -328,6 +345,7 @@ export async function submitDuplicataRequestAction(formData: FormData) {
     session: z.coerce.number().int().min(1950).max(new Date().getFullYear()),
     centreExamen: z.string().trim().min(2).max(160),
     motif: z.string().trim().min(5).max(500),
+    typeJustificatif: z.enum(["CNI", "CARTE_SCOLAIRE"]),
     modePaiement: z.enum(["ORANGEMONEY", "MTNMONEY", "CARTEBANCAIRE"]),
   });
 
@@ -341,6 +359,7 @@ export async function submitDuplicataRequestAction(formData: FormData) {
     session: formData.get("session"),
     centreExamen: formData.get("centreExamen"),
     motif: formData.get("motif"),
+    typeJustificatif: formData.get("typeJustificatif"),
     modePaiement: formData.get("modePaiement"),
   });
 
@@ -363,7 +382,10 @@ export async function submitDuplicataRequestAction(formData: FormData) {
 
   const activeDuplicataForDiplome = await getActiveDuplicataForDiplome(user.id, diplomeType);
   const requestState = await getDuplicataRequestState(user.id, diplomeType, cibleDocument);
-  if (activeDuplicataForDiplome && activeDuplicataForDiplome.id !== requestState.activeRequest?.id) {
+  if (
+    activeDuplicataForDiplome &&
+    activeDuplicataForDiplome.id !== requestState.activeRequest?.id
+  ) {
     throw new Error(
       "Une autre demande de duplicata est déjà en cours pour cet examen. Veuillez attendre sa clôture avant d'en introduire une nouvelle.",
     );
@@ -371,7 +393,9 @@ export async function submitDuplicataRequestAction(formData: FormData) {
 
   if (requestState.activeRequest) {
     if (requestState.activeRequest.statut === "DISPONIBLE") {
-      throw new Error("Votre duplicata est déjà prêt. Veuillez prendre rendez-vous ou vous présenter au service indiqué.");
+      throw new Error(
+        "Votre duplicata est déjà prêt. Veuillez prendre rendez-vous ou vous présenter au service indiqué.",
+      );
     }
 
     throw new Error("Une demande de duplicata est déjà en cours de traitement pour ce document.");
@@ -385,14 +409,23 @@ export async function submitDuplicataRequestAction(formData: FormData) {
 
   const justificatif = formData.get("piecesJustificatives");
   const justificatifName = justificatif instanceof File ? justificatif.name : "";
+  const justificatifSize = justificatif instanceof File ? justificatif.size : 0;
+  if (!justificatifName || justificatifSize <= 0) {
+    throw new Error(
+      "Veuillez téléverser une CNI ou une carte scolaire avant de soumettre la demande de duplicata.",
+    );
+  }
+
   const documentTitle = getDuplicataTitle(diplomeType, cibleDocument);
   const route = resolveDocumentRoute({
     diplomeType,
-    typeDocument: cibleDocument,
+    typeDocument: "DUPLICATA",
     centreExamen: parsed.data.centreExamen,
     regionComposition: exam.regionComposition,
   });
-  const antenne = route.antenneRegionaleId ? getAntenneForRegion(exam.regionComposition) : null;
+  const antenne = route.antenneRegionaleId
+    ? getAntenneForRegion(exam.regionComposition, route.organismeName)
+    : null;
 
   await prisma.documentAcademique.upsert({
     where: {
@@ -436,7 +469,10 @@ export async function submitDuplicataRequestAction(formData: FormData) {
         session: parsed.data.session,
         centreExamen: parsed.data.centreExamen,
         motif: parsed.data.motif,
+        typeJustificatif: parsed.data.typeJustificatif,
         justificatif: justificatifName,
+        montant: DUPLICATA_FEE,
+        lieuRetrait: route.location,
       }),
     },
   });
@@ -464,6 +500,7 @@ export async function submitDuplicataRequestAction(formData: FormData) {
     userId: user.id,
     to: user.email,
     documentTitle,
+    diplomeType,
   });
 
   await notifyPaymentConfirmed({
@@ -471,6 +508,7 @@ export async function submitDuplicataRequestAction(formData: FormData) {
     to: user.email,
     recipientName: `${user.prenom} ${user.nom}`.trim(),
     documentTitle,
+    diplomeType,
     paymentMode: parsed.data.modePaiement,
     receiptNumber: receipt.numero,
     amount: receipt.montant,

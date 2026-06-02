@@ -49,7 +49,7 @@ export async function GET(request: Request, { params }: RouteContext) {
     }
 
     const eleve = payment.duplicata?.eleve ?? payment.documentAcademique?.eleve ?? user;
-    const documentTitle = payment.duplicata?.nomDuplicata ?? "Document académique";
+    const documentTitle = payment.duplicata?.nomDuplicata ?? "Document scolaire";
     const receiptDate = receipt.dateEmission.toLocaleDateString("fr-FR");
     const fileName = `recu-${receipt.numero}.html`;
     const html = `<!doctype html>
@@ -74,14 +74,14 @@ export async function GET(request: Request, { params }: RouteContext) {
   <body>
     <main class="receipt">
       <div class="brand">DR-DOCSCOL</div>
-      <p class="muted">Gestion des demandes et retraits de documents académiques</p>
+      <p class="muted">Gestion des demandes et retraits de documents scolaires</p>
       <h1>Reçu de paiement</h1>
       <p class="muted">Ce reçu confirme la prise en compte du paiement.</p>
       <table>
         <tr><td>Numéro du reçu</td><td>${escapeHtml(receipt.numero)}</td></tr>
         <tr><td>Élève</td><td>${escapeHtml(`${eleve.prenom} ${eleve.nom}`.trim())}</td></tr>
         <tr><td>Matricule</td><td>${escapeHtml(eleve.matricule)}</td></tr>
-        <tr><td>Document concerné</td><td>${escapeHtml(documentTitle)}</td></tr>
+        <tr><td>Document scolaire concerné</td><td>${escapeHtml(documentTitle)}</td></tr>
         <tr><td>Mode de paiement</td><td>${escapeHtml(receipt.modePaiement ?? payment.modePaiment)}</td></tr>
         <tr><td>Date d'émission</td><td>${escapeHtml(receiptDate)}</td></tr>
         <tr><td>Montant payé</td><td class="amount">${formatAmount(receipt.montant)} FCFA</td></tr>

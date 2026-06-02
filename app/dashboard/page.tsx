@@ -11,11 +11,20 @@ import { Button } from "@/components/ui/button";
 
 export default async function DashboardPage() {
   const user = await requireRole("ELEVE", "/dashboard");
-  const [documentsCount, availableCount, rendezVousCount, paymentCount, recentDocuments, nextRendezVous, notifications] =
-    await Promise.all([
+  const [
+    documentsCount,
+    availableCount,
+    rendezVousCount,
+    paymentCount,
+    recentDocuments,
+    nextRendezVous,
+    notifications,
+  ] = await Promise.all([
     prisma.documentAcademique.count({ where: { eleveId: user.id } }),
     prisma.documentAcademique.count({ where: { eleveId: user.id, statut: "DISPONIBLE" } }),
-    prisma.rendezVous.count({ where: { eleveId: user.id, statut: { in: ["PLANIFIE", "CONFIRME"] } } }),
+    prisma.rendezVous.count({
+      where: { eleveId: user.id, statut: { in: ["PLANIFIE", "CONFIRME"] } },
+    }),
     prisma.paiement.count({
       where: {
         OR: [{ duplicata: { eleveId: user.id } }, { documentAcademique: { eleveId: user.id } }],
@@ -43,12 +52,17 @@ export default async function DashboardPage() {
     <DashboardShell
       role="ELEVE"
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       activePath="/dashboard"
       title="Espace élève"
       subtitle={`Connecte en tant que ${user.prenom} ${user.nom} · ${user.matricule}`}
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Documents" value={documentsCount} icon={<FileText className="h-5 w-5" />} />
+        <StatCard
+          label="Documents scolaires"
+          value={documentsCount}
+          icon={<FileText className="h-5 w-5" />}
+        />
         <StatCard
           label="Disponibles"
           value={availableCount}
@@ -72,7 +86,7 @@ export default async function DashboardPage() {
         <h2 className="text-lg font-semibold text-slate-950">Accès rapides</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/dashboard/documents">Mes documents</Link>
+            <Link href="/dashboard/documents">Mes documents scolaires</Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/dashboard/rendez-vous">Mes rendez-vous</Link>
@@ -89,19 +103,28 @@ export default async function DashboardPage() {
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="rounded-md border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 px-5 py-4">
-            <h2 className="font-semibold text-slate-950">Mes documents recents</h2>
+            <h2 className="font-semibold text-slate-950">Mes documents scolaires recents</h2>
           </div>
           <div className="divide-y divide-slate-100">
             {recentDocuments.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-slate-500">Aucun document rattache a votre matricule.</p>
+              <p className="px-5 py-6 text-sm text-slate-500">
+                Aucun document scolaire rattache a votre matricule.
+              </p>
             ) : (
               recentDocuments.map((document) => (
-                <div key={document.id} className="flex items-center justify-between gap-4 px-5 py-4">
+                <div
+                  key={document.id}
+                  className="flex items-center justify-between gap-4 px-5 py-4"
+                >
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-950">{getDocumentTitle(document)}</p>
+                    <p className="truncate font-medium text-slate-950">
+                      {getDocumentTitle(document)}
+                    </p>
                     <p className="text-sm text-slate-500">{document.diplomeType}</p>
                   </div>
-                  <StatusBadge tone={documentTone(document.statut)}>{getStatusLabel(document.statut)}</StatusBadge>
+                  <StatusBadge tone={documentTone(document.statut)}>
+                    {getStatusLabel(document.statut)}
+                  </StatusBadge>
                 </div>
               ))
             )}
@@ -121,7 +144,7 @@ export default async function DashboardPage() {
                   <div key={rdv.id} className="px-5 py-4">
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-medium text-slate-950">
-                        {rdv.document ? getDocumentTitle(rdv.document) : "Document académique"}
+                        {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
                       </p>
                       <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>
                     </div>
@@ -144,7 +167,10 @@ export default async function DashboardPage() {
                 <p className="px-5 py-6 text-sm text-slate-500">Aucune notification.</p>
               ) : (
                 notifications.map((notification) => (
-                  <p key={notification.id} className="line-clamp-2 px-5 py-4 text-sm text-slate-600">
+                  <p
+                    key={notification.id}
+                    className="line-clamp-2 px-5 py-4 text-sm text-slate-600"
+                  >
                     {notification.message}
                   </p>
                 ))

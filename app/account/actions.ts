@@ -37,7 +37,7 @@ export async function updateProfileAction(input: ProfileUpdateInput) {
     prenom: parsed.data.prenom,
   };
 
-  if (user.role === "ADMINISTRATEUR") {
+  if (user.role !== "ELEVE") {
     await prisma.user.update({
       where: { id: user.id },
       data: {

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     default: "DR-DOCSCOL",
     template: "%s | DR-DOCSCOL",
   },
-  description: "Gestion des demandes et retraits de documents académiques.",
+  description: "Gestion des demandes et retraits de documents scolaires.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

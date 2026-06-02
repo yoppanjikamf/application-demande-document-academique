@@ -15,11 +15,20 @@ export type AuthenticatedUser = {
   nomService: string | null;
   organismeId: string | null;
   antenneRegionaleId: string | null;
+  centreExamenId: string | null;
   dateNaissance: Date | null;
 };
 
 export function getHomePathForRole(role: Role) {
-  return role === "ADMINISTRATEUR" ? "/admin" : "/dashboard";
+  if (role === "ADMINISTRATEUR") {
+    return "/admin";
+  }
+
+  if (role === "AGENT_CENTRE_EXAMEN") {
+    return "/centre-examen";
+  }
+
+  return "/dashboard";
 }
 
 export async function getCurrentUser() {
@@ -43,6 +52,7 @@ export async function getCurrentUser() {
       nomService: true,
       organismeId: true,
       antenneRegionaleId: true,
+      centreExamenId: true,
       dateNaissance: true,
     },
   });

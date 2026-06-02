@@ -19,6 +19,7 @@ datasource db {
 enum Role {
   ELEVE
   ADMINISTRATEUR
+  AGENT_CENTRE_EXAMEN
 }
 
 enum StatutNotification {
@@ -109,6 +110,21 @@ model AntenneRegionale {
   @@map("antennes_regionales")
 }
 
+// ==================== CENTRES D'EXAMEN ====================
+model CentreExamen {
+  id     String  @id @default(uuid())
+  nom    String
+  region String  @unique
+  ville  String?
+
+  users User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("centres_examen")
+}
+
 // ==================== USER ====================
 model User {
   id                String    @id @default(uuid())
@@ -131,10 +147,13 @@ model User {
   organisme          Organisme?        @relation(fields: [organismeId], references: [id])
   antenneRegionaleId String?
   antenneRegionale   AntenneRegionale? @relation(fields: [antenneRegionaleId], references: [id])
+  centreExamenId     String?
+  centreExamen       CentreExamen?     @relation(fields: [centreExamenId], references: [id])
 
   // Relations
   rendezVousCrees     RendezVous[]         @relation("AdminRendezVous")
   eleveRendezVous     RendezVous[]         @relation("EleveRendezVous")
+  retraitsConfirmes   RendezVous[]         @relation("AgentCentreRetraits")
   disponibilitesRdv   DisponibiliteRdv[]
   documentsAcademique DocumentAcademique[] @relation("EleveDocuments") // <-- renommé
   examensValides      ExamenValide[]
@@ -147,6 +166,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([centreExamenId])
   @@map("users")
 }
 
@@ -171,12 +191,17 @@ model RendezVous {
   documentId String?
   document   DocumentAcademique? @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
+  retraitConfirmeAt    DateTime?
+  retraitConfirmeParId String?
+  retraitConfirmePar   User?     @relation("AgentCentreRetraits", fields: [retraitConfirmeParId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([dateRdv, heureRdv, statut])
   @@index([documentId, statut])
   @@index([eleveId, statut])
+  @@index([retraitConfirmeParId])
   @@map("rendez_vous")
 }
 

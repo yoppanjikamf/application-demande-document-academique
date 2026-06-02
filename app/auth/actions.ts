@@ -38,6 +38,30 @@ function safeAdminNextPath(next?: string) {
   return next;
 }
 
+function safeAgentCentreNextPath(next?: string) {
+  if (!next?.startsWith("/") || next.startsWith("//")) {
+    return "/centre-examen";
+  }
+
+  if (!next.startsWith("/centre-examen") && next !== "/account") {
+    return "/centre-examen";
+  }
+
+  return next;
+}
+
+function safeNextPathForRole(role: string, next?: string) {
+  if (role === "ADMINISTRATEUR") {
+    return safeAdminNextPath(next);
+  }
+
+  if (role === "AGENT_CENTRE_EXAMEN") {
+    return safeAgentCentreNextPath(next);
+  }
+
+  return safeNextPath(next);
+}
+
 function isTransientDatabaseError(error: unknown) {
   if (!(error instanceof Error)) {
     return false;
@@ -150,7 +174,11 @@ async function ensureAdminAuthUser(options: {
 }
 
 export async function signInAction(
-  input: z.infer<typeof signInSchema> & { next?: string; loginOrganisme?: OrganismeName },
+  input: z.infer<typeof signInSchema> & {
+    next?: string;
+    loginOrganisme?: OrganismeName;
+    loginRole?: "AGENT_CENTRE_EXAMEN";
+  },
 ) {
   const parsed = signInSchema.safeParse(input);
   if (!parsed.success) {
@@ -171,6 +199,7 @@ export async function signInAction(
         matricule: true,
         organismeId: true,
         antenneRegionaleId: true,
+        centreExamenId: true,
       },
     }),
   );
@@ -180,6 +209,19 @@ export async function signInAction(
   }
 
   const expectedOrganismeId = input.loginOrganisme ? ORGANISME_IDS[input.loginOrganisme] : null;
+  const expectedAgentCentre = input.loginRole === "AGENT_CENTRE_EXAMEN";
+
+  if (expectedAgentCentre && dbUser.role !== "AGENT_CENTRE_EXAMEN") {
+    return {
+      ok: false as const,
+      error: "Cette connexion est reservee aux agents centre d'examen.",
+    };
+  }
+
+  if (!expectedAgentCentre && dbUser.role === "AGENT_CENTRE_EXAMEN") {
+    return { ok: false as const, error: "Utilisez la page de connexion Agent Centre d'Examen." };
+  }
+
   if (dbUser.role === "ADMINISTRATEUR" && !expectedOrganismeId) {
     return { ok: false as const, error: "Utilisez la page de connexion admin OBC ou DECC." };
   }
@@ -262,9 +304,7 @@ export async function signInAction(
           dbUser.role === "ADMINISTRATEUR" && !dbUser.antenneRegionaleId
             ? `/auth/admin-region?next=${encodeURIComponent(safeAdminNextPath(input.next))}`
             : input.next
-              ? dbUser.role === "ADMINISTRATEUR"
-                ? safeAdminNextPath(input.next)
-                : safeNextPath(input.next)
+              ? safeNextPathForRole(dbUser.role, input.next)
               : getHomePathForRole(dbUser.role),
       };
     } catch (adminError) {
@@ -323,9 +363,7 @@ export async function signInAction(
       dbUser.role === "ADMINISTRATEUR" && !dbUser.antenneRegionaleId
         ? `/auth/admin-region?next=${encodeURIComponent(safeAdminNextPath(input.next))}`
         : input.next
-          ? dbUser.role === "ADMINISTRATEUR"
-            ? safeAdminNextPath(input.next)
-            : safeNextPath(input.next)
+          ? safeNextPathForRole(dbUser.role, input.next)
           : getHomePathForRole(dbUser.role),
   };
 }

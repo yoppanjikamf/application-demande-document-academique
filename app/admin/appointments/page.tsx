@@ -32,6 +32,7 @@ export default async function AdminAppointmentsPage() {
       role="ADMINISTRATEUR"
       organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/appointments"
       title="Planning des retraits"
@@ -56,7 +57,7 @@ export default async function AdminAppointmentsPage() {
                     <p className="font-medium text-slate-950">
                       {appointment.document
                         ? getDocumentTitle(appointment.document)
-                        : "Document académique"}
+                        : "Document scolaire"}
                     </p>
                     <StatusBadge tone={appointmentTone(appointment.statut)}>
                       {appointment.statut}

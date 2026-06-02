@@ -28,16 +28,21 @@ export async function sendMail({
   subject,
   text,
   html,
+  fromName,
 }: {
   to: string;
   subject: string;
   text: string;
   html?: string;
+  fromName?: string;
 }) {
   const transport = createMailerTransport();
+  const defaultFrom = requiredEnv("SMTP_FROM");
+  const fromAddress = defaultFrom.match(/<(.+)>/)?.[1] ?? defaultFrom;
+  const from = fromName ? `${fromName} <${fromAddress}>` : defaultFrom;
 
   return transport.sendMail({
-    from: requiredEnv("SMTP_FROM"),
+    from,
     to,
     subject,
     text,

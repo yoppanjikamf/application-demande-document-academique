@@ -32,15 +32,16 @@ export default async function RendezVousPage({ searchParams }: RendezVousPagePro
     <DashboardShell
       role="ELEVE"
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       activePath="/dashboard/rendez-vous"
       title="Mes rendez-vous"
-      subtitle="Suivi des rendez-vous de retrait liés à vos documents académiques."
+      subtitle="Suivi des rendez-vous de retrait liés à vos documents scolaires."
     >
       {rendezVous.length === 0 ? (
         <div className="space-y-3 rounded-md border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-slate-500">Aucun rendez-vous trouve.</p>
           <Button asChild variant="outline">
-            <Link href="/dashboard/documents">Retour aux documents</Link>
+            <Link href="/dashboard/documents">Retour à mes documents scolaires</Link>
           </Button>
         </div>
       ) : (
@@ -50,10 +51,13 @@ export default async function RendezVousPage({ searchParams }: RendezVousPagePro
             <span>Statut</span>
           </div>
           {rendezVous.map((rdv) => (
-            <div key={rdv.id} className="grid gap-3 border-b px-4 py-4 last:border-0 sm:grid-cols-[1fr_auto]">
+            <div
+              key={rdv.id}
+              className="grid gap-3 border-b px-4 py-4 last:border-0 sm:grid-cols-[1fr_auto]"
+            >
               <div>
                 <p className="text-lg font-semibold text-slate-950">
-                  {rdv.document ? getDocumentTitle(rdv.document) : "Document académique"}
+                  {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
                 </p>
                 <p className="text-sm text-slate-500">
                   {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} · {rdv.lieu}

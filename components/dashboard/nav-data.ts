@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  ClipboardCheck,
   CreditCard,
   FileText,
   FolderCheck,
@@ -32,7 +33,7 @@ const obcAdminSections: NavSection[] = [
     items: [
       { title: "Vue d'ensemble", url: "/admin", icon: LayoutDashboard },
       { title: "Élèves", url: "/admin/students", icon: UsersRound },
-      { title: "Documents", url: "/admin/documents", icon: FolderCheck },
+      { title: "Documents scolaires", url: "/admin/documents", icon: FolderCheck },
       { title: "Planning", url: "/admin/appointments", icon: CalendarDays },
       { title: "Paiements", url: "/admin/payments", icon: CreditCard },
       { title: "Audit logs", url: "/admin/audit-logs", icon: ScrollText },
@@ -49,7 +50,7 @@ const deccAdminSections: NavSection[] = [
     items: [
       { title: "Vue d'ensemble", url: "/admin", icon: LayoutDashboard },
       { title: "Élèves", url: "/admin/students", icon: UsersRound },
-      { title: "Documents BEPC", url: "/admin/documents", icon: FolderCheck },
+      { title: "Documents scolaires BEPC", url: "/admin/documents", icon: FolderCheck },
       { title: "Paiements", url: "/admin/payments", icon: CreditCard },
       { title: "Audit logs", url: "/admin/audit-logs", icon: ScrollText },
       { title: "Import CSV", url: "/admin/import", icon: Import },
@@ -63,7 +64,7 @@ const eleveSections: NavSection[] = [
     label: "Espace élève",
     items: [
       { title: "Accueil", url: "/dashboard", icon: Home },
-      { title: "Documents", url: "/dashboard/documents", icon: FileText },
+      { title: "Mes documents scolaires", url: "/dashboard/documents", icon: FileText },
       { title: "Rendez-vous", url: "/dashboard/rendez-vous", icon: CalendarDays },
       { title: "Paiements", url: "/dashboard/payments", icon: CreditCard },
       { title: "Notifications", url: "/dashboard/notifications", icon: MessageSquareText },
@@ -72,7 +73,21 @@ const eleveSections: NavSection[] = [
   },
 ];
 
+const agentCentreSections: NavSection[] = [
+  {
+    label: "Centre d'examen",
+    items: [
+      { title: "Rendez-vous", url: "/centre-examen", icon: ClipboardCheck },
+      { title: "Compte", url: "/account", icon: UserRound },
+    ],
+  },
+];
+
 export function getNavSections(role: Role, organismeId?: string | null) {
+  if (role === "AGENT_CENTRE_EXAMEN") {
+    return agentCentreSections;
+  }
+
   if (role !== "ADMINISTRATEUR") {
     return eleveSections;
   }

@@ -56,10 +56,11 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
       role="ADMINISTRATEUR"
       organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/students"
       title="Élèves"
-      subtitle="Recherche et suivi des comptes élèves rattachés aux documents académiques."
+      subtitle="Recherche et suivi des comptes élèves rattachés aux documents scolaires."
     >
       <form className="max-w-xl">
         <div className="relative">
@@ -99,8 +100,8 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
                   {student.email}
                 </p>
                 <p className="text-sm text-slate-600">
-                  {student._count.documentsAcademique} documents · {student._count.eleveRendezVous}{" "}
-                  RDV
+                  {student._count.documentsAcademique} documents scolaires ·{" "}
+                  {student._count.eleveRendezVous} RDV
                 </p>
               </div>
             ))

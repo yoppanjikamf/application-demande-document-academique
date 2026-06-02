@@ -1,13 +1,7 @@
 import { z } from "zod";
 
 import { getDocumentTitle, getPickupLocation } from "@/lib/appointment-service";
-import {
-  ApiError,
-  handleApiError,
-  json,
-  parseJson,
-  requireInternalRequest,
-} from "@/lib/api-utils";
+import { ApiError, handleApiError, json, parseJson, requireInternalRequest } from "@/lib/api-utils";
 import { notifyDocumentAvailable } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 
@@ -37,6 +31,7 @@ export async function POST(request: Request) {
       to: document.eleve.email,
       documentTitle: getDocumentTitle(document),
       typeDocument: document.typeDocument,
+      diplomeType: document.diplomeType,
       location: await getPickupLocation(document),
     });
 

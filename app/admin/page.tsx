@@ -53,6 +53,7 @@ export default async function AdminPage() {
       role="ADMINISTRATEUR"
       organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin"
       title={`Administration ${user.nomService ?? ""}`.trim()}
@@ -61,7 +62,7 @@ export default async function AdminPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Élèves" value={elevesCount} icon={<UsersRound className="h-5 w-5" />} />
         <StatCard
-          label="Documents"
+          label="Documents scolaires"
           value={documentsCount}
           icon={<FileText className="h-5 w-5" />}
           description={`${documentsEnAttente} en attente de traitement`}
@@ -90,7 +91,7 @@ export default async function AdminPage() {
         <h2 className="text-lg font-semibold text-slate-950">Actions rapides</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/admin/documents">Verifier les documents</Link>
+            <Link href="/admin/documents">Verifier les documents scolaires</Link>
           </Button>
           {isObcAdmin ? (
             <Button asChild variant="outline">
@@ -106,7 +107,7 @@ export default async function AdminPage() {
       <div className="grid gap-4 xl:grid-cols-2">
         <section className="rounded-md border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 px-5 py-4">
-            <h2 className="font-semibold text-slate-950">Documents recents</h2>
+            <h2 className="font-semibold text-slate-950">Documents scolaires recents</h2>
           </div>
           <div className="divide-y divide-slate-100">
             {recentDocuments.map((document) => (
@@ -139,7 +140,7 @@ export default async function AdminPage() {
                 <div key={rdv.id} className="flex items-center justify-between gap-4 px-5 py-4">
                   <div className="min-w-0">
                     <p className="truncate font-medium text-slate-950">
-                      {rdv.document ? getDocumentTitle(rdv.document) : "Document académique"}
+                      {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
                     </p>
                     <p className="text-sm text-slate-500">
                       {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} ·{" "}

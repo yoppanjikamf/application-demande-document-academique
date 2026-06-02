@@ -15,7 +15,7 @@ import {
   startOfDay,
 } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
-import { findLatestDuplicataForDocument, resolvePickupRouteForDocument } from "@/lib/duplicata-service";
+import { resolvePickupRouteForDocument } from "@/lib/duplicata-service";
 import { notifyAppointmentConfirmed } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
@@ -54,18 +54,15 @@ export async function POST(request: Request, { params }: RouteContext) {
     }
 
     if (document.typeDocument === "DUPLICATA") {
-      const latestDuplicata = await findLatestDuplicataForDocument(document);
-      if (latestDuplicata?.statut !== "DISPONIBLE") {
-        throw new ApiError(
-          "Votre demande de duplicata est en cours de traitement. Vous pourrez prendre rendez-vous lorsque l'administration aura confirmé que le duplicata est prêt.",
-          409,
-        );
-      }
+      throw new ApiError(
+        "Les duplicatas sont traités par l'administration et ne passent pas par un rendez-vous centre d'examen.",
+        409,
+      );
     }
 
     const route = await resolvePickupRouteForDocument(document);
     if (!route.requiresAppointment) {
-      throw new ApiError("Ce document se retire directement au centre d'examen, sans rendez-vous.", 409);
+      throw new ApiError("Ce document ne nécessite pas de rendez-vous.", 409);
     }
 
     const availableSlots = await getAvailableSlots(date);
@@ -104,7 +101,10 @@ export async function POST(request: Request, { params }: RouteContext) {
     const location = await getPickupLocation(document);
     const settings = await getAppointmentSettings();
     const activeSlots = await getActiveTimeSlots();
-    const slotCapacity = Math.max(1, Math.ceil(settings.quotaJournalier / Math.max(1, activeSlots.length)));
+    const slotCapacity = Math.max(
+      1,
+      Math.ceil(settings.quotaJournalier / Math.max(1, activeSlots.length)),
+    );
     const appointment = await prisma.$transaction(
       async (tx) => {
         const [dailyCount, slotCount, concurrentActiveForDocument] = await Promise.all([
@@ -135,7 +135,10 @@ export async function POST(request: Request, { params }: RouteContext) {
         }
 
         if (dailyCount >= settings.quotaJournalier || slotCount >= slotCapacity) {
-          throw new ApiError("Le quota de rendez-vous est atteint pour cette date. Veuillez choisir une autre date ouvrable.", 409);
+          throw new ApiError(
+            "Le quota de rendez-vous est atteint pour cette date. Veuillez choisir une autre date ouvrable.",
+            409,
+          );
         }
 
         return tx.rendezVous.create({
@@ -158,6 +161,7 @@ export async function POST(request: Request, { params }: RouteContext) {
       userId: user.id,
       to: user.email,
       documentTitle: getDocumentTitle(document),
+      diplomeType: document.diplomeType,
       documentType: document.typeDocument,
       date,
       time: input.heureRdv,

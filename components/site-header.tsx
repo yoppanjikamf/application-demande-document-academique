@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getHomePathForRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
 export async function SiteHeader() {
@@ -29,15 +29,15 @@ export async function SiteHeader() {
         <nav className="flex items-center gap-2">
           {dbUser ? (
             <>
-              {dbUser?.role === "ADMINISTRATEUR" ? (
-                <Button asChild variant="ghost">
-                  <Link href="/admin">Administration</Link>
-                </Button>
-              ) : (
-                <Button asChild variant="ghost">
-                  <Link href="/dashboard">Espace élève</Link>
-                </Button>
-              )}
+              <Button asChild variant="ghost">
+                <Link href={getHomePathForRole(dbUser.role)}>
+                  {dbUser.role === "ADMINISTRATEUR"
+                    ? "Administration"
+                    : dbUser.role === "AGENT_CENTRE_EXAMEN"
+                      ? "Espace agent"
+                      : "Espace élève"}
+                </Link>
+              </Button>
               <Button asChild variant="ghost" className="hidden sm:inline-flex">
                 <Link href="/account">Compte</Link>
               </Button>
@@ -57,6 +57,9 @@ export async function SiteHeader() {
               </Button>
               <Button asChild variant="ghost">
                 <Link href="/auth/login/decc">DECC</Link>
+              </Button>
+              <Button asChild variant="ghost">
+                <Link href="/auth/login/centre-examen">Centre</Link>
               </Button>
               <Button asChild>
                 <Link href="/auth/register">Activation</Link>

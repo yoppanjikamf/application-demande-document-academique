@@ -1,14 +1,9 @@
 import { z } from "zod";
 
-import {
-  ApiError,
-  handleApiError,
-  json,
-  parseJson,
-  requireInternalRequest,
-} from "@/lib/api-utils";
+import { ApiError, handleApiError, json, parseJson, requireInternalRequest } from "@/lib/api-utils";
 import { notifyPaymentConfirmed } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
+import { parseDuplicataInstruction } from "@/lib/duplicata-service";
 
 const paymentWebhookSchema = z.object({
   paymentId: z.string().trim().min(10),
@@ -62,12 +57,16 @@ export async function POST(request: Request) {
         : null;
 
     const eleve = payment.duplicata?.eleve ?? payment.documentAcademique?.eleve ?? null;
+    const duplicataMeta = payment.duplicata
+      ? parseDuplicataInstruction(payment.duplicata.intruction)
+      : null;
     if (input.statut === "EFFECTUE" && payment.statut !== "EFFECTUE" && eleve && receipt) {
       await notifyPaymentConfirmed({
         userId: eleve.id,
         to: eleve.email,
         recipientName: `${eleve.prenom} ${eleve.nom}`.trim(),
-        documentTitle: payment.duplicata?.nomDuplicata ?? "Document académique",
+        documentTitle: payment.duplicata?.nomDuplicata ?? "Document scolaire",
+        diplomeType: payment.documentAcademique?.diplomeType ?? duplicataMeta?.diplomeType,
         paymentMode: payment.modePaiment,
         receiptNumber: receipt.numero,
         amount: receipt.montant,

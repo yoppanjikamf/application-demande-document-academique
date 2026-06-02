@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { profileUpdateSchema } from "@/lib/validations";
+import type { Role } from "@/lib/generated/prisma/client";
 import { updateProfileAction } from "@/app/account/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +23,7 @@ import { Input } from "@/components/ui/input";
 type Values = z.infer<typeof profileUpdateSchema>;
 
 type ProfileFormProps = {
-  role: "ADMINISTRATEUR" | "ELEVE";
+  role: Role;
   email: string;
   defaultValues: Values;
 };
@@ -105,6 +106,15 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
             <FormLabel>Service</FormLabel>
             <FormControl>
               <Input value="Service administratif" disabled />
+            </FormControl>
+          </FormItem>
+        ) : null}
+
+        {role === "AGENT_CENTRE_EXAMEN" ? (
+          <FormItem>
+            <FormLabel>Service</FormLabel>
+            <FormControl>
+              <Input value="Centre d'examen" disabled />
             </FormControl>
           </FormItem>
         ) : null}

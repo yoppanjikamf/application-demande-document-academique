@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 
-import { formatDateKey, getAvailableSlots, isBeforeToday, parseDateKey } from "@/lib/appointment-service";
+import {
+  formatDateKey,
+  getAvailableSlots,
+  isBeforeToday,
+  parseDateKey,
+} from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
-import { findLatestDuplicataForDocument, resolvePickupRouteForDocument } from "@/lib/duplicata-service";
+import { resolvePickupRouteForDocument } from "@/lib/duplicata-service";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
@@ -37,17 +42,16 @@ export async function GET(request: Request) {
   }
 
   if (document.typeDocument === "DUPLICATA") {
-    const latestDuplicata = await findLatestDuplicataForDocument(document);
-    if (latestDuplicata?.statut !== "DISPONIBLE") {
-      return NextResponse.json({
-        error:
-          "Votre duplicata n'est pas encore prêt. Les rendez-vous seront disponibles après confirmation de l'administration.",
-        slots: [],
-      });
-    }
+    return NextResponse.json({
+      error: "Les duplicatas ne passent pas par les rendez-vous centre d'examen.",
+      slots: [],
+    });
   }
 
-  if (document.statut !== "DISPONIBLE" || !(await resolvePickupRouteForDocument(document)).requiresAppointment) {
+  if (
+    document.statut !== "DISPONIBLE" ||
+    !(await resolvePickupRouteForDocument(document)).requiresAppointment
+  ) {
     return NextResponse.json({ slots: [] });
   }
 

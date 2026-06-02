@@ -1,6 +1,6 @@
 import { sendMail } from "@/lib/mailer";
 import { prisma } from "@/lib/prisma";
-import type { TypeDocument } from "@/lib/generated/prisma/client";
+import type { DiplomePrincipal, TypeDocument } from "@/lib/generated/prisma/client";
 
 type MailPayload = {
   to: string;
@@ -8,7 +8,20 @@ type MailPayload = {
   text: string;
   html?: string;
   userId?: string;
+  fromName?: string;
 };
+
+function getDocumentSenderName(diplomeType?: DiplomePrincipal) {
+  if (diplomeType === "BEPC") {
+    return "DECC Documents";
+  }
+
+  if (diplomeType === "PROBATOIRE" || diplomeType === "BACCALAUREAT") {
+    return "OBC Documents";
+  }
+
+  return undefined;
+}
 
 export async function sendTrackedMail(payload: MailPayload) {
   try {
@@ -40,12 +53,14 @@ export async function notifyDocumentAvailable({
   to,
   documentTitle,
   typeDocument,
+  diplomeType,
   location,
 }: {
   userId: string;
   to: string;
   documentTitle: string;
   typeDocument: TypeDocument;
+  diplomeType: DiplomePrincipal;
   location: string;
 }) {
   const isReleve = typeDocument === "RELEVE_NOTES";
@@ -54,12 +69,12 @@ export async function notifyDocumentAvailable({
     ? "Relevé de notes disponible au centre d'examen"
     : isDuplicata
       ? "Duplicata prêt pour retrait"
-      : "Document disponible pour rendez-vous";
+      : "Document scolaire disponible pour rendez-vous";
   const text = isReleve
     ? `Votre relevé de notes est désormais disponible dans votre centre d'examen : ${location}.`
     : isDuplicata
       ? `Votre duplicata est prêt. Veuillez vous rendre dans votre établissement ou centre d'examen concerné pour le retirer : ${location}. Aucun rendez-vous n'est requis pour ce retrait.`
-      : `Votre document ${documentTitle} est disponible. Cliquez sur cette notification dans votre espace Notifications pour programmer une date de rendez-vous avant le retrait. Lieu de retrait : ${location}.`;
+      : `Votre document scolaire ${documentTitle} est disponible. Cliquez sur cette notification dans votre espace Notifications pour programmer une date de rendez-vous avant le retrait. Lieu de retrait : ${location}.`;
 
   await prisma.notification.create({
     data: {
@@ -69,20 +84,28 @@ export async function notifyDocumentAvailable({
     },
   });
 
-  await sendTrackedMail({ userId, to, subject, text });
+  await sendTrackedMail({
+    userId,
+    to,
+    subject,
+    text,
+    fromName: getDocumentSenderName(diplomeType),
+  });
 }
 
 export async function notifyDuplicataRequestRegistered({
   userId,
   to,
   documentTitle,
+  diplomeType,
 }: {
   userId: string;
   to: string;
   documentTitle: string;
+  diplomeType: DiplomePrincipal;
 }) {
   const subject = "Demande de duplicata enregistrée";
-  const text = `Votre demande de duplicata a été enregistrée avec succès et elle est en cours de traitement. Document : ${documentTitle}.`;
+  const text = `Votre demande de duplicata a été enregistrée avec succès et elle est en cours de traitement. Document scolaire : ${documentTitle}.`;
 
   await prisma.notification.create({
     data: {
@@ -92,7 +115,13 @@ export async function notifyDuplicataRequestRegistered({
     },
   });
 
-  await sendTrackedMail({ userId, to, subject, text });
+  await sendTrackedMail({
+    userId,
+    to,
+    subject,
+    text,
+    fromName: getDocumentSenderName(diplomeType),
+  });
 }
 
 export async function notifyPaymentConfirmed({
@@ -100,6 +129,7 @@ export async function notifyPaymentConfirmed({
   to,
   recipientName,
   documentTitle,
+  diplomeType,
   paymentMode,
   receiptNumber,
   amount,
@@ -109,6 +139,7 @@ export async function notifyPaymentConfirmed({
   to: string;
   recipientName: string;
   documentTitle: string;
+  diplomeType?: DiplomePrincipal;
   paymentMode: string;
   receiptNumber: string;
   amount: number;
@@ -122,7 +153,7 @@ export async function notifyPaymentConfirmed({
     "",
     "Votre paiement a bien été pris en compte.",
     "",
-    `Document concerné : ${documentTitle}`,
+    `Document scolaire concerné : ${documentTitle}`,
     `Montant : ${formattedAmount} FCFA`,
     `Mode de paiement : ${paymentMode}`,
     `Numéro de reçu : ${receiptNumber}`,
@@ -142,20 +173,28 @@ export async function notifyPaymentConfirmed({
     },
   });
 
-  await sendTrackedMail({ userId, to, subject, text });
+  await sendTrackedMail({
+    userId,
+    to,
+    subject,
+    text,
+    fromName: getDocumentSenderName(diplomeType),
+  });
 }
 
 export async function notifyDocumentRetired({
   userId,
   to,
   documentTitle,
+  diplomeType,
 }: {
   userId: string;
   to: string;
   documentTitle: string;
+  diplomeType: DiplomePrincipal;
 }) {
   const subject = "Accusé de réception du document";
-  const text = `Nous confirmons que le document ${documentTitle} a bien été récupéré.`;
+  const text = `Nous confirmons que le document scolaire ${documentTitle} a bien été récupéré.`;
 
   await prisma.notification.create({
     data: {
@@ -165,13 +204,20 @@ export async function notifyDocumentRetired({
     },
   });
 
-  await sendTrackedMail({ userId, to, subject, text });
+  await sendTrackedMail({
+    userId,
+    to,
+    subject,
+    text,
+    fromName: getDocumentSenderName(diplomeType),
+  });
 }
 
 export async function notifyAppointmentConfirmed({
   userId,
   to,
   documentTitle,
+  diplomeType,
   documentType,
   date,
   time,
@@ -181,6 +227,7 @@ export async function notifyAppointmentConfirmed({
   userId: string;
   to: string;
   documentTitle: string;
+  diplomeType: DiplomePrincipal;
   documentType: TypeDocument;
   date: Date;
   time: string;
@@ -196,7 +243,7 @@ export async function notifyAppointmentConfirmed({
   const text = [
     `Bonjour ${recipientName},`,
     `Votre rendez-vous de retrait est confirmé.`,
-    `Document : ${documentTitle}`,
+    `Document scolaire : ${documentTitle}`,
     `Date : ${formattedDate}`,
     `Heure : ${time}`,
     `Lieu : ${location}`,
@@ -212,5 +259,11 @@ export async function notifyAppointmentConfirmed({
     },
   });
 
-  await sendTrackedMail({ userId, to, subject, text });
+  await sendTrackedMail({
+    userId,
+    to,
+    subject,
+    text,
+    fromName: getDocumentSenderName(diplomeType),
+  });
 }

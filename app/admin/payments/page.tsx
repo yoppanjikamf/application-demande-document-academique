@@ -90,6 +90,7 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
       role="ADMINISTRATEUR"
       organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/payments"
       title="Paiements"
@@ -98,7 +99,11 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <form className="w-full max-w-xl">
           {statut ? <input type="hidden" name="statut" value={statut} /> : null}
-          <Input name="q" defaultValue={q ?? ""} placeholder="Matricule, email ou document" />
+          <Input
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="Matricule, email ou document scolaire"
+          />
         </form>
         <div className="flex flex-wrap gap-2">
           <Button asChild size="sm" variant={!statut ? "default" : "outline"}>

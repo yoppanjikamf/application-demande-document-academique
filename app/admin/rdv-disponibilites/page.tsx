@@ -53,6 +53,7 @@ export default async function AdminDisponibilitesPage() {
       role="ADMINISTRATEUR"
       organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/rdv-disponibilites"
       title="Disponibilités RDV"

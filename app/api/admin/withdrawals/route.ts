@@ -1,7 +1,14 @@
 import { z } from "zod";
 
 import { getDocumentTitle, getPickupLocation } from "@/lib/appointment-service";
-import { ApiError, getPageParams, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
+import {
+  ApiError,
+  getPageParams,
+  handleApiError,
+  json,
+  parseJson,
+  requireApiUser,
+} from "@/lib/api-utils";
 import { getAdminDocumentScope } from "@/lib/document-routing";
 import { notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
@@ -96,7 +103,8 @@ export async function POST(request: Request) {
           where: { id: appointment.id },
           data: {
             statut: "HONORE",
-            commentaire: input.commentaire?.trim() || appointment.commentaire || "Retrait physique confirme",
+            commentaire:
+              input.commentaire?.trim() || appointment.commentaire || "Retrait physique confirme",
           },
         });
       }
@@ -119,6 +127,7 @@ export async function POST(request: Request) {
       userId: document.eleve.id,
       to: document.eleve.email,
       documentTitle: getDocumentTitle(document),
+      diplomeType: document.diplomeType,
     });
 
     return json({ withdrawal }, 201);

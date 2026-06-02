@@ -125,7 +125,7 @@ export async function POST(_request: Request, { params }: RouteContext) {
     const icsContent = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//DR-DOCSCOL//Gestion Documents//FR",
+      "PRODID:-//DR-DOCSCOL//Gestion Documents Scolaires//FR",
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
       "X-WR-CALNAME:DR-DOCSCOL",

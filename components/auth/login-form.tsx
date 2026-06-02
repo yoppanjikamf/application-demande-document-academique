@@ -25,7 +25,13 @@ import type { OrganismeName } from "@/lib/document-routing";
 
 type Values = z.infer<typeof signInSchema>;
 
-export function LoginForm({ loginOrganisme }: { loginOrganisme?: OrganismeName }) {
+export function LoginForm({
+  loginOrganisme,
+  loginRole,
+}: {
+  loginOrganisme?: OrganismeName;
+  loginRole?: "AGENT_CENTRE_EXAMEN";
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? undefined;
@@ -39,7 +45,7 @@ export function LoginForm({ loginOrganisme }: { loginOrganisme?: OrganismeName }
 
   const onSubmit = (values: Values) => {
     startTransition(async () => {
-      const res = await signInAction({ ...values, next, loginOrganisme });
+      const res = await signInAction({ ...values, next, loginOrganisme, loginRole });
       if (!res.ok) {
         toast.error(res.error);
         return;

@@ -63,6 +63,18 @@ export const DECC_REGIONAL_ANTENNAS = REGIONAL_BASE.map((item) => ({
 
 export const REGIONAL_ANTENNAS = [...OBC_REGIONAL_ANTENNAS, ...DECC_REGIONAL_ANTENNAS] as const;
 
+export const CENTRES_EXAMEN_REGIONAUX = REGIONAL_BASE.map((item) => ({
+  id: `centre-examen-${slugifyRegion(item.region)}`,
+  region: item.region,
+  nom: `Centre d'examen ${item.region}`,
+  ville: item.ville,
+})) as ReadonlyArray<{
+  id: string;
+  region: string;
+  nom: string;
+  ville: string;
+}>;
+
 export type OrganismeName = keyof typeof ORGANISME_IDS;
 export type PickupType = "CENTRE_EXAMEN" | "ANTENNE_REGIONALE";
 
@@ -187,7 +199,9 @@ export function resolveDocumentRoute(document: RoutableDocument): DocumentRoute 
   const centreExamen = document.centreExamen?.trim() || "Centre d'examen";
   const isBacDiplome =
     document.diplomeType === "BACCALAUREAT" && document.typeDocument === "ORIGINAL";
-  const pickupType: PickupType = isBacDiplome ? "ANTENNE_REGIONALE" : "CENTRE_EXAMEN";
+  const isBepcDuplicata = document.diplomeType === "BEPC" && document.typeDocument === "DUPLICATA";
+  const pickupType: PickupType =
+    isBacDiplome || isBepcDuplicata ? "ANTENNE_REGIONALE" : "CENTRE_EXAMEN";
   const antenne = getAntenneForRegion(document.regionComposition, organismeName);
   const antennaLocation = antenne
     ? `${antenne.nom}${antenne.ville ? ` - ${antenne.ville}` : ""}`
@@ -199,7 +213,7 @@ export function resolveDocumentRoute(document: RoutableDocument): DocumentRoute 
     antenneRegionaleId: antenne?.id ?? null,
     pickupType,
     location: pickupType === "ANTENNE_REGIONALE" ? antennaLocation : centreExamen,
-    requiresAppointment: pickupType === "ANTENNE_REGIONALE",
+    requiresAppointment: document.typeDocument !== "DUPLICATA",
   };
 }
 

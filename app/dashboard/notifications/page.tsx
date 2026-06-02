@@ -31,7 +31,9 @@ export default async function NotificationsPage() {
       },
     }),
   ]);
-  const appointmentDocument = appointmentDocuments.find((document) => resolveDocumentRoute(document).requiresAppointment);
+  const appointmentDocument = appointmentDocuments.find(
+    (document) => resolveDocumentRoute(document).requiresAppointment,
+  );
   const appointmentUrl = appointmentDocument
     ? `/dashboard/documents?exam=${appointmentDocument.diplomeType}&type=ORIGINAL`
     : null;
@@ -40,9 +42,10 @@ export default async function NotificationsPage() {
     <DashboardShell
       role="ELEVE"
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       activePath="/dashboard/notifications"
       title="Notifications"
-      subtitle="Messages de disponibilité, confirmations et rappels liés à vos documents."
+      subtitle="Messages de disponibilité, confirmations et rappels liés à vos documents scolaires."
     >
       <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
         <div className="divide-y divide-slate-100">
@@ -65,7 +68,9 @@ export default async function NotificationsPage() {
                       {notification.dateEnvoi.toLocaleDateString("fr-FR")}
                     </span>
                   </div>
-                  <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">{notification.message}</p>
+                  <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">
+                    {notification.message}
+                  </p>
                   {canScheduleAppointment ? (
                     <Button asChild size="sm" className="mt-4">
                       <Link href={appointmentUrl}>

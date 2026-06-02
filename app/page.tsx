@@ -32,11 +32,11 @@ export default function HomePage() {
             <div className="max-w-3xl">
               <p className="text-sm font-semibold uppercase text-blue-700">DR-DOCSCOL</p>
               <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-                Retraits de documents académiques
+                Retraits de documents scolaires
               </h1>
               <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-                Consultez la disponibilité de vos diplômes, relevés et duplicatas, puis planifiez votre rendez-vous
-                et suivez chaque retrait dans un espace sécurisé.
+                Consultez la disponibilité de vos diplômes, relevés et duplicatas, puis planifiez
+                votre rendez-vous et suivez chaque retrait dans un espace sécurisé.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild size="lg">
@@ -56,7 +56,7 @@ export default function HomePage() {
                 {
                   icon: FileCheck2,
                   title: "Statuts centralisés",
-                  text: "Disponibilité, centre de retrait et historique du document.",
+                  text: "Disponibilité, centre de retrait et historique du document scolaire.",
                 },
                 {
                   icon: CalendarCheck,
@@ -69,7 +69,10 @@ export default function HomePage() {
                   text: "Espace élève et back-office administration séparés.",
                 },
               ].map((item) => (
-                <div key={item.title} className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+                <div
+                  key={item.title}
+                  className="rounded-md border border-slate-200 bg-white p-5 shadow-sm"
+                >
                   <item.icon className="h-5 w-5 text-blue-700" />
                   <h2 className="mt-4 font-semibold">{item.title}</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>

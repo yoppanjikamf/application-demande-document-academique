@@ -24,6 +24,7 @@ export default async function PaymentsPage() {
     <DashboardShell
       role="ELEVE"
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       activePath="/dashboard/payments"
       title="Paiements"
       subtitle="Suivi des paiements de duplicata et reçus associés."
@@ -43,7 +44,10 @@ export default async function PaymentsPage() {
             payments.map((payment) => {
               const receipt = payment.recu[0] ?? null;
               return (
-                <div key={payment.id} className="grid gap-4 px-5 py-4 md:grid-cols-[1fr_auto] md:items-center">
+                <div
+                  key={payment.id}
+                  className="grid gap-4 px-5 py-4 md:grid-cols-[1fr_auto] md:items-center"
+                >
                   <div>
                     <p className="font-medium text-slate-950">{payment.duplicata.nomDuplicata}</p>
                     <p className="mt-1 text-sm text-slate-500">
@@ -53,7 +57,11 @@ export default async function PaymentsPage() {
                       <div className="mt-3 flex flex-wrap items-center gap-2">
                         <span className="text-sm text-slate-500">Reçu : {receipt.numero}</span>
                         <Button asChild variant="outline" size="sm">
-                          <a href={`/api/students/me/payments/${payment.id}/receipt`} target="_blank" rel="noreferrer">
+                          <a
+                            href={`/api/students/me/payments/${payment.id}/receipt`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
                             <Eye className="h-4 w-4" />
                             Voir le reçu
                           </a>
@@ -66,7 +74,9 @@ export default async function PaymentsPage() {
                         </Button>
                       </div>
                     ) : (
-                      <p className="mt-2 text-sm text-slate-500">Le reçu sera disponible après confirmation du paiement.</p>
+                      <p className="mt-2 text-sm text-slate-500">
+                        Le reçu sera disponible après confirmation du paiement.
+                      </p>
                     )}
                   </div>
                   <StatusBadge tone={paymentTone(payment.statut)}>{payment.statut}</StatusBadge>

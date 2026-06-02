@@ -44,24 +44,26 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     // Créer un log d'audit
-    await prisma.auditLog.create({
-      data: {
-        action: "DOCUMENT_STATUS_CHANGED",
-        resource: "DOCUMENT",
-        resourceId: document.id,
-        userId: admin.id,
-        details: JSON.stringify({
-          documentId: document.id,
-          eleveMatricule: document.eleve.matricule,
-          previousStatus: previousStatus,
-          newStatus: input.statut,
-          documentType: document.typeDocument,
-          diplomeType: document.diplomeType,
-        }),
-      },
-    }).catch((err) => {
-      console.error("Failed to create audit log:", err);
-    });
+    await prisma.auditLog
+      .create({
+        data: {
+          action: "DOCUMENT_STATUS_CHANGED",
+          resource: "DOCUMENT",
+          resourceId: document.id,
+          userId: admin.id,
+          details: JSON.stringify({
+            documentId: document.id,
+            eleveMatricule: document.eleve.matricule,
+            previousStatus: previousStatus,
+            newStatus: input.statut,
+            documentType: document.typeDocument,
+            diplomeType: document.diplomeType,
+          }),
+        },
+      })
+      .catch((err) => {
+        console.error("Failed to create audit log:", err);
+      });
 
     const documentTitle = getDocumentTitle(document);
     if (previousStatus !== "DISPONIBLE" && input.statut === "DISPONIBLE") {
@@ -70,6 +72,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         to: document.eleve.email,
         documentTitle,
         typeDocument: document.typeDocument,
+        diplomeType: document.diplomeType,
         location: await getPickupLocation(document),
       });
     }
@@ -87,6 +90,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         userId: document.eleve.id,
         to: document.eleve.email,
         documentTitle,
+        diplomeType: document.diplomeType,
       });
     }
 

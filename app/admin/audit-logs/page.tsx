@@ -109,6 +109,7 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
       role="ADMINISTRATEUR"
       organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/audit-logs"
       title="Journaux d'audit"

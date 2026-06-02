@@ -58,10 +58,11 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
       role="ADMINISTRATEUR"
       organismeId={user.organismeId}
       userName={`${user.prenom} ${user.nom}`}
+      userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/documents"
-      title="Documents académiques"
-      subtitle="Verification physique, changement de statut et suivi des rendez-vous."
+      title="Documents scolaires"
+      subtitle="Verification physique, changement de statut et suivi des rendez-vous des documents scolaires."
     >
       <div className="flex flex-wrap gap-2">
         <Button asChild size="sm" variant={!status ? "default" : "outline"}>
