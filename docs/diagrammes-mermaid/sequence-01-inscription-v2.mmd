@@ -1,16 +1,20 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "20px"}}}%%
 sequenceDiagram
-    participant Eleve as Élève
-    participant Systeme as Système
-    participant Auth as Service Auth (Supabase)
-    participant BDD as Base de données
-    participant Admin as Administrateur
+    autonumber
+    actor Eleve
+    participant UI as Interface inscription
+    participant Auth as Supabase Auth
+    participant API as API interne
+    participant DB as PostgreSQL / Prisma
+    participant Mail as Service email
 
-    Eleve->>Systeme: soumet formulaire d'inscription (matricule, email, mot de passe)
-    Systeme->>BDD: vérifie existence du matricule et de l'email
-    BDD-->>Systeme: profil élève trouvé
-    Systeme->>Auth: crée ou met à jour le compte Supabase Auth
-    Auth-->>Systeme: compte auth activé
-    Systeme->>BDD: rattache authUserId au profil élève
-    BDD-->>Systeme: profil mis à jour
-    Systeme-->>Eleve: compte activé et session ouverte
-    Note over Admin,Systeme: Les comptes administrateurs sont créés par script ou validés automatiquement lors de la première connexion.
+    Eleve->>UI: saisit matricule, email et mot de passe
+    UI->>API: demande activation du compte
+    API->>DB: recherche eleve par matricule
+    DB-->>API: profil eleve et examens valides
+    API->>Auth: cree le compte authentifie
+    Auth-->>API: authUserId
+    API->>DB: lie authUserId au profil eleve
+    API->>Mail: envoie email de bienvenue
+    API-->>UI: activation reussie
+    UI-->>Eleve: redirection tableau de bord

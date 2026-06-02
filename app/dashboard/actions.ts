@@ -12,7 +12,7 @@ import {
   getDocumentTitle,
   getAppointmentSettings,
   getPickupLocation,
-  isBeforeToday,
+  isBeforeTomorrow,
   isHoliday,
   isWeekend,
   parseDateKey,
@@ -95,8 +95,10 @@ export async function reserverDisponibiliteAction(formData: FormData) {
   }
 
   const date = parseDateKey(parsed.data.dateRdv);
-  if (!date || isBeforeToday(date) || isWeekend(date) || (await isHoliday(date))) {
-    throw new Error("Date invalide.");
+  if (!date || isBeforeTomorrow(date) || isWeekend(date) || (await isHoliday(date))) {
+    throw new Error(
+      "Date invalide. Les rendez-vous de retrait doivent être programmés à partir du lendemain.",
+    );
   }
 
   const document = await prisma.documentAcademique.findFirst({
@@ -130,7 +132,7 @@ export async function reserverDisponibiliteAction(formData: FormData) {
 
   const route = await resolvePickupRouteForDocument(document);
   if (!route.requiresAppointment) {
-    throw new Error("Ce document se retire directement au centre d'examen, sans rendez-vous.");
+    throw new Error("Ce document ne passe pas par un rendez-vous. Suivez les instructions de retrait.");
   }
 
   const availableSlots = await getAvailableSlots(date);
@@ -217,7 +219,7 @@ export async function reserverDisponibiliteAction(formData: FormData) {
           dateRdv: date,
           heureRdv: parsed.data.heureRdv,
           lieu: location,
-          statut: "CONFIRME",
+          statut: "PLANIFIE",
           commentaire,
         },
       });
@@ -287,6 +289,13 @@ export async function requestReleveNotesAction(formData: FormData) {
     throw new Error("Examen introuvable pour cet élève.");
   }
 
+  const route = resolveDocumentRoute({
+    diplomeType,
+    typeDocument: "RELEVE_NOTES",
+    centreExamen: exam.centreExamen,
+    regionComposition: exam.regionComposition,
+  });
+
   await prisma.documentAcademique.upsert({
     where: {
       eleveId_diplomeType_typeDocument: {
@@ -298,13 +307,8 @@ export async function requestReleveNotesAction(formData: FormData) {
     update: {
       centreExamen: exam.centreExamen,
       regionComposition: exam.regionComposition,
-      organismeId: resolveDocumentRoute({
-        diplomeType,
-        typeDocument: "RELEVE_NOTES",
-        centreExamen: exam.centreExamen,
-        regionComposition: exam.regionComposition,
-      }).organismeId,
-      antenneRegionaleId: null,
+      organismeId: route.organismeId,
+      antenneRegionaleId: route.antenneRegionaleId,
     },
     create: {
       eleveId: user.id,
@@ -312,13 +316,8 @@ export async function requestReleveNotesAction(formData: FormData) {
       typeDocument: "RELEVE_NOTES",
       centreExamen: exam.centreExamen,
       regionComposition: exam.regionComposition,
-      organismeId: resolveDocumentRoute({
-        diplomeType,
-        typeDocument: "RELEVE_NOTES",
-        centreExamen: exam.centreExamen,
-        regionComposition: exam.regionComposition,
-      }).organismeId,
-      antenneRegionaleId: null,
+      organismeId: route.organismeId,
+      antenneRegionaleId: route.antenneRegionaleId,
       statut: "PAS_DISPONIBLE",
     },
   });

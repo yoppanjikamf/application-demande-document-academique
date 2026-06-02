@@ -1,7 +1,6 @@
 import { getAntennesForOrganisme, getOrganismeNameById } from "@/lib/document-routing";
 import { AdminRegionForm } from "@/components/auth/admin-region-form";
 import { AuthCard } from "@/components/auth/auth-card";
-import { SiteHeader } from "@/components/site-header";
 import { requireRole } from "@/lib/auth";
 
 type AdminRegionPageProps = {
@@ -17,34 +16,30 @@ export default async function AdminRegionPage({ searchParams }: AdminRegionPageP
   const antennas = user.organismeId ? getAntennesForOrganisme(user.organismeId) : [];
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <SiteHeader />
+    <div className="min-h-screen bg-[#F8F9FA]">
       <main className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-        <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-8 text-white shadow-2xl shadow-slate-200/50">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">
+        <section className="rounded-2xl border border-[#E5E7EB] bg-[#1B4332] p-8 text-white shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
             Accès régional {organismeName}
           </p>
           <h1 className="mt-4 max-w-xl text-3xl font-semibold leading-tight sm:text-4xl">
             Un administrateur ne voit et ne manipule que les données de son antenne.
           </h1>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">
+          <p className="mt-4 max-w-xl text-sm leading-6 text-white/70">
             Saisissez la clé unique de votre antenne. Le système identifie automatiquement la région
             et ouvre le tableau de bord uniquement sur les élèves et documents de cette antenne.
           </p>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {antennas.map((antenna) => (
-              <div
-                key={antenna.id}
-                className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur"
-              >
+              <div key={antenna.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
                 <div className="text-sm font-semibold text-white">{antenna.region}</div>
-                <div className="mt-1 text-sm text-slate-300">{antenna.ville}</div>
+                <div className="mt-1 text-sm text-white/70">{antenna.ville}</div>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+          <div className="mt-8 rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
             Exemple: la clé {organismeName}-CENTRE-2026 donne automatiquement accès à l’antenne du
             Centre uniquement.
           </div>

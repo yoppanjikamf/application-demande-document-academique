@@ -1,278 +1,191 @@
-# Commandes cURL pour Tester les 7 Routes
-# À adapter avec vos tokens et IDs réels
+# Exemples cURL DR-DOCSCOL
 
-## ==================== ROUTE 1: Password Forgot ====================
+Derniere mise a jour: 02/06/2026.
 
-# Demander un reset de mot de passe (pas besoin de token)
-curl -X POST http://localhost:3000/api/auth/password/forgot \
-  -H "Content-Type: application/json" \
-  -d '{"email":"eleve@obc-decc.cm"}'
+Ces exemples servent de base. Les routes protegees utilisent la session Supabase stockee en cookies dans l'application; pour les tester avec cURL, recuperer les cookies de session ou passer par l'interface.
 
-# Réponse attendue: 200
-# {"ok":true,"message":"Si l'email existe, un lien de reset a été envoyé."}
+## Health
 
+```bash
+curl http://localhost:3000/api/health
+```
 
-## ==================== ROUTE 2: Password Reset ====================
+## Auth
 
-# Remplacer YOUR_TOKEN par le token reçu dans l'email Supabase
-curl -X POST http://localhost:3000/api/auth/password/reset \
+### Login admin DECC
+
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "token": "YOUR_SUPABASE_RECOVERY_TOKEN_HERE",
-    "newPassword": "NewPassword123!",
-    "confirmPassword": "NewPassword123!"
+    "matricule": "DECC-01-ADAMAOUA",
+    "email": "admin.decc.adamaoua@example.com",
+    "password": "DeccAdamaoua2026!",
+    "loginOrganisme": "DECC"
   }'
+```
 
-# Réponse attendue: 200
-# {"ok":true,"message":"Mot de passe réinitialisé avec succès..."}
+### Login admin OBC
 
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "matricule": "ADM-02-CENTRE",
+    "email": "admin.centre@example.com",
+    "password": "AdminCentre2026!",
+    "loginOrganisme": "OBC"
+  }'
+```
 
-## ==================== ROUTE 3: Calendar Export ====================
+### Demande reset password
 
-# Remplacer SESSION_TOKEN par votre session token
-# Remplacer DOC_ID par un vrai ID de document
-curl -X POST http://localhost:3000/api/students/me/documents/DOC_ID/calendar-event \
-  -H "Authorization: Bearer SESSION_TOKEN" \
+```bash
+curl -X POST http://localhost:3000/api/auth/password/forgot \
+  -H "Content-Type: application/json" \
+  -d '{"email":"eleve@example.com"}'
+```
+
+## Eleve
+
+### Liste des documents
+
+```bash
+curl http://localhost:3000/api/students/me/documents \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER"
+```
+
+### Instructions de retrait
+
+```bash
+curl http://localhost:3000/api/students/me/documents/DOCUMENT_ID/instructions \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER"
+```
+
+### Prendre rendez-vous
+
+```bash
+curl -X POST http://localhost:3000/api/students/me/documents/DOCUMENT_ID/appointments \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dateRdv": "2026-06-05",
+    "heureRdv": "08:00-10:00",
+    "commentaire": "Reservation eleve"
+  }'
+```
+
+### Export calendrier
+
+```bash
+curl -X POST http://localhost:3000/api/students/me/documents/DOCUMENT_ID/calendar-event \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER" \
   --output rendez-vous.ics
+```
 
-# Réponse attendue: 200 + fichier .ics
-# Content-Type: text/calendar; charset=utf-8
+### Annuler un paiement en attente
 
-
-## ==================== ROUTE 4: Payment Cancel ====================
-
-# Remplacer SESSION_TOKEN par votre session token
-# Remplacer PAYMENT_ID par un vrai ID de paiement
+```bash
 curl -X PATCH http://localhost:3000/api/students/me/payments/PAYMENT_ID/cancel \
-  -H "Authorization: Bearer SESSION_TOKEN" \
-  -H "Content-Type: application/json"
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER"
+```
 
-# Réponse attendue: 200
-# {
-#   "payment": {
-#     "id": "...",
-#     "statut": "ANNULE",
-#     "modePaiment": "ORANGEMONEY",
-#     ...
-#   },
-#   "message": "Paiement annulé avec succès."
-# }
+### Voir un recu
 
+```bash
+curl http://localhost:3000/api/students/me/payments/PAYMENT_ID/receipt \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER"
+```
 
-## ==================== ROUTE 5: 30-Day Reminder (Internal) ====================
+## Admin
 
-# Remplacer YOUR_INTERNAL_SECRET par INTERNAL_API_SECRET
-# Cette route doit être appelée par une tâche cron
+### Documents admin
 
-# Version 1: Avec header x-internal-secret
+```bash
+curl http://localhost:3000/api/admin/documents \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER"
+```
+
+### Changer statut document
+
+```bash
+curl -X PATCH http://localhost:3000/api/admin/documents/DOCUMENT_ID/status \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER" \
+  -H "Content-Type: application/json" \
+  -d '{"statut":"DISPONIBLE"}'
+```
+
+### Paiements admin
+
+```bash
+curl http://localhost:3000/api/admin/payments \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER"
+```
+
+### Audit logs
+
+```bash
+curl http://localhost:3000/api/admin/audit-logs \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER"
+```
+
+### Retrait physique admin
+
+```bash
+curl -X POST http://localhost:3000/api/admin/withdrawals \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "documentId": "DOCUMENT_ID",
+    "commentaire": "Retrait confirme au guichet"
+  }'
+```
+
+## Agent centre d'examen
+
+### Liste des rendez-vous
+
+```bash
+curl "http://localhost:3000/api/centre-examen/appointments?filter=today" \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER"
+```
+
+### Confirmer retrait
+
+```bash
+curl -X PATCH http://localhost:3000/api/centre-examen/appointments/APPOINTMENT_ID/confirm-withdrawal \
+  -H "Cookie: YOUR_SUPABASE_COOKIE_HEADER"
+```
+
+## Routes internes
+
+### Rappel 30 jours
+
+```bash
 curl -X POST http://localhost:3000/api/internal/notifications/reminder-30days \
-  -H "x-internal-secret: YOUR_INTERNAL_SECRET" \
-  -H "Content-Type: application/json"
+  -H "Authorization: Bearer YOUR_INTERNAL_SECRET"
+```
 
-# Version 2: Avec Bearer token
-curl -X POST http://localhost:3000/api/internal/notifications/reminder-30days \
+### Webhook paiement
+
+```bash
+curl -X POST http://localhost:3000/api/payments/webhook \
   -H "Authorization: Bearer YOUR_INTERNAL_SECRET" \
-  -H "Content-Type: application/json"
-
-# Réponse attendue: 202 Accepted
-# {
-#   "ok": true,
-#   "message": "Rappels envoyés: 5 succès, 0 échecs.",
-#   "results": {
-#     "success": 5,
-#     "failed": 0
-#   }
-# }
-
-
-## ==================== ROUTE 6: Admin Payments ====================
-
-# Remplacer ADMIN_SESSION_TOKEN par votre session admin
-
-# 6a. Lister tous les paiements
-curl -X GET http://localhost:3000/api/admin/payments \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# 6b. Filtrer par statut
-curl -X GET 'http://localhost:3000/api/admin/payments?statut=EN_ATTENTE' \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# 6c. Rechercher par matricule
-curl -X GET 'http://localhost:3000/api/admin/payments?q=ABC123' \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# 6d. Pagination
-curl -X GET 'http://localhost:3000/api/admin/payments?page=1&limit=10' \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# 6e. Combiné: statut + recherche + pagination
-curl -X GET 'http://localhost:3000/api/admin/payments?statut=EFFECTUE&q=Jean&page=1&limit=5' \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# Réponse attendue: 200
-# {
-#   "payments": [
-#     {
-#       "id": "...",
-#       "statut": "EN_ATTENTE",
-#       "modePaiement": "ORANGEMONEY",
-#       "createdAt": "...",
-#       "eleve": { ... },
-#       "documentTitle": "Baccalauréat - DUPLICATA",
-#       "typeSource": "DUPLICATA",
-#       "recu": null
-#     }
-#   ],
-#   "pagination": {
-#     "page": 1,
-#     "limit": 10,
-#     "total": 42
-#   }
-# }
-
-
-## ==================== ROUTE 7: Admin Audit Logs ====================
-
-# Remplacer ADMIN_SESSION_TOKEN par votre session admin
-
-# 7a. Lister tous les logs d'audit
-curl -X GET http://localhost:3000/api/admin/audit-logs \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# 7b. Filtrer par action
-curl -X GET 'http://localhost:3000/api/admin/audit-logs?action=LOGIN' \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# 7c. Filtrer par resource
-curl -X GET 'http://localhost:3000/api/admin/audit-logs?resource=DOCUMENT' \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# 7d. Filtrer par utilisateur
-curl -X GET 'http://localhost:3000/api/admin/audit-logs?userId=USER_ID' \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# 7e. Recherche textuelle
-curl -X GET 'http://localhost:3000/api/admin/audit-logs?q=ABC123' \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# 7f. Combiné: filtres + recherche + pagination
-curl -X GET 'http://localhost:3000/api/admin/audit-logs?action=DOCUMENT_STATUS_CHANGED&q=ABC&page=1&limit=20' \
-  -H "Authorization: Bearer ADMIN_SESSION_TOKEN"
-
-# Réponse attendue: 200
-# {
-#   "auditLogs": [
-#     {
-#       "id": "...",
-#       "action": "LOGIN",
-#       "resource": "USER",
-#       "resourceId": "...",
-#       "details": { ... },
-#       "ipAddress": null,
-#       "createdAt": "...",
-#       "user": { ... }
-#     }
-#   ],
-#   "pagination": { ... },
-#   "stats": {
-#     "totalActions": 156,
-#     "actionBreakdown": [
-#       { "action": "LOGIN", "count": 87 },
-#       ...
-#     ]
-#   }
-# }
-
-
-## ==================== GESTION DES TOKENS ====================
-
-# Pour obtenir SESSION_TOKEN en dev:
-# 1. Se connecter via l'UI: http://localhost:3000/auth/login
-# 2. Vérifier le cookie 'auth-token' dans devtools
-# 3. Ou appeler POST /api/auth/login directement
-
-curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "matricule": "ABC123",
-    "email": "eleve@obc-decc.cm",
-    "password": "password123"
+    "paymentId": "PAYMENT_ID",
+    "statut": "EFFECTUE",
+    "numeroRecu": "REC-TEST-001",
+    "montant": 25000,
+    "commentaire": "Paiement de test"
   }'
+```
 
-# Pour obtenir ADMIN_SESSION_TOKEN:
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "matricule": "ADMIN001",
-    "email": "admin@obc-decc.cm",
-    "password": "adminpass123"
-  }'
+## Diagnostic DB
 
+```bash
+set -a; source .env; set +a
+psql "$DATABASE_URL" -c 'select now();'
+```
 
-## ==================== GESTION DES ERREURS ====================
-
-# Erreur 400: Donnees invalides
-curl -X POST http://localhost:3000/api/auth/password/forgot \
-  -H "Content-Type: application/json" \
-  -d '{"email":"invalid-email"}'
-# {"error":"Donnees invalides."}
-
-# Erreur 401: Non authentifié
-curl -X PATCH http://localhost:3000/api/students/me/payments/ID/cancel
-# {"error":"Acces refuse."}
-
-# Erreur 403: Acces refusé (élève accède à route admin)
-curl -X GET http://localhost:3000/api/admin/payments \
-  -H "Authorization: Bearer ELEVE_SESSION_TOKEN"
-# {"error":"Acces refuse."}
-
-# Erreur 404: Ressource introuvable
-curl -X PATCH http://localhost:3000/api/students/me/payments/INVALID_ID/cancel \
-  -H "Authorization: Bearer ELEVE_SESSION_TOKEN"
-# {"error":"Paiement introuvable."}
-
-# Erreur 409: Conflit metier
-curl -X PATCH http://localhost:3000/api/students/me/payments/ALREADY_PAID_ID/cancel \
-  -H "Authorization: Bearer ELEVE_SESSION_TOKEN"
-# {"error":"Seuls les paiements en attente peuvent être annulés."}
-
-# Erreur 422: Regle metier non respectée
-curl -X POST http://localhost:3000/api/students/me/documents/DOC_ID/calendar-event \
-  -H "Authorization: Bearer ELEVE_SESSION_TOKEN"
-# {"error":"Aucun rendez-vous planifié pour ce document..."}
-
-# Erreur 503: Configuration manquante
-curl -X POST http://localhost:3000/api/internal/notifications/reminder-30days \
-  -H "x-internal-secret: INVALID"
-# {"error":"Configuration Supabase manquante."}
-
-
-## ==================== ASTUCES ET OPTIMISATIONS ====================
-
-# Sauvegarder la réponse dans un fichier
-curl -X GET http://localhost:3000/api/admin/audit-logs \
-  -H "Authorization: Bearer TOKEN" \
-  > audit_logs.json
-
-# Pretty-print JSON avec jq
-curl -s http://localhost:3000/api/admin/payments \
-  -H "Authorization: Bearer TOKEN" | jq '.'
-
-# Extraire un champ spécifique
-curl -s http://localhost:3000/api/admin/payments \
-  -H "Authorization: Bearer TOKEN" | jq '.payments[0].eleve'
-
-# Compter les résultats
-curl -s http://localhost:3000/api/admin/payments \
-  -H "Authorization: Bearer TOKEN" | jq '.pagination.total'
-
-# Tester avec envoi de fichier (si nécessaire)
-curl -X POST http://localhost:3000/api/admin/students/import \
-  -H "Authorization: Bearer ADMIN_TOKEN" \
-  -F "file=@import.csv"
-
-# Tester timeout
-curl --connect-timeout 5 http://localhost:3000/api/health
-
-# Tester avec proxy
-curl -x http://localhost:8080 http://localhost:3000/api/health
+Si ce test timeout, corriger la connexion Postgres avant de tester les routes protegees.

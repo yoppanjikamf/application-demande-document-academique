@@ -67,7 +67,12 @@ function isTransientDatabaseError(error: unknown) {
     return false;
   }
 
-  return error.message.includes("Can't reach database server") || error.message.includes("P1001");
+  return (
+    error.message.includes("Can't reach database server") ||
+    error.message.includes("Timed out fetching a new connection from the connection pool") ||
+    error.message.includes("P1001") ||
+    error.message.includes("P2024")
+  );
 }
 
 async function withDatabaseRetry<T>(operation: () => Promise<T>) {

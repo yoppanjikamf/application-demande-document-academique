@@ -1,24 +1,20 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "20px"}}}%%
 sequenceDiagram
-    participant Eleve as Élève
-    participant Systeme as Système
-    participant Paiement as Service Paiement
-    participant Admin as Administrateur
-    participant BDD as Base de données
+    autonumber
+    actor Eleve
+    participant UI as Tableau de bord
+    participant API as Action duplicata
+    participant Pay as Service paiement
+    participant DB as PostgreSQL / Prisma
+    participant Admin as Admin OBC / DECC
 
-    Eleve->>Systeme: sélectionne "Demander un duplicata"
-    Systeme-->>Eleve: affiche formulaire (diplôme, cible, session, centre, motif, mode paiement)
-    Eleve->>Systeme: soumet demande
-    Systeme->>BDD: vérifie examen validé et règle Probatoire
-    BDD-->>Systeme: élève éligible
-    Systeme->>BDD: crée ou met à jour DocumentAcademique DUPLICATA
-    Systeme->>BDD: crée demande Duplicata
-    Systeme-->>Eleve: affiche montant à payer
-    Eleve->>Paiement: initie paiement
-    Paiement-->>Systeme: paiement confirmé dans le MVP
-    Systeme->>BDD: crée Paiement statut EFFECTUE
-    Systeme->>BDD: génère Recu
-    Systeme->>BDD: crée notification DEMANDE_DUPLICATA
-    Systeme->>Admin: notification "Nouvelle demande de duplicata"
-    Admin->>Systeme: traite la demande
-    Systeme->>BDD: met à jour statut → DISPONIBLE
-    Systeme-->>Eleve: notification "Votre duplicata est disponible"
+    Eleve->>UI: demande un duplicata
+    UI->>API: envoie motif, examen, justificatif et mode paiement
+    API->>DB: verifie eligibilite et delai
+    API->>DB: cree la demande duplicata
+    API->>Pay: initie paiement applicatif
+    Pay-->>API: paiement EFFECTUE
+    API->>DB: cree paiement et recu
+    API->>Admin: notifie nouvelle demande duplicata
+    API-->>UI: demande enregistree
+    UI-->>Eleve: affiche recu et statut de traitement

@@ -495,27 +495,6 @@ export async function importTestDataAction(formData: FormData) {
   revalidatePath("/admin");
 }
 
-export async function confirmAppointmentAction(formData: FormData) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== "ADMINISTRATEUR") {
-    throw new Error("Accès refusé.");
-  }
-  assertObcAdmin(user);
-
-  const rendezVousId = String(formData.get("rendezVousId") ?? "");
-  if (!rendezVousId) {
-    throw new Error("Rendez-vous manquant.");
-  }
-
-  await prisma.rendezVous.updateMany({
-    where: { id: rendezVousId, document: { is: getAdminDocumentScope(user) } },
-    data: { statut: "CONFIRME" },
-  });
-
-  revalidatePath("/admin/appointments");
-  revalidatePath("/admin");
-}
-
 export async function cancelAppointmentAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMINISTRATEUR") {

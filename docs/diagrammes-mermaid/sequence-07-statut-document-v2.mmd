@@ -1,27 +1,25 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "20px"}}}%%
 sequenceDiagram
-    participant Admin as Administrateur
-    participant Systeme as Système
-    participant Service as Service documents
-    participant BDD as Base de données
-    participant Notif as Service notif / email
-    participant Eleve as Élève
+    autonumber
+    actor Admin as Admin OBC / DECC
+    participant UI as Interface admin
+    participant API as API statut
+    participant DB as PostgreSQL / Prisma
+    participant Notif as Service notification
+    participant Eleve
 
-    Admin->>Systeme: sélectionne document + nouveau statut
-    Systeme->>Service: contrôle rôle et périmètre organisme / antenne
-    Service->>BDD: recherche document autorisé
-    BDD-->>Service: document + élève
-    Service->>Service: applique règles Probatoire / OBC / DECC
-    Service->>BDD: met à jour statut document
-    BDD-->>Service: document mis à jour
-    alt Statut devient DISPONIBLE
-        Service->>Notif: notifier document disponible
-        Notif->>BDD: crée notification et MailLog
-        Notif-->>Eleve: email de disponibilité
-    else Statut devient RETIRE
-        Service->>BDD: passe RDV actifs à HONORE
-        Service->>Notif: notifier retrait confirmé
-        Notif->>BDD: crée notification et MailLog
-        Notif-->>Eleve: email d'accusé de retrait
+    Admin->>UI: modifie le statut du document
+    UI->>API: PATCH document
+    API->>DB: verifie portee OBC / DECC / region
+    alt Statut DISPONIBLE
+        API->>DB: enregistre DISPONIBLE
+        API->>Notif: notifie document disponible
+        Notif-->>Eleve: invitation a prendre RDV si necessaire
+    else Statut RETIRE en antenne
+        API->>DB: enregistre RETIRE
+        API->>DB: marque RDV actif HONORE si existe
+        API->>Notif: notifie retrait confirme
+    else Statut PAS_DISPONIBLE
+        API->>DB: remet en attente
     end
-    Service-->>Systeme: résultat de l'opération
-    Systeme-->>Admin: confirmation action effectuée
+    API-->>UI: statut actualise

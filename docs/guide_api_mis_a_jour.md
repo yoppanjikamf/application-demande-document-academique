@@ -1,7 +1,7 @@
 # Guide API Next.js mis a jour
 
 - Application : DR-DOCSCOL, gestion des demandes et retraits de documents academiques
-- Date de mise a jour : 27/05/2026
+- Date de mise a jour : 02/06/2026
 
 ## 1. Positionnement
 
@@ -12,26 +12,42 @@ Le projet utilise Next.js App Router. La logique metier est repartie entre :
 - services partages dans `lib/*` ;
 - schema relationnel dans `prisma/schema.prisma`.
 
-Le guide initial prevoyait 35 routes cibles. Le MVP actuel couvre la majorite des routes critiques, mais certaines fonctionnalites restent partielles ou absentes.
+Le projet expose 37 route handlers `route.ts`, dont 36 sous `/api` et 1 route applicative `/logout`. Les routes critiques du MVP sont implementees. Les limites restantes concernent surtout le paiement externe, le stockage reel des justificatifs et la stabilite de la connexion Prisma/Postgres Supabase.
 
-## 2. Conventions API
+## 2. Etat final court
 
-### 2.1 Authentification
+| Domaine | Etat | Notes |
+| --- | --- | --- |
+| Auth eleve/admin/agent | Implemente | Supabase Auth + profil Prisma |
+| Routage OBC / DECC | Implemente | BEPC vers DECC, Bac/Probatoire vers OBC |
+| Dashboard eleve | Implemente | Documents, RDV, paiements, notifications |
+| Admin OBC | Implemente | Documents, RDV, disponibilites, paiements, audit |
+| Admin DECC | Implemente | Documents BEPC et duplicatas BEPC par region |
+| Agent centre d'examen | Implemente | Consultation RDV `PLANIFIE`/`CONFIRME` et confirmation du retrait physique |
+| Notifications email | Implemente | Via Nodemailer + `mail_logs` |
+| Paiement externe | Partiel | Paiement applicatif + webhook, pas de prestataire reel |
+| Justificatifs duplicata | Partiel | Fichier requis, stockage fichier a brancher |
+| Production Supabase | A valider | Pooler Postgres / Prisma a stabiliser |
+
+## 3. Conventions API
+
+### 3.1 Authentification
 
 - Les sessions sont gerees par Supabase Auth.
 - Les routes protegees recuperent l'utilisateur via `getCurrentUser()`.
 - Les routes API utilisent `requireApiUser()`.
 - Les routes internes utilisent `INTERNAL_API_SECRET`.
 
-### 2.2 Autorisation
+### 3.2 Autorisation
 
 | Role | Acces |
 | --- | --- |
 | `ELEVE` | Routes `/api/students/me/*`, dashboard eleve |
-| `ADMINISTRATEUR` | Routes `/api/admin/*`, back-office |
+| `ADMINISTRATEUR` | Routes `/api/admin/*`, back-office OBC / DECC selon scope |
+| `AGENT_CENTRE_EXAMEN` | Routes `/api/centre-examen/*`, page centre examen |
 | Systeme interne | Routes `/api/internal/*` et `/api/payments/webhook` avec secret interne |
 
-### 2.3 Reponses HTTP attendues
+### 3.3 Reponses HTTP attendues
 
 | Code | Signification |
 | --- | --- |
@@ -48,88 +64,91 @@ Le guide initial prevoyait 35 routes cibles. Le MVP actuel couvre la majorite de
 | 500 | Erreur serveur |
 | 503 | Configuration manquante |
 
-## 3. Routes implementees
+## 4. Routes implementees
 
-### 3.1 Auth
-
-| Route | Methode | Acteur | Etat | Notes |
-| --- | --- | --- | --- | --- |
-| `/api/auth/register` | POST | Public | ✅ Implemente | Active un eleve deja present en base |
-| `/api/auth/login` | POST | Public | ✅ Implemente | Connexion matricule + email + mot de passe |
-| `/api/auth/logout` | POST | Connecte | ✅ Implemente | Deconnexion Supabase |
-| `/api/auth/me` | GET | Connecte | ✅ Implemente | Retourne le profil connecte |
-| `/api/auth/password/forgot` | POST | Public | ✅ Implemente | Demande reset password via email |
-| `/api/auth/password/reset` | POST | Public | ✅ Implemente | Finalisation reset avec token Supabase |
-
-### 3.2 Profil
+### 4.1 Auth
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/users/me` | PATCH | Connecte | ✅ Implemente | Appelle `updateProfileAction` |
+| `/api/auth/register` | POST | Public | Implemente | Active un eleve deja present en base |
+| `/api/auth/login` | POST | Public | Implemente | Connexion matricule + email + mot de passe |
+| `/api/auth/logout` | POST | Connecte | Implemente | Deconnexion Supabase |
+| `/api/auth/me` | GET | Connecte | Implemente | Retourne le profil connecte |
+| `/api/auth/password/forgot` | POST | Public | Implemente | Demande reset password via email |
+| `/api/auth/password/reset` | POST | Public | Implemente | Finalisation reset avec token Supabase |
 
-### 3.3 Documents eleve
-
-| Route | Methode | Acteur | Etat | Notes |
-| --- | --- | --- | --- | --- |
-| `/api/students/me/documents` | GET | Eleve | ✅ Implemente | Liste documents + statut + lieu + RDV actif |
-| `/api/students/me/documents/:documentId` | GET | Eleve | ✅ Implemente | Detail document |
-| `/api/students/me/documents/:documentId/instructions` | GET | Eleve | ✅ Implemente | Instructions de retrait |
-| `/api/students/me/documents/:documentId/appointments` | POST | Eleve | ✅ Implemente | Reservation RDV si document disponible et RDV requis |
-| `/api/students/me/documents/:documentId/calendar-event` | POST | Eleve | ✅ Implemente | Export calendrier `.ics` (RFC 5545) |
-
-### 3.4 Rendez-vous
+### 4.2 Profil
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/appointments/slots` | GET | Eleve | ✅ Implemente | Liste les creneaux disponibles pour une date/document |
-| `/api/students/me/appointments/:appointmentId/cancel` | PATCH | Eleve | ✅ Implemente | Annulation eleve |
-| `/api/admin/appointments` | GET | Admin | ✅ Via page/Server Action | Planning admin dans `app/admin/appointments/page.tsx` |
-| `/api/admin/appointments/:appointmentId/confirm` | PATCH | Admin | ✅ Via Server Action | `confirmAppointmentAction` |
-| `/api/admin/appointments/:appointmentId/cancel` | PATCH | Admin | ✅ Via Server Action | `cancelAppointmentAction` |
+| `/api/users/me` | PATCH | Connecte | Implemente | Appelle `updateProfileAction` |
 
-### 3.5 Notifications
+### 4.3 Documents eleve
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/students/me/notifications` | GET | Eleve | ✅ Implemente | Historique notifications |
-| `/api/internal/notifications/dispatch` | POST | Systeme interne | ✅ Implemente | Envoi document disponible via secret |
-| `/api/internal/notifications/reminder-30days` | POST | Systeme interne | ✅ Implemente | Rappel auto 30j avant RDV |
-| `/api/students/me/notifications/history` | GET | Eleve | ✅ Fusionne | Deja couvert par `/notifications` |
+| `/api/students/me/documents` | GET | Eleve | Implemente | Liste documents + statut + lieu + RDV actif |
+| `/api/students/me/documents/:documentId` | GET | Eleve | Implemente | Detail document |
+| `/api/students/me/documents/:documentId/instructions` | GET | Eleve | Implemente | Instructions de retrait |
+| `/api/students/me/documents/:documentId/appointments` | POST | Eleve | Implemente | Reservation RDV `PLANIFIE` si document disponible et RDV requis |
+| `/api/students/me/documents/:documentId/calendar-event` | POST | Eleve | Implemente | Export calendrier `.ics` |
 
-### 3.6 Paiements
-
-| Route | Methode | Acteur | Etat | Notes |
-| --- | --- | --- | --- | --- |
-| `/api/students/me/payments/initiate` | POST | Eleve | ✅ Implemente partiellement | Cree paiement duplicata |
-| `/api/students/me/payments/:paymentId` | GET | Eleve | ✅ Implemente | Detail paiement + reçu |
-| `/api/students/me/payments/:paymentId/cancel` | PATCH | Eleve | ✅ Implemente | Annulation paiement EN_ATTENTE |
-| `/api/payments/webhook` | POST | Systeme interne | ✅ Implemente partiellement | Confirmation via secret interne |
-| `/api/admin/payments` | GET | Admin | ✅ Implemente | Suivi admin paiements (dashboard) |
-
-### 3.7 Administration
+### 4.4 Rendez-vous
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/admin/students` | GET | Admin | ✅ Implemente | Liste/recherche eleves |
-| `/api/admin/students/import` | POST | Admin | ✅ Implemente | Import CSV |
-| `/api/admin/documents` | GET | Admin | ✅ Implemente | Liste documents scoped |
-| `/api/admin/documents/:documentId` | GET | Admin | ✅ Implemente | Detail document + RDV |
-| `/api/admin/documents/:documentId/status` | PATCH | Admin | ✅ Implemente | Changement statut + audit log |
-| `/api/admin/withdrawals` | GET | Admin | ✅ Implemente | Historique retraits |
-| `/api/admin/withdrawals` | POST | Admin | ✅ Implemente | Enregistre retrait physique |
-| `/api/admin/users/:userId/role` | PATCH | Admin | ✅ Implemente | Changement role |
-| `/api/admin/dashboard/stats` | GET | Admin | ✅ Implemente | Statistiques dashboard |
-| `/api/admin/audit-logs` | GET | Admin | ✅ Implemente | Journalisation actions sensibles |
+| `/api/appointments/slots` | GET | Eleve | Implemente | Liste les creneaux disponibles pour une date/document |
+| `/api/students/me/appointments/:appointmentId/cancel` | PATCH | Eleve | Implemente | Annulation eleve |
+| `/api/admin/appointments` | GET | Admin OBC | Via page | Planning dans `app/admin/appointments/page.tsx` |
+| `/api/admin/appointments/:appointmentId/cancel` | PATCH | Admin OBC | Via Server Action | `cancelAppointmentAction` |
 
-### 3.8 Technique
+### 4.5 Notifications
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/health` | GET | Public | ✅ Implemente | Verification de sante |
+| `/api/students/me/notifications` | GET | Eleve | Implemente | Historique notifications |
+| `/api/internal/notifications/dispatch` | POST | Systeme interne | Implemente | Envoi document disponible via secret |
+| `/api/internal/notifications/reminder-30days` | POST | Systeme interne | Implemente | Rappel auto 30j avant RDV |
 
-## 4. Server Actions avec Audit Logs
+### 4.6 Paiements
 
-Certaines operations tracent les actions sensibles en base de donnees via le modele AuditLog.
+| Route | Methode | Acteur | Etat | Notes |
+| --- | --- | --- | --- | --- |
+| `/api/students/me/payments/initiate` | POST | Eleve | Partiel | Cree paiement duplicata applicatif |
+| `/api/students/me/payments/:paymentId` | GET | Eleve | Implemente | Detail paiement + recu |
+| `/api/students/me/payments/:paymentId/cancel` | PATCH | Eleve | Implemente | Annulation paiement EN_ATTENTE |
+| `/api/payments/webhook` | POST | Systeme interne | Partiel | Confirmation via secret interne |
+| `/api/admin/payments` | GET | Admin | Implemente | Suivi admin paiements |
+
+### 4.7 Administration
+
+| Route | Methode | Acteur | Etat | Notes |
+| --- | --- | --- | --- | --- |
+| `/api/admin/students` | GET | Admin | Implemente | Liste/recherche eleves |
+| `/api/admin/students/import` | POST | Admin | Implemente | Import CSV |
+| `/api/admin/documents` | GET | Admin | Implemente | Liste documents scoped |
+| `/api/admin/documents/:documentId` | GET | Admin | Implemente | Detail document + RDV |
+| `/api/admin/documents/:documentId/status` | PATCH | Admin | Implemente | Changement statut + audit log |
+| `/api/admin/withdrawals` | GET | Admin | Implemente | Historique retraits |
+| `/api/admin/withdrawals` | POST | Admin | Implemente | Enregistre retrait physique |
+| `/api/admin/users/:userId/role` | PATCH | Admin | Implemente | Changement role |
+| `/api/admin/dashboard/stats` | GET | Admin | Implemente | Statistiques dashboard |
+| `/api/admin/audit-logs` | GET | Admin | Implemente | Journalisation actions sensibles |
+
+### 4.8 Centre d'examen
+
+| Route | Methode | Acteur | Etat | Notes |
+| --- | --- | --- | --- | --- |
+| `/api/centre-examen/appointments` | GET | Agent centre | Implemente | Liste les RDV `PLANIFIE`/`CONFIRME` du centre |
+| `/api/centre-examen/appointments/:appointmentId/confirm-withdrawal` | PATCH | Agent centre | Implemente | Confirme uniquement le retrait physique effectue |
+
+### 4.9 Technique
+
+| Route | Methode | Acteur | Etat | Notes |
+| --- | --- | --- | --- | --- |
+| `/api/health` | GET | Public | Implemente | Verification de sante |
+
+## 5. Server Actions avec Audit Logs
 
 | Fichier | Action | Audit Log | Notes |
 | --- | --- | --- | --- |
@@ -138,49 +157,26 @@ Certaines operations tracent les actions sensibles en base de donnees via le mod
 | `app/account/actions.ts` | `updateProfileAction` | - | Profil |
 | `app/dashboard/actions.ts` | `reserverDisponibiliteAction` | - | Reservation RDV |
 | `app/dashboard/actions.ts` | `cancelRendezVousAction` | - | Annulation RDV eleve |
+| `app/dashboard/actions.ts` | `requestReleveNotesAction` | - | Demande releve |
+| `app/dashboard/actions.ts` | `submitDuplicataRequestAction` | - | Demande duplicata + paiement + recu |
 | `app/admin/actions.ts` | `updateDocumentStatusAction` | DOCUMENT_STATUS_CHANGED | Changement statut doc |
 | `app/admin/actions.ts` | `updateAdminQuotaAction` | QUOTA_CHANGED | Modification quota RDV |
-| `app/dashboard/actions.ts` | `requestReleveNotesAction` | Demande releve |
-| `app/dashboard/actions.ts` | `submitDuplicataRequestAction` | Demande duplicata + paiement + reçu |
-| `app/admin/actions.ts` | `updateAdminQuotaAction` | Quota RDV |
-| `app/admin/actions.ts` | `updateDocumentStatusAction` | Statut document |
-| `app/admin/actions.ts` | `importTestDataAction` | Import CSV |
-| `app/admin/actions.ts` | `confirmAppointmentAction` | Confirmation RDV admin |
-| `app/admin/actions.ts` | `cancelAppointmentAction` | Annulation RDV admin |
+| `app/admin/actions.ts` | `importTestDataAction` | - | Import CSV |
+| `app/admin/actions.ts` | `cancelAppointmentAction` | - | Annulation RDV admin |
 
-## 5. Backlog restant
+## 6. Backlog restant pour production
 
-### 5.1 Implémenté (27/05/2026)
-
-✅ **TERMINÉ** - Toutes les 7 routes critiques implémentées:
-- `POST /api/auth/password/forgot` - Demande reset
-- `POST /api/auth/password/reset` - Finalisation reset
-- `POST /api/students/me/documents/:documentId/calendar-event` - Export .ics
-- `PATCH /api/students/me/payments/:paymentId/cancel` - Annulation paiement
-- `POST /api/internal/notifications/reminder-30days` - Rappels 30j
-- `GET /api/admin/payments` - Dashboard paiements
-- `GET /api/admin/audit-logs` - Journalisation audit
-
-✅ **BONUS** - Audit logs intégrés dans:
-- `signInAction` → LOGIN
-- `updateDocumentStatusAction` → DOCUMENT_STATUS_CHANGED
-- `updateAdminQuotaAction` → QUOTA_CHANGED
-- API route status change → DOCUMENT_STATUS_CHANGED
-
-### 5.2 À faire si besoin supplémentaire
-
-1. Paiement Mobile Money réel :
+1. Paiement Mobile Money reel :
    - provider Orange Money/MTN Money ;
    - reference transaction ;
    - statut echec/succes ;
    - motif d'echec ;
    - verification signature webhook.
-2. UI Admin pour:
-   - `/api/admin/payments` dashboard
-   - `/api/admin/audit-logs` viewer
-3. Tests E2E avec Cypress/Playwright
+2. Stockage fichier des justificatifs de duplicata.
+3. Stabilisation de la connexion Prisma/Postgres Supabase.
+4. Tests E2E avec Cypress ou Playwright.
 
-## 6. Mapping cahier des charges -> code
+## 7. Mapping cahier des charges -> code
 
 | Fonctionnalite | Code principal |
 | --- | --- |
@@ -192,11 +188,11 @@ Certaines operations tracent les actions sensibles en base de donnees via le mod
 | Notifications | `lib/mail-service.ts`, `app/dashboard/notifications/page.tsx` |
 | Paiements | `app/dashboard/actions.ts`, `app/api/students/me/payments/*`, `app/api/payments/webhook/route.ts` |
 | Admin documents | `app/admin/documents/page.tsx`, `app/api/admin/documents/*` |
-| Retraits | `app/admin/withdrawals/page.tsx`, `app/api/admin/withdrawals/route.ts` |
+| Retraits | `app/api/admin/withdrawals/route.ts`, `app/centre-examen/page.tsx`, `app/api/centre-examen/*` |
 | Import CSV | `app/admin/import/page.tsx`, `app/admin/actions.ts`, `docs/test-data-eleves.csv` |
-| Seeds | `scripts/seed-admin.ts`, `scripts/seed-diplomes.ts` |
+| Seeds | `scripts/seed-regional-admins.ts`, `scripts/seed-decc-regional-admins.ts`, `scripts/seed-centre-examen-agents.ts`, `scripts/seed-1000-eleves.ts` |
 
-## 7. Donnees attendues pour l'import CSV
+## 8. Donnees attendues pour l'import CSV
 
 Colonnes recommandees :
 
@@ -208,21 +204,19 @@ Valeurs acceptees :
 
 - `diplome_type` : `BEPC`, `PROBATOIRE`, `BACCALAUREAT`
 - `document_type` : `ORIGINAL`, `RELEVE_NOTES`, `DUPLICATA`
-- alias encore toleres : `DIPLOME` -> `ORIGINAL`, `RELEVE` -> `RELEVE_NOTES`
+- alias toleres : `DIPLOME` -> `ORIGINAL`, `RELEVE` -> `RELEVE_NOTES`
 - `document_statut` : `PAS_DISPONIBLE`, `DISPONIBLE`, `RETIRE`
-- alias encore toleres : `EN_ATTENTE`, `NON_DISPONIBLE` -> `PAS_DISPONIBLE`
+- alias toleres : `EN_ATTENTE`, `NON_DISPONIBLE` -> `PAS_DISPONIBLE`
 - `rdv_statut` : `PLANIFIE`, `CONFIRME`, `ANNULE`, `HONORE`
 
-## 8. Verification manuelle recommandee
+## 9. Verification manuelle recommandee
 
-1. Creer ou seed un administrateur.
-2. Importer le CSV de test.
-3. Se connecter comme eleve.
-4. Consulter `/dashboard/documents`.
-5. Demander un duplicata.
-6. Verifier `/dashboard/payments`.
-7. Passer un document a `DISPONIBLE` cote admin.
-8. Verifier la notification et le mail log.
-9. Reserver un rendez-vous si le document exige une antenne regionale.
-10. Marquer le retrait comme effectue.
-11. Verifier l'historique des retraits.
+1. Seeder les comptes OBC, DECC, agents centre et eleves.
+2. Se connecter comme eleve.
+3. Consulter `/dashboard/documents`.
+4. Demander un duplicata.
+5. Verifier `/dashboard/payments`.
+6. Se connecter comme admin OBC et passer un document a `DISPONIBLE`.
+7. Se connecter comme admin DECC et verifier les documents BEPC scopes.
+8. Se connecter comme agent centre et confirmer un retrait.
+9. Verifier les notifications et les logs.

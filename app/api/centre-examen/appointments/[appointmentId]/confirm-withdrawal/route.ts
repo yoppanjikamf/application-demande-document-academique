@@ -46,9 +46,9 @@ export async function PATCH(_request: Request, { params }: RouteContext) {
           throw new ApiError("Ce retrait a deja ete confirme.", 409);
         }
 
-        if (current.statut !== "CONFIRME") {
+        if (current.statut !== "PLANIFIE" && current.statut !== "CONFIRME") {
           throw new ApiError(
-            "Seuls les rendez-vous confirmes peuvent etre marques comme retires.",
+            "Seuls les rendez-vous planifies peuvent etre marques comme retires.",
             409,
           );
         }

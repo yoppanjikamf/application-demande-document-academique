@@ -46,7 +46,7 @@ export function ConfirmWithdrawalButton({ appointmentId }: { appointmentId: stri
       <DialogTrigger asChild>
         <Button size="sm">
           <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden="true" />
-          Retiré
+          Confirmer retrait
         </Button>
       </DialogTrigger>
       <DialogContent>

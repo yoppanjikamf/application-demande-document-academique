@@ -46,8 +46,10 @@ function parseDateKey(value: string) {
   return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
 }
 
-function todayKey() {
-  return formatDateKey(new Date());
+function tomorrowKey() {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  return formatDateKey(date);
 }
 
 function isWeekend(date: Date) {
@@ -57,6 +59,7 @@ function isWeekend(date: Date) {
 
 function nextWeekdayKey() {
   const date = new Date();
+  date.setDate(date.getDate() + 1);
   date.setHours(0, 0, 0, 0);
 
   while (isWeekend(date)) {
@@ -108,7 +111,7 @@ export function AppointmentDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const minDate = useMemo(() => todayKey(), []);
+  const minDate = useMemo(() => tomorrowKey(), []);
   const minMonth = useMemo(() => monthKey(startOfMonthFromKey(initialDate)), [initialDate]);
   const weekdayDates = useMemo(() => getWeekdayDates(monthCursor, minDate), [minDate, monthCursor]);
 
@@ -177,7 +180,12 @@ export function AppointmentDialog({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium">Date</p>
+              <div>
+                <p className="text-sm font-medium">Date</p>
+                <p className="text-xs text-muted-foreground">
+                  Les rendez-vous sont disponibles à partir du lendemain.
+                </p>
+              </div>
               <div className="flex items-center gap-2">
                 <Button
                   type="button"
@@ -213,7 +221,7 @@ export function AppointmentDialog({
                     key={key}
                     type="button"
                     onClick={() => setDate(key)}
-                    className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                    className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
                       isSelected ? "border-foreground bg-accent" : "border-border hover:bg-accent"
                     }`}
                   >
@@ -221,14 +229,19 @@ export function AppointmentDialog({
                       {weekdayDate.toLocaleDateString("fr-FR", { weekday: "short" })}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {weekdayDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}
+                      {weekdayDate.toLocaleDateString("fr-FR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                      })}
                     </span>
                   </button>
                 );
               })}
             </div>
             {weekdayDates.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Aucun jour ouvrable disponible pour ce mois.</p>
+              <p className="text-sm text-muted-foreground">
+                Aucun jour ouvrable disponible pour ce mois.
+              </p>
             ) : null}
           </div>
 
@@ -243,7 +256,7 @@ export function AppointmentDialog({
                   type="button"
                   disabled={slot.disabled}
                   onClick={() => setSelectedSlot(slot.value)}
-                  className={`rounded-md border px-3 py-2 text-left text-sm transition-colors disabled:opacity-50 ${
+                  className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors disabled:opacity-50 ${
                     selectedSlot === slot.value ? "border-foreground bg-accent" : "border-border"
                   }`}
                 >

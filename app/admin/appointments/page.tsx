@@ -1,4 +1,4 @@
-import { cancelAppointmentAction, confirmAppointmentAction } from "@/app/admin/actions";
+import { cancelAppointmentAction } from "@/app/admin/actions";
 import { getDocumentTitle } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
 import { getAdminDocumentScope, getAdminScopeLabel, ORGANISME_IDS } from "@/lib/document-routing";
@@ -36,16 +36,16 @@ export default async function AdminAppointmentsPage() {
       scopeLabel={scopeLabel}
       activePath="/admin/appointments"
       title="Planning des retraits"
-      subtitle="Rendez-vous actifs à confirmer ou à annuler dans DR-DOCSCOL."
+      subtitle="Rendez-vous actifs à suivre ou à annuler dans OBC/DECC."
     >
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
-        <div className="grid grid-cols-[1fr_auto] border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium text-slate-500">
+      <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
+        <div className="grid grid-cols-[1fr_auto] border-b border-[#E5E7EB] bg-[#F8F9FA] px-5 py-3 text-sm font-medium text-[#6B7280]">
           <span>Rendez-vous</span>
           <span>Actions</span>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-[#E8EEF6]">
           {appointments.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-slate-500">Aucun rendez-vous actif.</p>
+            <p className="px-5 py-6 text-sm text-[#6B7280]">Aucun rendez-vous actif.</p>
           ) : (
             appointments.map((appointment) => (
               <div
@@ -54,7 +54,7 @@ export default async function AdminAppointmentsPage() {
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium text-slate-950">
+                    <p className="font-medium text-[#111827]">
                       {appointment.document
                         ? getDocumentTitle(appointment.document)
                         : "Document scolaire"}
@@ -63,16 +63,16 @@ export default async function AdminAppointmentsPage() {
                       {appointment.statut}
                     </StatusBadge>
                   </div>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm text-[#6B7280]">
                     {appointment.dateRdv.toLocaleDateString("fr-FR")} · {appointment.heureRdv} ·{" "}
                     {appointment.lieu}
                   </p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-[#6B7280]">
                     {appointment.eleve.prenom} {appointment.eleve.nom} ·{" "}
                     {appointment.eleve.matricule}
                   </p>
                   {appointment.document ? (
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-[#6B7280]">
                       {appointment.document.organisme?.nom ?? "Organisme non defini"}
                       {appointment.document.antenneRegionale
                         ? ` · ${appointment.document.antenneRegionale.nom}`
@@ -81,14 +81,6 @@ export default async function AdminAppointmentsPage() {
                   ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {appointment.statut === "PLANIFIE" ? (
-                    <form action={confirmAppointmentAction}>
-                      <input type="hidden" name="rendezVousId" value={appointment.id} />
-                      <Button type="submit" size="sm">
-                        Confirmer
-                      </Button>
-                    </form>
-                  ) : null}
                   <form action={cancelAppointmentAction}>
                     <input type="hidden" name="rendezVousId" value={appointment.id} />
                     <Button type="submit" size="sm" variant="outline">

@@ -1,5 +1,6 @@
 // Badge de statut unifié pour documents, paiements et rendez-vous.
 import type { ReactNode } from "react";
+import { CheckCircle2, Clock3, Info, XCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -20,12 +21,12 @@ export type StatusValue =
   | "LUE";
 
 const tones: Record<BadgeTone, string> = {
-  slate: "bg-slate-100 text-slate-700 ring-slate-200",
-  blue: "bg-blue-50 text-blue-900 ring-blue-200",
-  green: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  orange: "bg-amber-50 text-amber-800 ring-amber-200",
-  amber: "bg-amber-50 text-amber-800 ring-amber-200",
-  red: "bg-red-50 text-red-700 ring-red-200",
+  slate: "bg-[#F8F9FA] text-[#4B5563] ring-[#E5E7EB]",
+  blue: "bg-[#E3F2FD] text-[#1565C0] ring-[#BBDEFB]",
+  green: "bg-[#DCFCE7] text-[#16A34A] ring-[#BBF7D0]",
+  orange: "bg-[#FEF3C7] text-[#B45309] ring-[#FDE68A]",
+  amber: "bg-[#FEF3C7] text-[#B45309] ring-[#FDE68A]",
+  red: "bg-[#FEE2E2] text-[#DC2626] ring-[#FECACA]",
 };
 
 const statusLabels: Partial<Record<StatusValue, string>> = {
@@ -79,15 +80,24 @@ export function StatusBadge(props: {
   const { children, tone, status, className } = props;
   const resolvedTone = tone ?? (status ? toneForStatus(status) : "slate");
   const label = children ?? (status ? (statusLabels[status] ?? status) : null);
+  const Icon =
+    resolvedTone === "green"
+      ? CheckCircle2
+      : resolvedTone === "red"
+        ? XCircle
+        : resolvedTone === "blue"
+          ? Info
+          : Clock3;
 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
         tones[resolvedTone],
         className,
       )}
     >
+      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
       {label}
     </span>
   );

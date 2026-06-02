@@ -71,7 +71,7 @@ export async function notifyDocumentAvailable({
       ? "Duplicata prêt pour retrait"
       : "Document scolaire disponible pour rendez-vous";
   const text = isReleve
-    ? `Votre relevé de notes est désormais disponible dans votre centre d'examen : ${location}.`
+    ? `Votre relevé de notes est désormais disponible dans votre centre d'examen : ${location}. Veuillez planifier un rendez-vous de retrait depuis votre espace élève.`
     : isDuplicata
       ? `Votre duplicata est prêt. Veuillez vous rendre dans votre établissement ou centre d'examen concerné pour le retirer : ${location}. Aucun rendez-vous n'est requis pour ce retrait.`
       : `Votre document scolaire ${documentTitle} est disponible. Cliquez sur cette notification dans votre espace Notifications pour programmer une date de rendez-vous avant le retrait. Lieu de retrait : ${location}.`;
@@ -235,14 +235,14 @@ export async function notifyAppointmentConfirmed({
   recipientName: string;
 }) {
   const formattedDate = date.toLocaleDateString("fr-FR");
-  const subject = "Confirmation de rendez-vous de retrait";
+  const subject = "Rendez-vous de retrait planifié";
   const items = ["Carte scolaire ou CNI", "Accuse de reception ou numero de demande"];
   if (documentType === "DUPLICATA") {
     items.push("Reçu de paiement du duplicata");
   }
   const text = [
     `Bonjour ${recipientName},`,
-    `Votre rendez-vous de retrait est confirmé.`,
+    `Votre rendez-vous de retrait est planifié.`,
     `Document scolaire : ${documentTitle}`,
     `Date : ${formattedDate}`,
     `Heure : ${time}`,
@@ -254,7 +254,7 @@ export async function notifyAppointmentConfirmed({
   await prisma.notification.create({
     data: {
       userId,
-      typeNotification: "RENDEZ_VOUS_CONFIRME",
+      typeNotification: "RENDEZ_VOUS_PLANIFIE",
       message: text,
     },
   });

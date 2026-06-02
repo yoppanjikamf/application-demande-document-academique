@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { CalendarDays, FileText, ListChecks, UsersRound } from "lucide-react";
+import { AlertTriangle, CalendarDays, CreditCard, FileClock, UsersRound } from "lucide-react";
 
+import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
 import { getAdminDocumentScope, getAdminScopeLabel, ORGANISME_IDS } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
@@ -8,45 +9,139 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { StatusBadge, appointmentTone, documentTone } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
-import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
+
+function startOfDay(date = new Date()) {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value;
+}
+
+function endOfDay(date = new Date()) {
+  const value = new Date(date);
+  value.setHours(23, 59, 59, 999);
+  return value;
+}
+
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function buildThirtyDaySeries() {
+  const today = startOfDay();
+
+  return Array.from({ length: 30 }, (_, index) => {
+    const day = new Date(today);
+    day.setDate(today.getDate() - 29 + index);
+
+    return {
+      key: dateKey(day),
+      label: day.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
+      value: 0,
+    };
+  });
+}
+
+function buildSparklinePoints(values: number[]) {
+  const maxValue = Math.max(1, ...values);
+
+  return values
+    .map((value, index) => {
+      const x = values.length === 1 ? 0 : (index / (values.length - 1)) * 100;
+      const y = 32 - (value / maxValue) * 28;
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
 
 export default async function AdminPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin");
   const documentScope = getAdminDocumentScope(user);
   const scopeLabel = getAdminScopeLabel(user);
   const isObcAdmin = user.organismeId === ORGANISME_IDS.OBC;
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const thirtyDaysAgo = new Date(startOfDay());
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+  const series = buildThirtyDaySeries();
+  const duplicataPaymentScope = {
+    ...(user.organismeId ? { organismeId: user.organismeId } : {}),
+    ...(user.antenneRegionaleId ? { antenneRegionaleId: user.antenneRegionaleId } : {}),
+  };
 
   const [
     elevesCount,
-    documentsCount,
-    rendezVousCount,
-    documentsDisponibles,
     documentsEnAttente,
-    retraitsCount,
+    rendezVousTodayCount,
+    paiementsMoisCount,
     recentDocuments,
-    nextAppointments,
+    todayAppointments,
+    honoredAppointments,
+    adminSettings,
   ] = await Promise.all([
     prisma.user.count({ where: { role: "ELEVE", documentsAcademique: { some: documentScope } } }),
-    prisma.documentAcademique.count({ where: documentScope }),
-    prisma.rendezVous.count({
-      where: { statut: { in: ["PLANIFIE", "CONFIRME"] }, document: { is: documentScope } },
-    }),
-    prisma.documentAcademique.count({ where: { ...documentScope, statut: "DISPONIBLE" } }),
     prisma.documentAcademique.count({ where: { ...documentScope, statut: "PAS_DISPONIBLE" } }),
-    prisma.rendezVous.count({ where: { statut: "HONORE", document: { is: documentScope } } }),
+    prisma.rendezVous.count({
+      where: {
+        statut: { in: ["PLANIFIE", "CONFIRME"] },
+        dateRdv: { gte: startOfDay(), lte: endOfDay() },
+        document: { is: documentScope },
+      },
+    }),
+    prisma.paiement.count({
+      where: {
+        statut: "EFFECTUE",
+        createdAt: { gte: monthStart },
+        OR: [
+          { documentAcademique: { is: documentScope } },
+          { duplicata: { is: duplicataPaymentScope } },
+        ],
+      },
+    }),
     prisma.documentAcademique.findMany({
       where: documentScope,
-      take: 5,
+      take: 6,
       orderBy: { updatedAt: "desc" },
-      include: { eleve: true },
+      include: { eleve: true, organisme: true },
     }),
     prisma.rendezVous.findMany({
-      where: { statut: { in: ["PLANIFIE", "CONFIRME"] }, document: { is: documentScope } },
-      take: 5,
-      orderBy: [{ dateRdv: "asc" }, { heureRdv: "asc" }],
+      where: {
+        statut: { in: ["PLANIFIE", "CONFIRME"] },
+        dateRdv: { gte: startOfDay(), lte: endOfDay() },
+        document: { is: documentScope },
+      },
+      take: 8,
+      orderBy: [{ heureRdv: "asc" }],
       include: { eleve: true, document: true },
     }),
+    prisma.rendezVous.findMany({
+      where: {
+        statut: "HONORE",
+        retraitConfirmeAt: { gte: thirtyDaysAgo },
+        document: { is: documentScope },
+      },
+      select: { retraitConfirmeAt: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { maxRdvParJour: true },
+    }),
   ]);
+
+  const countsByDay = new Map(series.map((item) => [item.key, 0]));
+  honoredAppointments.forEach((appointment) => {
+    if (appointment.retraitConfirmeAt) {
+      const key = dateKey(appointment.retraitConfirmeAt);
+      countsByDay.set(key, (countsByDay.get(key) ?? 0) + 1);
+    }
+  });
+  const chartSeries = series.map((item) => ({
+    ...item,
+    value: countsByDay.get(item.key) ?? 0,
+  }));
+  const chartValues = chartSeries.map((item) => item.value);
+  const quota = adminSettings?.maxRdvParJour ?? 10;
+  const quotaRatio = quota > 0 ? rendezVousTodayCount / quota : 0;
+  const quotaAlmostReached = quotaRatio >= 0.8;
 
   return (
     <DashboardShell
@@ -57,103 +152,162 @@ export default async function AdminPage() {
       scopeLabel={scopeLabel}
       activePath="/admin"
       title={`Administration ${user.nomService ?? ""}`.trim()}
-      subtitle={`Connecte en tant que ${user.prenom} ${user.nom}${user.nomService ? ` · ${user.nomService}` : ""}`}
+      subtitle={`Périmètre ${scopeLabel ?? "administration"}`}
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Élèves" value={elevesCount} icon={<UsersRound className="h-5 w-5" />} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Documents scolaires"
-          value={documentsCount}
-          icon={<FileText className="h-5 w-5" />}
-          description={`${documentsEnAttente} en attente de traitement`}
+          label="Total élèves"
+          value={elevesCount}
+          icon={<UsersRound className="h-5 w-5" />}
         />
         <StatCard
-          label="Disponibles"
-          value={documentsDisponibles}
-          icon={<FileText className="h-5 w-5" />}
-          tone="green"
-        />
-        <StatCard
-          label="RDV actifs"
-          value={rendezVousCount}
-          icon={<CalendarDays className="h-5 w-5" />}
+          label="Documents en attente"
+          value={documentsEnAttente}
+          icon={<FileClock className="h-5 w-5" />}
           tone="amber"
         />
         <StatCard
-          label="Retraits honores"
-          value={retraitsCount}
-          icon={<ListChecks className="h-5 w-5" />}
+          label="RDV du jour"
+          value={rendezVousTodayCount}
+          icon={<CalendarDays className="h-5 w-5" />}
           tone="green"
+        />
+        <StatCard
+          label="Paiements du mois"
+          value={paiementsMoisCount}
+          icon={<CreditCard className="h-5 w-5" />}
+          tone="blue"
         />
       </div>
 
-      <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Actions rapides</h2>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link href="/admin/documents">Verifier les documents scolaires</Link>
-          </Button>
-          {isObcAdmin ? (
-            <Button asChild variant="outline">
-              <Link href="/admin/rdv-disponibilites">Configurer les disponibilités</Link>
-            </Button>
-          ) : null}
-          <Button asChild variant="outline">
-            <Link href="/admin/import">Importer CSV</Link>
-          </Button>
-        </div>
-      </div>
+      {quotaAlmostReached ? (
+        <section className="flex items-start gap-3 rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] p-4 text-sm text-[#92400E] shadow-sm">
+          <AlertTriangle className="mt-0.5 h-5 w-5" aria-hidden="true" />
+          <p>
+            Quota journalier presque atteint : {rendezVousTodayCount}/{quota} rendez-vous planifiés.
+          </p>
+        </section>
+      ) : null}
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <section className="rounded-md border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 px-5 py-4">
-            <h2 className="font-semibold text-slate-950">Documents scolaires recents</h2>
+      <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold text-[#111827]">Évolution des retraits sur 30 jours</h2>
+            <p className="mt-1 text-sm text-[#6B7280]">
+              Retraits confirmés sur les 30 derniers jours.
+            </p>
           </div>
-          <div className="divide-y divide-slate-100">
-            {recentDocuments.map((document) => (
-              <div key={document.id} className="flex items-center justify-between gap-4 px-5 py-4">
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-slate-950">
-                    {getDocumentTitle(document)}
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    {document.eleve.prenom} {document.eleve.nom} · {document.eleve.matricule}
-                  </p>
-                </div>
-                <StatusBadge tone={documentTone(document.statut)}>
-                  {getStatusLabel(document.statut)}
-                </StatusBadge>
-              </div>
-            ))}
+          <StatusBadge tone="green">{honoredAppointments.length} retraits</StatusBadge>
+        </div>
+        <div className="mt-6 h-44 rounded-2xl bg-[#F8F9FA] p-4">
+          <svg
+            viewBox="0 0 100 36"
+            className="h-full w-full"
+            role="img"
+            aria-label="Courbe des retraits sur 30 jours"
+          >
+            <polyline
+              points={buildSparklinePoints(chartValues)}
+              fill="none"
+              stroke="#52B788"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      </section>
+
+      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+        <section className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
+          <div className="border-b border-[#E5E7EB] bg-[#F8F9FA] px-5 py-4">
+            <h2 className="font-semibold text-[#111827]">Documents récents</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-white text-left text-xs uppercase text-[#6B7280]">
+                <tr>
+                  <th className="px-5 py-3 font-semibold">Élève</th>
+                  <th className="px-5 py-3 font-semibold">Type</th>
+                  <th className="px-5 py-3 font-semibold">Statut</th>
+                  <th className="px-5 py-3 font-semibold">Organisme</th>
+                  <th className="px-5 py-3 font-semibold">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E5E7EB]">
+                {recentDocuments.map((document) => (
+                  <tr key={document.id}>
+                    <td className="px-5 py-4">
+                      <p className="font-medium text-[#111827]">
+                        {document.eleve.prenom} {document.eleve.nom}
+                      </p>
+                      <p className="font-mono text-xs text-[#6B7280]">{document.eleve.matricule}</p>
+                    </td>
+                    <td className="px-5 py-4 text-[#4B5563]">{getDocumentTitle(document)}</td>
+                    <td className="px-5 py-4">
+                      <StatusBadge tone={documentTone(document.statut)}>
+                        {getStatusLabel(document.statut)}
+                      </StatusBadge>
+                    </td>
+                    <td className="px-5 py-4 text-[#4B5563]">
+                      {document.organisme?.nom ?? "Non défini"}
+                    </td>
+                    <td className="px-5 py-4">
+                      <Button asChild size="sm" variant="outline">
+                        <Link href={`/admin/documents?q=${document.eleve.matricule}`}>Ouvrir</Link>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 
-        <section className="rounded-md border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 px-5 py-4">
-            <h2 className="font-semibold text-slate-950">Prochains rendez-vous</h2>
-          </div>
-          <div className="divide-y divide-slate-100">
-            {nextAppointments.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-slate-500">Aucun rendez-vous actif.</p>
+        <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+          <h2 className="font-semibold text-[#111827]">Rendez-vous du jour</h2>
+          <div className="mt-5 flex gap-3 overflow-x-auto pb-2">
+            {todayAppointments.length === 0 ? (
+              <p className="text-sm text-[#6B7280]">
+                Aucun rendez-vous programmé aujourd&apos;hui.
+              </p>
             ) : (
-              nextAppointments.map((rdv) => (
-                <div key={rdv.id} className="flex items-center justify-between gap-4 px-5 py-4">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-950">
-                      {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} ·{" "}
-                      {rdv.eleve.matricule}
-                    </p>
+              todayAppointments.map((rdv) => (
+                <div
+                  key={rdv.id}
+                  className="min-w-56 rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] p-4"
+                >
+                  <p className="font-semibold text-[#1B4332]">{rdv.heureRdv}</p>
+                  <p className="mt-2 text-sm font-medium text-[#111827]">{rdv.eleve.matricule}</p>
+                  <p className="mt-1 truncate text-xs text-[#6B7280]">
+                    {rdv.document ? getDocumentTitle(rdv.document) : "Document académique"}
+                  </p>
+                  <div className="mt-3">
+                    <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>
                   </div>
-                  <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>
                 </div>
               ))
             )}
           </div>
         </section>
       </div>
+
+      <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+        <h2 className="font-semibold text-[#111827]">Actions rapides</h2>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button asChild variant="outline">
+            <Link href="/admin/documents">Documents</Link>
+          </Button>
+          {isObcAdmin ? (
+            <Button asChild variant="outline">
+              <Link href="/admin/rdv-disponibilites">Disponibilités RDV</Link>
+            </Button>
+          ) : null}
+          <Button asChild variant="outline">
+            <Link href="/admin/students">Élèves</Link>
+          </Button>
+        </div>
+      </section>
     </DashboardShell>
   );
 }

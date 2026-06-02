@@ -15,12 +15,12 @@ export interface StatCardProps {
 }
 
 const toneClasses: Record<StatCardTone, string> = {
-  default: "bg-blue-50 text-blue-900 ring-blue-100",
-  blue: "bg-blue-50 text-blue-900 ring-blue-100",
-  green: "bg-emerald-50 text-emerald-700 ring-emerald-100",
-  orange: "bg-amber-50 text-amber-700 ring-amber-100",
-  amber: "bg-amber-50 text-amber-700 ring-amber-100",
-  red: "bg-red-50 text-red-700 ring-red-100",
+  default: "bg-[#D8F3DC] text-[#1B4332] ring-[#B7E4C7]",
+  blue: "bg-[#E3F2FD] text-[#1565C0] ring-[#BBDEFB]",
+  green: "bg-[#DCFCE7] text-[#16A34A] ring-[#BBF7D0]",
+  orange: "bg-[#FEF3C7] text-[#B45309] ring-[#FDE68A]",
+  amber: "bg-[#FEF3C7] text-[#B45309] ring-[#FDE68A]",
+  red: "bg-[#FEE2E2] text-[#DC2626] ring-[#FECACA]",
 };
 
 export function StatCard({
@@ -34,7 +34,7 @@ export function StatCard({
   return (
     <article
       className={cn(
-        "rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-slate-300",
+        "rounded-xl border border-[#E5E7EB] bg-white p-5 shadow-sm transition-colors hover:border-[#B7E4C7]",
         className,
       )}
       aria-label={`${label}: ${value}`}
@@ -42,7 +42,7 @@ export function StatCard({
       <div className="flex items-start gap-4">
         <div
           className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset",
             toneClasses[tone],
           )}
           aria-hidden="true"
@@ -50,12 +50,12 @@ export function StatCard({
           {icon}
         </div>
         <div className="min-w-0">
-          <p className="font-mono text-2xl font-semibold leading-none tracking-normal text-slate-950">
+          <p className="font-mono text-2xl font-semibold leading-none tracking-normal text-[#1B4332]">
             {value}
           </p>
-          <p className="mt-2 text-sm font-medium text-slate-600">{label}</p>
+          <p className="mt-2 text-sm font-medium text-[#4B5563]">{label}</p>
           {description ? (
-            <p className="mt-2 text-xs leading-5 text-slate-500">{description}</p>
+            <p className="mt-2 text-xs leading-5 text-[#6B7280]">{description}</p>
           ) : null}
         </div>
       </div>

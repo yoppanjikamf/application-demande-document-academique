@@ -149,7 +149,7 @@ export async function POST(request: Request, { params }: RouteContext) {
             dateRdv: date,
             heureRdv: input.heureRdv,
             lieu: location,
-            statut: "CONFIRME",
+            statut: "PLANIFIE",
             commentaire: input.commentaire?.trim() || "Réservation élève",
           },
         });

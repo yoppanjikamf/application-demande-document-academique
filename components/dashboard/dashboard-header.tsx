@@ -1,5 +1,7 @@
 "use client";
 
+import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import type { Role } from "@/lib/generated/prisma/client";
 import { Bell, ChevronRight, Menu, Search } from "lucide-react";
 
@@ -45,6 +47,7 @@ export function DashboardHeader({
   activePath: string;
 }) {
   const { toggleSidebar } = useSidebarContext();
+  const router = useRouter();
   const breadcrumbItems = getBreadcrumbItems(activePath);
   const areaLabel =
     role === "ADMINISTRATEUR"
@@ -53,9 +56,17 @@ export function DashboardHeader({
         ? "Espace agent"
         : "Espace élève";
 
+  function handleAdminSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const query = String(formData.get("q") ?? "").trim();
+
+    router.push(query ? `/admin/students?q=${encodeURIComponent(query)}` : "/admin/students");
+  }
+
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
-      <div className="flex flex-wrap items-center gap-4 px-4 py-4 lg:px-6">
+    <header className="sticky top-0 z-30 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
+      <div className="flex min-h-16 flex-wrap items-center gap-4 px-4 py-3 lg:px-6">
         <Button
           type="button"
           variant="outline"
@@ -69,7 +80,7 @@ export function DashboardHeader({
 
         <div className="min-w-0 flex-1">
           <nav
-            className="mb-1 flex items-center gap-1 text-xs font-medium text-slate-500"
+            className="mb-1 flex items-center gap-1 text-xs font-medium text-[#6B7280]"
             aria-label="Fil d'Ariane"
           >
             <span>{areaLabel}</span>
@@ -80,30 +91,49 @@ export function DashboardHeader({
               </span>
             ))}
           </nav>
-          <h1 className="text-xl font-semibold tracking-normal text-slate-950 sm:text-2xl">
+          <h1 className="text-xl font-semibold tracking-normal text-[#111827] sm:text-2xl">
             {title}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+          <p className="mt-1 text-sm text-[#6B7280]">{subtitle}</p>
           {scopeLabel ? (
-            <p className="mt-2 inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+            <p className="mt-2 inline-flex rounded-full border border-[#B7E4C7] bg-[#D8F3DC] px-3 py-1 text-xs font-medium text-[#1B4332]">
               Périmètre: {scopeLabel}
             </p>
           ) : null}
         </div>
 
-        <div className="hidden min-w-[260px] items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 xl:flex">
-          <Search className="h-4 w-4" />
-          <span>Rechercher un document scolaire, matricule...</span>
-        </div>
+        {role === "ADMINISTRATEUR" ? (
+          <form
+            onSubmit={handleAdminSearch}
+            className="hidden min-w-[320px] items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] px-3 py-2 text-sm text-[#6B7280] xl:flex"
+          >
+            <Search className="h-4 w-4" aria-hidden="true" />
+            <input
+              name="q"
+              type="search"
+              placeholder="Rechercher matricule, nom, prénom"
+              className="min-w-0 flex-1 bg-transparent text-[#111827] outline-none placeholder:text-[#9CA3AF]"
+            />
+            <button type="submit" className="text-xs font-semibold text-[#1B4332]">
+              Rechercher
+            </button>
+          </form>
+        ) : null}
 
-        <Button type="button" variant="outline" size="icon" className="hidden sm:inline-flex">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="relative hidden sm:inline-flex"
+        >
           <Bell className="h-4 w-4" />
+          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#DC2626]" />
           <span className="sr-only">Notifications</span>
         </Button>
 
         <div className="hidden items-center gap-3 md:flex">
-          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 text-sm font-semibold text-white">
-            {(userName ?? "DR-DOCSCOL")
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1B4332] text-sm font-semibold text-white">
+            {(userName ?? "OBC/DECC")
               .split(" ")
               .filter(Boolean)
               .slice(0, 2)
@@ -111,7 +141,7 @@ export function DashboardHeader({
               .join("")
               .toUpperCase()}
           </div>
-          <div className="max-w-36 truncate text-sm font-medium text-slate-700">{userName}</div>
+          <div className="max-w-36 truncate text-sm font-medium text-[#111827]">{userName}</div>
         </div>
 
         <form action="/logout" method="post">

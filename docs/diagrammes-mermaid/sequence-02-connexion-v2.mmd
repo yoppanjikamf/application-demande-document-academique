@@ -1,19 +1,23 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "20px"}}}%%
 sequenceDiagram
-    participant Eleve as Élève / Admin
-    participant Systeme as Système
-    participant Auth as Service Auth (JWT / Supabase)
-    participant BDD as Base de données
+    autonumber
+    actor Utilisateur
+    participant UI as Page connexion
+    participant Auth as Supabase Auth
+    participant API as Middleware / API
+    participant DB as PostgreSQL / Prisma
 
-    Eleve->>Systeme: saisit matricule + email + mot de passe
-    Systeme->>BDD: recherche utilisateur par matricule
-    BDD-->>Systeme: données utilisateur trouvées
-    Systeme->>Auth: vérifie email + mot de passe
-    Auth-->>Systeme: session Supabase valide
-    Systeme->>BDD: met à jour derniereConnexion
-    BDD-->>Systeme: connexion enregistrée
-    Systeme-->>Eleve: connexion réussie — redirection selon le rôle
-    Note over Eleve,Systeme: Session active côté Supabase Auth
-    Eleve->>Systeme: clique "Se déconnecter"
-    Systeme->>Auth: invalide la session
-    Auth-->>Systeme: session fermée
-    Systeme-->>Eleve: redirection vers page de connexion
+    Utilisateur->>UI: saisit email et mot de passe
+    UI->>Auth: signInWithPassword()
+    Auth-->>UI: session
+    UI->>API: charge le profil applicatif
+    API->>DB: recherche user par authUserId
+    DB-->>API: role et rattachement
+    API-->>UI: profil complet
+    alt Eleve
+        UI-->>Utilisateur: ouvre /dashboard
+    else Admin OBC / DECC
+        UI-->>Utilisateur: ouvre /admin
+    else Agent centre
+        UI-->>Utilisateur: ouvre /centre-examen
+    end

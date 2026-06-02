@@ -2,6 +2,15 @@
 
 Fichier central pour tester les connexions DR-DOCSCOL. Les comptes administrateurs et agents ont deja un mot de passe. Les eleves doivent creer leur mot de passe lors de l'activation du compte.
 
+Derniere verification documentaire: 02/06/2026.
+
+## Etat de validation
+
+- Les comptes Supabase Auth des admins OBC / DECC et des agents peuvent etre seedees avec les scripts du projet.
+- Le compte DECC Adamaoua a ete verifie dans Supabase Auth: email, mot de passe, role, organisme et antenne sont corrects.
+- Si une connexion admin renvoie une erreur serveur alors que les identifiants sont corrects, verifier la connexion Postgres Prisma / Supavisor avant de changer le mot de passe.
+- Les eleves de test doivent activer leur compte via `/auth/register` avant de se connecter.
+
 ## Pages de connexion
 
 | Profil                | Page                      | Regle                                          |
@@ -11,6 +20,23 @@ Fichier central pour tester les connexions DR-DOCSCOL. Les comptes administrateu
 | Admin OBC             | /auth/login/obc           | Bac, Probatoire et releves OBC selon la region |
 | Admin DECC            | /auth/login/decc          | BEPC selon la region                           |
 | Agent Centre d'Examen | /auth/login/centre-examen | Rendez-vous de retrait du centre rattache      |
+
+## Commandes de seed recommandees
+
+```bash
+npm run seed:regional-admins
+npm run seed:decc-admins
+npm run seed:centre-agents
+npm run seed:1000-eleves
+```
+
+## Rappel infrastructure
+
+L'application a besoin de Supabase Auth et de Postgres via Prisma.
+
+- Supabase Auth peut accepter un mot de passe meme si Postgres est inaccessible.
+- L'application a ensuite besoin de Prisma pour charger le profil applicatif `User`.
+- Si Prisma ne joint pas `DATABASE_URL`, la connexion echoue avec une erreur serveur.
 
 ## Regles duplicata de test
 

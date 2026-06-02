@@ -1,200 +1,91 @@
-# TL;DR - Implémentation 7 Routes en 5 Minutes
+# TL;DR - Etat actuel du MVP DR-DOCSCOL
 
-## ✅ Ce Qui Est Fait
+Derniere mise a jour: 02/06/2026.
 
-**7 routes API créées + 3 routes modifiées avec audit logs**
+## Ce qui est fait
 
-### Routes Nouvelles
-1. ✅ POST `/api/auth/password/forgot` - Reset password flow
-2. ✅ POST `/api/auth/password/reset` - Finaliser reset avec token
-3. ✅ POST `/api/students/me/documents/:documentId/calendar-event` - Export .ics
-4. ✅ PATCH `/api/students/me/payments/:paymentId/cancel` - Annuler paiement
-5. ✅ POST `/api/internal/notifications/reminder-30days` - Rappels auto RDV
-6. ✅ GET `/api/admin/payments` - Dashboard paiements
-7. ✅ GET `/api/admin/audit-logs` - Journalisation complète
+Le projet contient:
 
-### Routes Avec Audit Logs
-- ✅ POST `/api/admin/documents/:documentId/status` → DOCUMENT_STATUS_CHANGED
-- ✅ updateAdminQuotaAction → QUOTA_CHANGED
-- ✅ updateDocumentStatusAction → DOCUMENT_STATUS_CHANGED
-- ✅ signInAction → LOGIN
+- 25 pages UI.
+- 37 route handlers `route.ts`.
+- 4 fichiers de Server Actions.
+- 3 roles applicatifs: `ELEVE`, `ADMINISTRATEUR`, `AGENT_CENTRE_EXAMEN`.
+- 10 admins OBC regionaux.
+- 10 admins DECC regionaux.
+- 10 agents centres d'examen.
+- 1000 eleves de test.
 
-### DB Schema
-- ✅ Modèle AuditLog créé
-- ✅ Enum StatutPaiement.ANNULE ajouté
-- ✅ Indexes sur userId, action, createdAt
+## Quick start
 
----
+### 1. Verifier les variables
 
-## 🚀 Quick Start
+Variables minimales:
 
-### 1. Migration DB (Quand DB accessible)
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `DATABASE_URL`
+- `DIRECT_URL`
+- `INTERNAL_API_SECRET`
+
+### 2. Verifier Postgres
+
 ```bash
-npx prisma migrate dev --name add_audit_log_and_payment_cancel
+set -a; source .env; set +a
+psql "$DATABASE_URL" -c 'select now();'
 ```
 
-### 2. Démarrer le serveur
+Si cette commande timeout, le login applicatif peut echouer meme si Supabase Auth accepte le mot de passe.
+
+### 3. Generer et migrer
+
+```bash
+npm run db:generate
+npm run db:migrate
+```
+
+### 4. Seeder les donnees de test
+
+```bash
+npm run seed:regional-admins
+npm run seed:decc-admins
+npm run seed:centre-agents
+npm run seed:1000-eleves
+```
+
+### 5. Demarrer
+
 ```bash
 npm run dev
 ```
 
-### 3. Tester une route
-```bash
-# Oublier mot de passe
-curl -X POST http://localhost:3000/api/auth/password/forgot \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com"}'
+Serveur attendu: `http://localhost:3000`.
 
-# Résultat: {"ok":true,"message":"Si l'email existe..."}
-```
+### 6. Tester une connexion admin DECC
 
-### 4. Tests complets
-- Voir [GUIDE_TEST_7_ROUTES.md](GUIDE_TEST_7_ROUTES.md) pour tous les scénarios
-- Voir [CURL_TEST_EXAMPLES.md](CURL_TEST_EXAMPLES.md) pour tous les exemples
-- Voir [CHECKLIST_POST_IMPLEMENTATION.md](CHECKLIST_POST_IMPLEMENTATION.md) pour étapes complètes
+- Page: `/auth/login/decc`
+- Matricule: `DECC-01-ADAMAOUA`
+- Email: `admin.decc.adamaoua@example.com`
+- Mot de passe: `DeccAdamaoua2026!`
 
----
+## Routes majeures
 
-## 📊 Stats
+| Domaine | Routes |
+| --- | --- |
+| Auth | `/api/auth/register`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`, reset password |
+| Eleve | `/api/students/me/documents`, rendez-vous, paiements, recus, notifications |
+| Admin | dashboard stats, documents, students, payments, withdrawals, audit logs |
+| Centre examen | liste RDV et confirmation de retrait |
+| Interne | dispatch notifications, rappel 30 jours, webhook paiement |
 
-| Métrique | Valeur |
-|----------|--------|
-| Routes nouvelles | 7 |
-| Routes modifiées | 3 |
-| Modèles DB créés | 1 (AuditLog) |
-| Enums enrichis | 1 (StatutPaiement) |
-| Types d'audit | 7 actions |
-| Fichiers créés | 7 routes + 4 docs |
-| Lignes de code | ~1500 LOC |
-| Couverture | 32/32 routes = 100% |
+## Etat production
 
----
+Pret pour demonstration et soutenance.
 
-## 🔐 Sécurité
+Pas encore production complete tant que:
 
-- ✅ Auth Supabase pour password reset
-- ✅ Secret interne pour notifications
-- ✅ RBAC (rôles admin/élève)
-- ✅ Scope-based access control
-- ✅ Propriété des ressources vérifiée
-- ✅ Audit trail complète
-- ✅ Zod validation
+- Prisma/Postgres Supabase n'est pas stable;
+- le paiement externe n'est pas branche;
+- les justificatifs duplicata ne sont pas stockes dans un stockage fichier.
 
----
-
-## 📧 Notifications
-
-Envoyées pour:
-- ✅ Password reset (2x: demande + finalisation)
-- ✅ Paiement annulé
-- ✅ Rappels RDV 30 jours
-- ✅ Document disponible / retiré
-
-Toutes tracées dans `mail_logs`
-
----
-
-## 🎯 Prochaines Étapes
-
-### Immédiat
-1. Exécuter migration (quand DB accessible)
-2. Tester avec guide_test_7_routes.md
-3. Vérifier checklist_post_implementation.md
-
-### Court Terme
-1. Créer pages UI admin pour payments et audit-logs
-2. Configurer cron job pour reminder-30days
-3. Tests E2E avec Cypress/Playwright
-
-### Moyen Terme
-1. Tests unitaires Jest
-2. Archivage audit logs (politique 1 an)
-3. Performance tuning si > 1M rows
-
----
-
-## 📁 Fichiers Clés
-
-```
-app/api/
-├── auth/password/forgot/route.ts          ✅
-├── auth/password/reset/route.ts           ✅
-├── students/me/documents/.../calendar-event/route.ts  ✅
-├── students/me/payments/.../cancel/route.ts          ✅
-├── internal/notifications/reminder-30days/route.ts    ✅
-├── admin/payments/route.ts                ✅
-└── admin/audit-logs/route.ts              ✅
-
-docs/
-├── GUIDE_TEST_7_ROUTES.md                 📖 Complet
-├── CURL_TEST_EXAMPLES.md                  📖 Complet
-├── RESUME_IMPLEMENTATION.md               📖 Complet
-└── CHECKLIST_POST_IMPLEMENTATION.md       ✅ Complet
-
-prisma/
-├── schema.prisma                          ✅ Modifié
-└── migrations/                            ⏳ À exécuter
-```
-
----
-
-## 🆘 Problèmes?
-
-| Problème | Solution |
-|----------|----------|
-| DB not accessible | Vérifier DATABASE_URL |
-| Can't import route | Vérifier structure fichiers |
-| Type errors | Exécuter `npm run type-check` |
-| Test échoue | Voir GUIDE_TEST_7_ROUTES.md troubleshooting |
-| Email non envoyé | Vérifier Nodemailer config |
-
----
-
-## ✨ Bonus Features
-
-- ✅ iCalendar RFC 5545 standard → Compatible Google/Outlook/Apple
-- ✅ JSON parsing pour audit details
-- ✅ Stats breakdown pour audit logs
-- ✅ Pagination pour toutes les routes admin
-- ✅ Recherche multi-champs
-- ✅ Filtrage par statut/action/resource
-- ✅ Gestion d'erreurs comprehensive
-- ✅ Logging détaillé (console + DB + email)
-
----
-
-## 📞 Support
-
-**Documentation Disponible:**
-1. [GUIDE_TEST_7_ROUTES.md](GUIDE_TEST_7_ROUTES.md) - Tests détaillés
-2. [CURL_TEST_EXAMPLES.md](CURL_TEST_EXAMPLES.md) - Exemples cURL
-3. [RESUME_IMPLEMENTATION.md](RESUME_IMPLEMENTATION.md) - Overview complet
-4. [CHECKLIST_POST_IMPLEMENTATION.md](CHECKLIST_POST_IMPLEMENTATION.md) - Étapes complètes
-5. [guide_api_mis_a_jour.md](guide_api_mis_a_jour.md) - API complète
-
-**Commande d'aide:**
-```bash
-# Lancer les tests
-npm run test
-
-# Vérifier les types
-npm run type-check
-
-# Voir le schema Prisma
-npx prisma studio
-
-# Voir les migrations
-npx prisma migrate status
-```
-
----
-
-**Status:** ✅ PRÊT POUR TESTS  
-**Date:** 27 mai 2026  
-**Routes:** 32/32 (100%)  
-**Temps d'implémentation:** ~2 heures  
-**Temps de test recommandé:** ~1-2 heures  
-
----
-
-**BON TEST! 🚀**
+Voir `ETAT_FINAL_PROJET.md`.

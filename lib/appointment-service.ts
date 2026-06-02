@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getAntenneForRegion, isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
+import { isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
 import { resolvePickupRouteForDocument } from "@/lib/duplicata-service";
 import type {
   DiplomePrincipal,
@@ -55,6 +55,12 @@ export function isWeekend(date: Date) {
 
 export function isBeforeToday(date: Date) {
   return startOfDay(date).getTime() < startOfDay(new Date()).getTime();
+}
+
+export function isBeforeTomorrow(date: Date) {
+  const tomorrow = startOfDay(new Date());
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return startOfDay(date).getTime() < tomorrow.getTime();
 }
 
 function annualHolidayKeys(date: Date) {
@@ -173,7 +179,11 @@ export async function getAvailableSlots(date: Date): Promise<AppointmentSlot[]> 
 
   const settings = await getAppointmentSettings();
 
-  if ((isWeekend(date) && !settings.allowWeekendBookings) || (await isHoliday(date))) {
+  if (
+    isBeforeTomorrow(date) ||
+    (isWeekend(date) && !settings.allowWeekendBookings) ||
+    (await isHoliday(date))
+  ) {
     return slots.map((slot) => ({
       value: `${slot.heureDebut}-${slot.heureFin}`,
       label: `${slot.heureDebut} - ${slot.heureFin}`,
@@ -251,8 +261,6 @@ export async function ensureDocumentsForValidatedExams(eleveId: string) {
         centreExamen: exam.centreExamen,
         regionComposition: exam.regionComposition,
       });
-      const antenne = route.antenneRegionaleId ? getAntenneForRegion(exam.regionComposition) : null;
-
       await prisma.documentAcademique.upsert({
         where: {
           eleveId_diplomeType_typeDocument: {
@@ -265,7 +273,7 @@ export async function ensureDocumentsForValidatedExams(eleveId: string) {
           centreExamen: exam.centreExamen,
           regionComposition: exam.regionComposition ?? undefined,
           organismeId: route.organismeId,
-          antenneRegionaleId: antenne?.id ?? null,
+          antenneRegionaleId: route.antenneRegionaleId,
         },
         create: {
           eleveId,
@@ -274,7 +282,7 @@ export async function ensureDocumentsForValidatedExams(eleveId: string) {
           centreExamen: exam.centreExamen,
           regionComposition: exam.regionComposition,
           organismeId: route.organismeId,
-          antenneRegionaleId: antenne?.id ?? null,
+          antenneRegionaleId: route.antenneRegionaleId,
           statut: "PAS_DISPONIBLE",
         },
       });

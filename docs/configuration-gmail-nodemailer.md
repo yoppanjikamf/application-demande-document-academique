@@ -137,7 +137,7 @@ Les fonctions metier sont centralisees dans `lib/mail-service.ts` :
 - `notifyDocumentAvailable` : document disponible ;
 - `notifyDuplicataRequestRegistered` : demande de duplicata enregistree ;
 - `notifyDocumentRetired` : document retire ;
-- `notifyAppointmentConfirmed` : rendez-vous confirme.
+- `notifyAppointmentConfirmed` : rendez-vous planifie, avec compatibilite du nom historique de fonction.
 
 Chaque tentative d'envoi est journalisee dans la table `mail_logs` :
 

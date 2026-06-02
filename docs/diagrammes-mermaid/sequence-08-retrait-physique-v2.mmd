@@ -1,25 +1,24 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "20px"}}}%%
 sequenceDiagram
-    participant Admin as Administrateur
-    participant Systeme as Système
-    participant Service as Service retraits
-    participant BDD as Base de données
-    participant Notif as Service notif / email
-    participant Eleve as Élève
+    autonumber
+    actor Agent as Agent centre d'examen
+    participant UI as Espace centre d'examen
+    participant API as API confirmation retrait
+    participant DB as PostgreSQL / Prisma
+    participant Notif as Service notification
+    participant Eleve
 
-    Admin->>Systeme: confirme retrait physique
-    Systeme->>Service: transmet documentId et commentaire
-    Service->>BDD: vérifie document dans le périmètre admin
-    BDD-->>Service: document + élève
-    Service->>BDD: cherche RDV actif lié au document
-    BDD-->>Service: RDV trouvé ou absent
-    Service->>BDD: transaction document → RETIRE
-    alt RDV existe
-        Service->>BDD: met RDV → HONORE
-    else Aucun RDV
-        Service->>BDD: crée RDV HONORE comme trace de retrait
-    end
-    Service->>Notif: notifier retrait confirmé
-    Notif->>BDD: crée notification et MailLog
-    Notif-->>Eleve: email d'accusé de réception
-    Service-->>Systeme: retrait enregistré
-    Systeme-->>Admin: historique mis à jour
+    Agent->>UI: consulte les rendez-vous transmis
+    UI->>API: GET rendez-vous PLANIFIE / CONFIRME du centre
+    API->>DB: filtre par centre d'examen de l'agent
+    DB-->>API: liste rendez-vous
+    API-->>UI: rendez-vous a traiter
+
+    Agent->>UI: confirme que le retrait est effectue
+    UI->>API: POST confirmer retrait
+    API->>DB: verifie centre, statut PLANIFIE ou CONFIRME
+    API->>DB: met le document a RETIRE
+    API->>DB: met le rendez-vous a HONORE
+    API->>Notif: notifie retrait confirme
+    Notif-->>Eleve: document retire
+    API-->>UI: retrait confirme

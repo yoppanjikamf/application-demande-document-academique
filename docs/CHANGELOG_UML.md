@@ -1,5 +1,28 @@
 # Changelog UML et documentation
 
+## 02/06/2026 - Audit final projet et documentation
+
+### Resume
+
+La documentation a ete resynchronisee avec l'etat actuel du code apres ajout des admins DECC regionaux, des agents centres d'examen, des routes centre d'examen et des corrections de rattachement OBC / DECC.
+
+### Points alignes
+
+- Role `AGENT_CENTRE_EXAMEN` ajoute dans la documentation projet.
+- Admins OBC et DECC documentes avec pages de connexion separees.
+- Antennes regionales DECC documentees.
+- Routes implementees recalculees: 25 pages UI, 37 route handlers, 4 fichiers Server Actions.
+- Parcours agent centre d'examen documente.
+- Rendez-vous centre d'examen corriges: ils sont pris par l'eleve, crees au statut `PLANIFIE` et transmis a l'agent centre.
+- Regles de retrait clarifiees: BEPC original/releve, Probatoire releve et Baccalaureat releve au centre d'examen; BEPC duplicata a l'antenne DECC; Baccalaureat original a l'antenne OBC.
+- Diagrammes Mermaid recrees en sources separees et images PNG/SVG regenerees en haute resolution.
+- Limites de production explicitees: pooler Postgres Supabase, paiement externe, stockage justificatifs.
+- `docs/test-data-eleves.csv` restaure et aligne avec les matricules admins regionaux reels.
+
+### Document central ajoute
+
+- `ETAT_FINAL_PROJET.md`
+
 ## 27/05/2026 - Synchronisation avec le code actuel
 
 ### Resume
@@ -16,7 +39,7 @@ La documentation a ete alignee avec l'etat reel de l'application Next.js/Supabas
 - Routage automatique des documents selon diplome, type de document et region de composition.
 - Regle BEPC -> DECC.
 - Regle Baccalaureat original -> antenne regionale OBC avec rendez-vous.
-- Regle releves et certains documents -> centre d'examen sans rendez-vous.
+- Regle releves et certains documents -> centre d'examen avec rendez-vous `PLANIFIE`.
 - Regle Probatoire : pas de diplome original.
 - Demande de releve de notes.
 - Demande de duplicata avec motif, session, centre d'examen et paiement.

@@ -63,14 +63,14 @@ export function getCentreExamenAppointmentWhere(
   if (filter === "upcoming") {
     return {
       ...base,
-      statut: "CONFIRME",
+      statut: { in: ["PLANIFIE", "CONFIRME"] },
       dateRdv: { gt: endOfDay(now) },
     };
   }
 
   return {
     ...base,
-    statut: "CONFIRME",
+    statut: { in: ["PLANIFIE", "CONFIRME"] },
     dateRdv: { gte: startOfDay(now), lte: endOfDay(now) },
   };
 }

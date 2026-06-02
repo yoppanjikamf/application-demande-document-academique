@@ -4,6 +4,8 @@ Ces comptes sont rattaches a l'organisme OBC. Chaque administrateur est lie a un
 
 Le filtrage est applique dans l'application avec `getAdminDocumentScope(admin)` : un admin OBC ne voit que les documents, rendez-vous, paiements et eleves rattaches a son antenne regionale.
 
+Derniere verification documentaire: 02/06/2026.
+
 | Region       | Email                          | Mot de passe          | Matricule           | Antenne              |
 | ------------ | ------------------------------ | --------------------- | ------------------- | -------------------- |
 | Adamaoua     | admin.adamaoua@example.com     | AdminAdamaoua2026!    | ADM-01-ADAMAOUA     | antenne-adamaoua     |
@@ -23,8 +25,21 @@ Le filtrage est applique dans l'application avec `getAdminDocumentScope(admin)` 
 npm run seed:regional-admins
 ```
 
+## Connexion
+
+Utilise la page `/auth/login/obc`.
+
+Exemple Centre:
+
+- Matricule: `ADM-02-CENTRE`
+- Email: `admin.centre@example.com`
+- Mot de passe: `AdminCentre2026!`
+
 ## Notes de test
 
 - Les comptes sont idempotents : relancer la commande remet les memes mots de passe et les memes rattachements regionaux.
 - Pour verifier l'isolation, connecte-toi avec deux admins de regions differentes puis compare les pages `/admin`, `/admin/students`, `/admin/documents`, `/admin/appointments` et `/admin/payments`.
 - Les demandes BEPC sont rattachees a DECC. Utilise les comptes DECC regionaux pour les tester.
+- Les admins OBC gerent le Baccalaureat et le Probatoire selon les regles metier.
+- Le Probatoire ne donne pas lieu a un diplome original.
+- Les pages `/admin/appointments` et `/admin/rdv-disponibilites` sont reservees aux admins OBC.

@@ -10,10 +10,10 @@ function getPrismaDatabaseUrl() {
 
   const url = new URL(databaseUrl);
   if (!url.searchParams.has("connection_limit")) {
-    url.searchParams.set("connection_limit", "1");
+    url.searchParams.set("connection_limit", process.env.NODE_ENV === "production" ? "1" : "3");
   }
   if (!url.searchParams.has("pool_timeout")) {
-    url.searchParams.set("pool_timeout", "20");
+    url.searchParams.set("pool_timeout", "60");
   }
 
   return url.toString();

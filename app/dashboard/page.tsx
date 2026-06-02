@@ -1,43 +1,43 @@
 import Link from "next/link";
-import { Bell, CalendarDays, CreditCard, FileText, UserRound } from "lucide-react";
+import { Bell, CalendarDays, CreditCard, FileText, GraduationCap, RotateCcw } from "lucide-react";
 
 import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { TypeDocument } from "@/lib/generated/prisma/client";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { StatCard } from "@/components/dashboard/stat-card";
 import { StatusBadge, appointmentTone, documentTone } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 
+const documentCards: Array<{
+  type: TypeDocument;
+  title: string;
+  icon: typeof GraduationCap;
+}> = [
+  { type: "ORIGINAL", title: "Diplôme", icon: GraduationCap },
+  { type: "RELEVE_NOTES", title: "Relevé", icon: FileText },
+  { type: "DUPLICATA", title: "Duplicata", icon: RotateCcw },
+];
+
+function getCountdownLabel(date: Date) {
+  const diff = date.getTime() - Date.now();
+  if (diff <= 0) {
+    return "Aujourd'hui";
+  }
+
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return days <= 1 ? "Demain" : `Dans ${days} jours`;
+}
+
 export default async function DashboardPage() {
   const user = await requireRole("ELEVE", "/dashboard");
-  const [
-    documentsCount,
-    availableCount,
-    rendezVousCount,
-    paymentCount,
-    recentDocuments,
-    nextRendezVous,
-    notifications,
-  ] = await Promise.all([
-    prisma.documentAcademique.count({ where: { eleveId: user.id } }),
-    prisma.documentAcademique.count({ where: { eleveId: user.id, statut: "DISPONIBLE" } }),
-    prisma.rendezVous.count({
-      where: { eleveId: user.id, statut: { in: ["PLANIFIE", "CONFIRME"] } },
-    }),
-    prisma.paiement.count({
-      where: {
-        OR: [{ duplicata: { eleveId: user.id } }, { documentAcademique: { eleveId: user.id } }],
-      },
-    }),
+  const [documents, nextRendezVous, notifications, paymentCount] = await Promise.all([
     prisma.documentAcademique.findMany({
       where: { eleveId: user.id },
-      take: 5,
       orderBy: [{ updatedAt: "desc" }],
     }),
-    prisma.rendezVous.findMany({
+    prisma.rendezVous.findFirst({
       where: { eleveId: user.id, statut: { in: ["PLANIFIE", "CONFIRME"] } },
-      take: 3,
       orderBy: [{ dateRdv: "asc" }, { heureRdv: "asc" }],
       include: { document: true },
     }),
@@ -46,7 +46,24 @@ export default async function DashboardPage() {
       take: 3,
       orderBy: { dateEnvoi: "desc" },
     }),
+    prisma.paiement.count({
+      where: {
+        OR: [{ duplicata: { eleveId: user.id } }, { documentAcademique: { eleveId: user.id } }],
+      },
+    }),
   ]);
+
+  const availableCount = documents.filter((document) => document.statut === "DISPONIBLE").length;
+  const pendingCount = documents.filter((document) => document.statut === "PAS_DISPONIBLE").length;
+  const retiredCount = documents.filter((document) => document.statut === "RETIRE").length;
+  const globalStatus =
+    availableCount > 0
+      ? "Document disponible"
+      : pendingCount > 0
+        ? "Dossier en traitement"
+        : retiredCount > 0
+          ? "Documents retirés"
+          : "Aucun document actif";
 
   return (
     <DashboardShell
@@ -54,131 +71,125 @@ export default async function DashboardPage() {
       userName={`${user.prenom} ${user.nom}`}
       userMatricule={user.matricule}
       activePath="/dashboard"
-      title="Espace élève"
-      subtitle={`Connecte en tant que ${user.prenom} ${user.nom} · ${user.matricule}`}
+      title="Tableau de bord élève"
+      subtitle={`Matricule ${user.matricule}`}
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Documents scolaires"
-          value={documentsCount}
-          icon={<FileText className="h-5 w-5" />}
-        />
-        <StatCard
-          label="Disponibles"
-          value={availableCount}
-          icon={<FileText className="h-5 w-5" />}
-          tone="green"
-        />
-        <StatCard
-          label="RDV actifs"
-          value={rendezVousCount}
-          icon={<CalendarDays className="h-5 w-5" />}
-          tone="amber"
-        />
-        <StatCard
-          label="Paiements"
-          value={paymentCount}
-          icon={<CreditCard className="h-5 w-5" />}
-        />
-      </div>
-
-      <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Accès rapides</h2>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/documents">Mes documents scolaires</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/rendez-vous">Mes rendez-vous</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/account">
-              <UserRound className="h-4 w-4" />
-              Mon compte
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <section className="rounded-md border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 px-5 py-4">
-            <h2 className="font-semibold text-slate-950">Mes documents scolaires recents</h2>
+      <section className="rounded-2xl border border-[#E5E7EB] bg-[#1B4332] p-6 text-white shadow-sm">
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <p className="text-sm font-medium text-white/70">Bienvenue</p>
+            <h2 className="mt-2 text-2xl font-bold">
+              {user.prenom} {user.nom}
+            </h2>
+            <p className="mt-2 text-sm text-white/75">Matricule : {user.matricule}</p>
           </div>
-          <div className="divide-y divide-slate-100">
-            {recentDocuments.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-slate-500">
-                Aucun document scolaire rattache a votre matricule.
-              </p>
-            ) : (
-              recentDocuments.map((document) => (
-                <div
-                  key={document.id}
-                  className="flex items-center justify-between gap-4 px-5 py-4"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-950">
-                      {getDocumentTitle(document)}
-                    </p>
-                    <p className="text-sm text-slate-500">{document.diplomeType}</p>
-                  </div>
-                  <StatusBadge tone={documentTone(document.statut)}>
-                    {getStatusLabel(document.statut)}
-                  </StatusBadge>
+          <div className="rounded-2xl border border-white/15 bg-white/10 px-5 py-4">
+            <p className="text-xs uppercase tracking-wide text-white/60">Statut global</p>
+            <p className="mt-2 text-lg font-semibold">{globalStatus}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        {documentCards.map((item) => {
+          const Icon = item.icon;
+          const document = documents.find((doc) => doc.typeDocument === item.type);
+
+          return (
+            <article
+              key={item.type}
+              className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#D8F3DC] text-[#1B4332]">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
+                <StatusBadge tone={document ? documentTone(document.statut) : "slate"}>
+                  {document ? getStatusLabel(document.statut) : "Non disponible"}
+                </StatusBadge>
+              </div>
+              <h3 className="mt-5 text-lg font-semibold text-[#111827]">{item.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-[#6B7280]">
+                {document ? getDocumentTitle(document) : "Aucun document rattaché pour le moment."}
+              </p>
+            </article>
+          );
+        })}
+      </section>
+
+      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <CalendarDays className="h-5 w-5 text-[#1B4332]" aria-hidden="true" />
+            <h2 className="font-semibold text-[#111827]">Prochain rendez-vous</h2>
+          </div>
+          {nextRendezVous ? (
+            <div className="mt-5 rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-[#111827]">
+                    {nextRendezVous.document
+                      ? getDocumentTitle(nextRendezVous.document)
+                      : "Document académique"}
+                  </p>
+                  <p className="mt-2 text-sm text-[#6B7280]">
+                    {nextRendezVous.dateRdv.toLocaleDateString("fr-FR")} à {nextRendezVous.heureRdv}{" "}
+                    · {nextRendezVous.lieu}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <StatusBadge tone={appointmentTone(nextRendezVous.statut)}>
+                    {nextRendezVous.statut}
+                  </StatusBadge>
+                  <p className="mt-2 text-sm font-semibold text-[#1B4332]">
+                    {getCountdownLabel(nextRendezVous.dateRdv)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-5 rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] p-4 text-sm text-[#6B7280]">
+              Aucun rendez-vous actif.
+            </p>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <Bell className="h-5 w-5 text-[#1B4332]" aria-hidden="true" />
+            <h2 className="font-semibold text-[#111827]">Notifications récentes</h2>
+          </div>
+          <div className="mt-5 divide-y divide-[#E5E7EB]">
+            {notifications.length === 0 ? (
+              <p className="py-3 text-sm text-[#6B7280]">Aucune notification récente.</p>
+            ) : (
+              notifications.map((notification) => (
+                <p key={notification.id} className="py-3 text-sm leading-6 text-[#4B5563]">
+                  {notification.message}
+                </p>
               ))
             )}
           </div>
         </section>
-
-        <div className="space-y-4">
-          <section className="rounded-md border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-5 py-4">
-              <h2 className="font-semibold text-slate-950">Prochains rendez-vous</h2>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {nextRendezVous.length === 0 ? (
-                <p className="px-5 py-6 text-sm text-slate-500">Aucun rendez-vous actif.</p>
-              ) : (
-                nextRendezVous.map((rdv) => (
-                  <div key={rdv.id} className="px-5 py-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="font-medium text-slate-950">
-                        {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
-                      </p>
-                      <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>
-                    </div>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} · {rdv.lieu}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
-
-          <section className="rounded-md border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center gap-2 border-b border-slate-200 px-5 py-4">
-              <Bell className="h-4 w-4 text-blue-700" />
-              <h2 className="font-semibold text-slate-950">Notifications</h2>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {notifications.length === 0 ? (
-                <p className="px-5 py-6 text-sm text-slate-500">Aucune notification.</p>
-              ) : (
-                notifications.map((notification) => (
-                  <p
-                    key={notification.id}
-                    className="line-clamp-2 px-5 py-4 text-sm text-slate-600"
-                  >
-                    {notification.message}
-                  </p>
-                ))
-              )}
-            </div>
-          </section>
-        </div>
       </div>
+
+      <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+        <h2 className="font-semibold text-[#111827]">Actions rapides</h2>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/documents">Demander un relevé</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/documents">Demander un duplicata</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/payments">
+              <CreditCard className="h-4 w-4" aria-hidden="true" />
+              Voir mes paiements ({paymentCount})
+            </Link>
+          </Button>
+        </div>
+      </section>
     </DashboardShell>
   );
 }

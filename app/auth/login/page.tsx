@@ -1,23 +1,17 @@
 import { Suspense } from "react";
 
-import { AuthCard } from "@/components/auth/auth-card";
+import { AuthShell } from "@/components/auth/auth-shell";
 import { LoginForm } from "@/components/auth/login-form";
-import { SiteHeader } from "@/components/site-header";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <SiteHeader />
-      <main className="mx-auto flex max-w-6xl justify-center px-4 py-12">
-        <AuthCard
-          title="Connexion élève"
-          description="Les élèves se connectent ici avec leur matricule, email et mot de passe. Les administrateurs utilisent les accès OBC ou DECC dédiés."
-        >
-          <Suspense fallback={null}>
-            <LoginForm />
-          </Suspense>
-        </AuthCard>
-      </main>
-    </div>
+    <AuthShell
+      title="Connexion élève"
+      description="Connectez-vous avec votre matricule, email et mot de passe."
+    >
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
+    </AuthShell>
   );
 }

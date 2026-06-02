@@ -2,6 +2,8 @@
 
 Ces comptes sont rattaches a l'organisme DECC. Chaque administrateur DECC gere uniquement les demandes BEPC de sa region.
 
+Derniere verification documentaire: 02/06/2026.
+
 | Region       | Email                               | Mot de passe         | Matricule            | Antenne                   |
 | ------------ | ----------------------------------- | -------------------- | -------------------- | ------------------------- |
 | Adamaoua     | admin.decc.adamaoua@example.com     | DeccAdamaoua2026!    | DECC-01-ADAMAOUA     | antenne-decc-adamaoua     |
@@ -19,8 +21,29 @@ Ces comptes sont rattaches a l'organisme DECC. Chaque administrateur DECC gere u
 
 Utilise la page `/auth/login/decc`. Un admin OBC est bloque sur cette page, meme avec un bon mot de passe.
 
+Champs a saisir pour Adamaoua:
+
+- Matricule: `DECC-01-ADAMAOUA`
+- Email: `admin.decc.adamaoua@example.com`
+- Mot de passe: `DeccAdamaoua2026!`
+
+Le compte Adamaoua existe dans Supabase Auth avec:
+
+- role: `ADMINISTRATEUR`
+- organismeId: `org-decc`
+- antenneRegionaleId: `antenne-decc-adamaoua`
+
+Si la connexion renvoie une erreur serveur alors que le mot de passe est correct, verifier d'abord la connexion Prisma/Postgres Supabase. Une panne ou un timeout du pooler Postgres peut bloquer la connexion applicative meme si Supabase Auth accepte les identifiants.
+
 ## Commande
 
 ```bash
 npm run seed:decc-admins
 ```
+
+## Perimetre fonctionnel
+
+- Les admins DECC voient les documents BEPC de leur region.
+- Les demandes BEPC sont routees vers `org-decc`.
+- Les duplicatas BEPC sont rattaches a l'antenne DECC regionale.
+- Les pages OBC-only (`/admin/appointments`, `/admin/rdv-disponibilites`) redirigent un admin DECC vers `/admin`.

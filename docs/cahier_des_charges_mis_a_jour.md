@@ -2,7 +2,7 @@
 ## Application Web de Gestion des Retraits de Documents Académiques
 ### (Diplômes, Relevés, Duplicatas) — CAS DE OBC / DECC
 
-**Cameroun — 2026 | Version 2.0**
+**Cameroun — 2026 | Version 2.1**
 
 ---
 
@@ -46,7 +46,8 @@ Le présent projet consiste à concevoir une application web de gestion des retr
 - Diplômés souhaitant récupérer un diplôme, un relevé ou un duplicata.
 - Administrateurs OBC.
 - Administrateurs DECC.
-- Agents d’antennes régionales OBC.
+- Agents centres d'examen.
+- Agents d'antennes regionales OBC / DECC.
 - Services de délivrance des documents académiques.
 - Encadreurs, tuteurs et responsables chargés de valider le projet.
 
@@ -68,7 +69,7 @@ L’objectif général du projet est de concevoir et développer une application
 | OBJ-04 | Envoyer des notifications applicatives et des emails lors des événements importants. |
 | OBJ-05 | Simplifier la gestion administrative grâce à un back-office OBC / DECC. |
 | OBJ-06 | Assurer la traçabilité complète des retraits physiques : qui retire, quel document, quand, où et sous quel statut. |
-| OBJ-07 | Planifier les rendez-vous de retrait lorsque le document nécessite un passage en antenne régionale. |
+| OBJ-07 | Permettre à l’élève de planifier un rendez-vous de retrait lorsque le document nécessite un passage en centre d’examen ou en antenne régionale. |
 | OBJ-08 | Appliquer les règles de routage entre OBC, DECC, centres d’examen et antennes régionales. |
 | OBJ-09 | Garantir la sécurité, la confidentialité et la cohérence des données personnelles des élèves. |
 | OBJ-10 | Fournir des statistiques administratives sur les documents, rendez-vous, paiements et retraits. |
@@ -81,7 +82,7 @@ L’objectif général du projet est de concevoir et développer une application
 
 - Authentification avec Supabase Auth.
 - Profils utilisateurs synchronisés dans Prisma.
-- Gestion des rôles `ELEVE` et `ADMINISTRATEUR`.
+- Gestion des rôles `ELEVE`, `ADMINISTRATEUR` et `AGENT_CENTRE_EXAMEN`.
 - Activation d’un compte élève à partir d’un matricule déjà présent en base.
 - Connexion par matricule, email et mot de passe.
 - Déconnexion sécurisée.
@@ -108,7 +109,8 @@ L’objectif général du projet est de concevoir et développer une application
 - Gestion des jours fériés et blocage des week-ends.
 - Routage métier des documents entre OBC, DECC, centres d’examen et antennes régionales.
 - Gestion des organismes `OBC` et `DECC`.
-- Gestion des antennes régionales OBC.
+- Gestion des antennes régionales OBC et DECC.
+- Gestion des agents centres d'examen.
 - Gestion des examens validés par élève.
 
 ### 3.2 — Hors périmètre (exclus)
@@ -118,8 +120,8 @@ L’objectif général du projet est de concevoir et développer une application
 - Intégration complète avec un ERP institutionnel existant.
 - Passerelle Mobile Money réelle avec OTP, signature fournisseur et callback certifié.
 - Notifications push natives navigateur ou mobile.
-- Réinitialisation complète du mot de passe via interface dédiée.
-- Audit log complet de toutes les actions sensibles.
+- Paiement externe totalement certifie par un prestataire.
+- Stockage fichier complet des justificatifs de duplicata.
 - Mode hors ligne.
 - Rôle séparé `SERVICE_DELIVRANCE`, actuellement intégré au rôle `ADMINISTRATEUR`.
 
@@ -130,7 +132,8 @@ L’objectif général du projet est de concevoir et développer une application
 | Administrateur | Interne | Gérer les utilisateurs, importer les données, consulter les statistiques, modifier les statuts, gérer les rendez-vous et enregistrer les retraits. |
 | Service OBC | Interne | Gérer les documents relevant de l’OBC, notamment les diplômes et relevés du Baccalauréat et du Probatoire selon les règles métier. |
 | Service DECC | Interne | Gérer les documents relevant de la DECC, notamment les documents liés au BEPC. |
-| Antenne régionale OBC | Interne | Gérer les documents orientés vers une antenne régionale selon la région de composition de l’élève. |
+| Antenne régionale OBC / DECC | Interne | Gérer les documents orientés vers une antenne régionale selon l'organisme, le diplôme et la région de composition de l'élève. |
+| Agent centre d'examen | Interne | Consulter les rendez-vous transmis à son centre et confirmer uniquement que le retrait physique a été effectué. |
 | Élève / Diplômé | Utilisateur final | Consulter ses documents, demander un relevé ou un duplicata, effectuer un paiement, réserver ou annuler un rendez-vous et consulter ses notifications. |
 | Système interne | Technique | Déclencher les notifications, confirmer certains paiements via webhook interne et journaliser les emails. |
 | Développeur / Stagiaire | Réalisateur | Développer, tester, maintenir et documenter l’application. |
@@ -142,9 +145,15 @@ L’objectif général du projet est de concevoir et développer une application
 |---------|--------------|
 | BEPC | Les documents du BEPC sont gérés par la DECC. |
 | Probatoire | Le Probatoire est géré par l’OBC, mais ne donne pas lieu à un diplôme original. |
+| BEPC original | L'original du BEPC se retire au centre d'examen avec un rendez-vous `PLANIFIE`. |
+| BEPC relevé | Le relevé du BEPC se retire au centre d'examen avec un rendez-vous `PLANIFIE`. |
+| BEPC duplicata | Le duplicata du BEPC se retire à l'antenne régionale DECC compétente après paiement. |
+| Probatoire | Le Probatoire est géré par l’OBC, ne donne pas lieu à un diplôme original et produit uniquement un relevé retiré au centre d'examen avec rendez-vous `PLANIFIE`. |
 | Baccalauréat original | Le diplôme original du Baccalauréat est orienté vers une antenne régionale OBC et nécessite un rendez-vous. |
-| Relevés | Les relevés se retirent généralement au centre d’examen sans rendez-vous. |
-| Duplicata | Le duplicata suit le routage du document cible et nécessite un paiement. |
+| Baccalauréat relevé | Le relevé du Baccalauréat se retire au centre d’examen avec un rendez-vous `PLANIFIE`. |
+| Duplicata | Le duplicata nécessite un paiement et suit le lieu défini par la règle métier du document demandé. |
+| Rendez-vous centre d'examen | L'élève planifie le rendez-vous depuis l'organisme concerné ; le rendez-vous est immédiatement transmis à l'agent du centre d'examen. |
+| Agent centre d'examen | L'agent ne crée pas, ne planifie pas et n'annule pas les rendez-vous ; il confirme seulement le retrait physique effectué. |
 | Statut document | Les statuts sont `PAS_DISPONIBLE`, `DISPONIBLE` et `RETIRE`. |
 | Statut rendez-vous | Les statuts sont `PLANIFIE`, `CONFIRME`, `ANNULE` et `HONORE`. |
 | Statut paiement | Les statuts sont `EN_ATTENTE` et `EFFECTUE`. |
@@ -183,7 +192,7 @@ L’objectif général du projet est de concevoir et développer une application
 | ID | Fonctionnalité | Description détaillée | Priorité |
 |----|----------------|----------------------|----------|
 | F-12 | Notification de disponibilité | Créer une notification applicative et envoyer un email lorsque le statut d’un document passe à `DISPONIBLE`. | 🔴 |
-| F-13 | Notification de rendez-vous | Confirmer par notification et email les informations du rendez-vous : document, date, heure, lieu et pièces à présenter. | 🔴 |
+| F-13 | Notification de rendez-vous | Informer par notification et email que le rendez-vous est planifié, avec document, date, heure, lieu et pièces à présenter. | 🔴 |
 | F-14 | Notification de duplicata | Confirmer l’enregistrement d’une demande de duplicata par notification et email. | 🟡 |
 | F-15 | Notification de retrait | Envoyer un accusé de retrait lorsque le document est marqué `RETIRE`. | 🟡 |
 | F-16 | Historique des notifications | Permettre à l’élève de consulter les notifications reçues dans son tableau de bord. | 🟢 |
@@ -206,9 +215,9 @@ L’objectif général du projet est de concevoir et développer une application
 | ID | Fonctionnalité | Description détaillée | Priorité |
 |----|----------------|----------------------|----------|
 | F-25 | Consultation des créneaux | Afficher les créneaux disponibles selon la date, le quota journalier, les rendez-vous existants, les week-ends et les jours fériés. | 🔴 |
-| F-26 | Réservation de rendez-vous | Créer un rendez-vous pour un document disponible lorsque le routage impose un retrait en antenne régionale. | 🔴 |
+| F-26 | Réservation de rendez-vous | Créer un rendez-vous pour un document disponible lorsque le routage impose un retrait en centre d’examen ou en antenne régionale. | 🔴 |
 | F-27 | Annulation de rendez-vous élève | Permettre à l’élève d’annuler un rendez-vous actif. | 🟡 |
-| F-28 | Confirmation / annulation admin | Permettre à l’administrateur de confirmer ou annuler un rendez-vous depuis le back-office. | 🟡 |
+| F-28 | Suivi administratif des rendez-vous | Permettre à l’administration de consulter les rendez-vous et d’enregistrer les retraits relevant de son antenne, sans remplacer la confirmation centre d’examen. | 🟡 |
 | F-29 | Enregistrement du retrait physique | Marquer un document comme retiré et passer le rendez-vous associé au statut `HONORE`. | 🔴 |
 | F-30 | Configuration du quota RDV | Définir le quota journalier global de rendez-vous et exploiter les créneaux horaires actifs. | 🟡 |
 | F-31 | Initiation de paiement | Créer un paiement pour une demande de duplicata. | 🔴 |
@@ -308,7 +317,7 @@ L’objectif général du projet est de concevoir et développer une application
 |--------|----------------------|
 | `User` | Utilisateur applicatif, élève ou administrateur, relié à Supabase Auth par `authUserId`. |
 | `Organisme` | Organisme responsable, actuellement OBC ou DECC. |
-| `AntenneRegionale` | Antenne régionale OBC selon la région de composition. |
+| `AntenneRegionale` | Antenne régionale OBC ou DECC selon l'organisme responsable et la région de composition. |
 | `ExamenValide` | Examen obtenu par un élève et servant de base aux documents demandables. |
 | `DocumentAcademique` | Document académique consultable ou demandable. |
 | `RendezVous` | Réservation de retrait ou trace d’un retrait physique honoré. |
@@ -330,7 +339,7 @@ L’objectif général du projet est de concevoir et développer une application
 |--------------------|-------------|
 | Fonctionnelle | Le système doit respecter les règles OBC / DECC : BEPC vers DECC, Baccalauréat original vers antenne régionale OBC, Probatoire sans diplôme original. |
 | Fonctionnelle | Un document ne peut être retiré que lorsqu’il est disponible et correctement rattaché à l’élève. |
-| Fonctionnelle | Un rendez-vous ne peut être créé que si le document nécessite réellement un rendez-vous et si le quota le permet. |
+| Fonctionnelle | Un rendez-vous ne peut être créé que si le document nécessite réellement un rendez-vous et si le quota le permet. Pour un retrait en centre d’examen, il est créé au statut `PLANIFIE` puis transmis à l’agent du centre. |
 | Fonctionnelle | Un élève ne doit pas avoir deux rendez-vous actifs pour le même document. |
 | Technique | Les sessions et mots de passe sont gérés par Supabase Auth, tandis que Prisma conserve le profil métier. |
 | Technique | Le mot de passe ne doit jamais être stocké dans le modèle Prisma `User`. |
@@ -338,7 +347,7 @@ L’objectif général du projet est de concevoir et développer une application
 | Sécurité | Les administrateurs doivent être limités à leur organisme et à leur antenne régionale. |
 | Sécurité | Les informations techniques sensibles ne doivent pas être exposées à l’utilisateur final. |
 | Paiement | Le paiement Mobile Money réel reste hors périmètre immédiat ; le MVP gère un paiement applicatif simplifié et des reçus. |
-| Documentation | Les anciens diagrammes image sont conservés comme historique, mais les sources Mermaid mises à jour font référence. |
+| Documentation | Les anciens diagrammes image ont été retirés du dossier principal ; les images conformes détaillées dans `diagrammes-images/` font référence pour le MCD, le MLD et le diagramme de classes. |
 | Données | Le CSV d’import doit contenir les colonnes nécessaires : matricule, email, mot de passe, identité, diplôme, centre d’examen, région, document, statut et rendez-vous. |
 
 ---
@@ -365,12 +374,13 @@ L’objectif général du projet est de concevoir et développer une application
 | OBC_SETTINGS_ID | Identifiant global utilisé pour les paramètres de rendez-vous. |
 | `ELEVE` | Rôle applicatif d’un élève ou diplômé. |
 | `ADMINISTRATEUR` | Rôle applicatif d’un agent administratif OBC / DECC. |
+| `AGENT_CENTRE_EXAMEN` | Rôle applicatif d’un agent rattache a un centre d'examen et charge de confirmer certains retraits physiques. |
 | `SERVICE_DELIVRANCE` | Rôle envisagé mais non implémenté séparément dans le MVP actuel. |
 | `PAS_DISPONIBLE` | Statut indiquant qu’un document n’est pas encore disponible. |
 | `DISPONIBLE` | Statut indiquant qu’un document est prêt pour retrait. |
 | `RETIRE` | Statut indiquant qu’un document a été retiré physiquement. |
-| `PLANIFIE` | Statut initial possible d’un rendez-vous. |
-| `CONFIRME` | Statut d’un rendez-vous validé. |
+| `PLANIFIE` | Statut initial d’un rendez-vous pris par l’élève et transmis au service concerné. |
+| `CONFIRME` | Statut historique encore accepté par compatibilité, mais le flux courant crée les rendez-vous au statut `PLANIFIE`. |
 | `ANNULE` | Statut d’un rendez-vous annulé. |
 | `HONORE` | Statut d’un rendez-vous correspondant à un retrait effectué. |
 | `EN_ATTENTE` | Statut d’un paiement créé mais non encore confirmé. |
@@ -378,9 +388,35 @@ L’objectif général du projet est de concevoir et développer une application
 | Mobile Money | Service de paiement mobile, notamment Orange Money ou MTN Mobile Money. |
 | MailLog | Journal applicatif des emails envoyés ou échoués. |
 | Reçu | Document ou trace de paiement généré après une opération payante. |
-| Antenne régionale | Service régional OBC responsable de certains retraits, notamment le Baccalauréat original. |
+| Antenne régionale | Service régional OBC ou DECC responsable de certains retraits selon le diplôme, le type de document et la région de composition. |
 | Centre d’examen | Établissement ou lieu où l’élève a composé et où certains documents peuvent être retirés. |
 
 ---
 
-*Document généré le 27/05/2026 — Version 2.0*
+## 9. ETAT D'IMPLEMENTATION AU 02/06/2026
+
+Le coeur fonctionnel de l'application est implemente.
+
+### Fonctionnalites couvertes
+
+- Authentification Supabase Auth.
+- Activation des comptes eleves.
+- Connexion differenciee eleve, admin OBC, admin DECC et agent centre d'examen.
+- Routage OBC / DECC par diplome et region.
+- Gestion des documents, statuts, rendez-vous, paiements, recus, notifications et audit logs.
+- Import CSV.
+- Comptes de test regionaux OBC, DECC et centres d'examen.
+- Jeu de donnees de 1000 eleves.
+
+### Points restants avant production
+
+- Stabiliser la connexion Prisma/Postgres Supabase.
+- Brancher un vrai prestataire de paiement.
+- Stocker les justificatifs de duplicata dans un stockage fichier.
+- Regenerer les documents Word et images UML si une version non-Markdown doit etre remise.
+
+Voir aussi `ETAT_FINAL_PROJET.md`.
+
+---
+
+*Document genere le 27/05/2026, mis a jour le 02/06/2026 - Version 2.1*

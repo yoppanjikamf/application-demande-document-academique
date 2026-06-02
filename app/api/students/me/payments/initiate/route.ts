@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { getDocumentTitle } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
+import { resolveDocumentRoute } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { modePaiement } from "@/lib/generated/prisma/client";
 
@@ -34,13 +35,30 @@ export async function POST(request: Request) {
       return json({ payment: existingPayment });
     }
 
+    const route = resolveDocumentRoute(document);
+    await prisma.documentAcademique.update({
+      where: { id: document.id },
+      data: {
+        organismeId: route.organismeId,
+        antenneRegionaleId: route.antenneRegionaleId,
+      },
+    });
+
     const duplicata = await prisma.duplicata.create({
       data: {
         eleveId: user.id,
         typeDocument: "DUPLICATA",
         nomDuplicata: getDocumentTitle(document),
         statut: document.statut,
-        intruction: "Paiement du duplicata avant retrait physique.",
+        regionComposition: document.regionComposition,
+        organismeId: route.organismeId,
+        antenneRegionaleId: route.antenneRegionaleId,
+        intruction: JSON.stringify({
+          diplomeType: document.diplomeType,
+          centreExamen: document.centreExamen,
+          justificatif: "Non fourni via API",
+          lieuRetrait: route.location,
+        }),
       },
     });
 

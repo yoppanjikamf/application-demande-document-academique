@@ -57,8 +57,8 @@ export function DashboardSidebar({
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 border-r border-slate-200 bg-white transition-all lg:static lg:z-auto lg:translate-x-0",
-          isOpen ? "w-72" : "w-20",
+          "fixed inset-y-0 left-0 z-50 border-r border-[#E5E7EB] bg-white transition-all lg:static lg:z-auto lg:translate-x-0",
+          isOpen ? "w-60" : "w-20",
           isOpen ? "translate-x-0" : "-translate-x-full",
           !isMobile && !isOpen ? "translate-x-0" : "",
         )}
@@ -66,13 +66,13 @@ export function DashboardSidebar({
         <div className="flex h-full flex-col px-3 py-5">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex min-w-0 items-center gap-3 px-2">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0F2D52] text-sm font-bold text-white">
-                DR
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#1B4332] text-sm font-bold text-white shadow-sm">
+                OD
               </span>
               {isOpen ? (
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-slate-950">DR-DOCSCOL</span>
-                  <span className="block text-xs text-slate-500">Documents scolaires</span>
+                  <span className="block text-sm font-semibold text-[#1B4332]">OBC/DECC</span>
+                  <span className="block text-xs text-[#6B7280]">Retraits académiques</span>
                 </span>
               ) : null}
             </Link>
@@ -80,7 +80,7 @@ export function DashboardSidebar({
               <button
                 type="button"
                 onClick={toggleSidebar}
-                className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600"
+                className="rounded-xl border border-[#E5E7EB] px-2 py-1 text-xs font-medium text-[#4B5563]"
                 aria-label="Fermer le menu"
               >
                 Fermer
@@ -90,12 +90,12 @@ export function DashboardSidebar({
 
           <div
             className={cn(
-              "mt-6 rounded-xl border border-slate-200 bg-slate-50 p-3",
+              "mt-6 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-3",
               isOpen ? "block" : "hidden",
             )}
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[#0F2D52] ring-1 ring-slate-200">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#1B4332] ring-1 ring-[#E5E7EB]">
                 {role === "ADMINISTRATEUR" ? (
                   <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                 ) : role === "AGENT_CENTRE_EXAMEN" ? (
@@ -105,13 +105,13 @@ export function DashboardSidebar({
                 )}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-slate-900">
+                <p className="truncate text-sm font-semibold text-[#111827]">
                   {userName ?? fallbackName}
                 </p>
                 {userMatricule ? (
-                  <p className="mt-1 truncate font-mono text-xs text-slate-500">{userMatricule}</p>
+                  <p className="mt-1 truncate font-mono text-xs text-[#6B7280]">{userMatricule}</p>
                 ) : null}
-                <p className="mt-2 inline-flex rounded-lg border border-blue-100 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-900">
+                <p className="mt-2 inline-flex rounded-full border border-[#B7E4C7] bg-[#D8F3DC] px-2 py-1 text-xs font-medium text-[#1B4332]">
                   {badgeLabel}
                 </p>
               </div>
@@ -122,7 +122,7 @@ export function DashboardSidebar({
             {sections.map((section) => (
               <div key={section.label} className="mb-7">
                 {isOpen ? (
-                  <p className="mb-3 px-3 text-xs font-semibold uppercase text-slate-400">
+                  <p className="mb-3 px-3 text-xs font-semibold uppercase text-[#6B7280]">
                     {section.label}
                   </p>
                 ) : null}
@@ -138,11 +138,11 @@ export function DashboardSidebar({
                         href={item.url}
                         onClick={() => isMobile && setIsOpen(false)}
                         className={cn(
-                          "flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+                          "flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors",
                           isOpen ? "justify-start" : "justify-center",
                           isActive
-                            ? "bg-blue-50 text-blue-900"
-                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+                            ? "bg-[#1B4332] text-white shadow-sm"
+                            : "text-[#4B5563] hover:bg-[#D8F3DC]/60 hover:text-[#1B4332]",
                         )}
                         aria-current={isActive ? "page" : undefined}
                         title={!isOpen ? item.title : undefined}
@@ -157,11 +157,23 @@ export function DashboardSidebar({
             ))}
           </div>
 
+          <div
+            className={cn(
+              "mb-3 mt-4 rounded-xl border border-[#E5E7EB] bg-white p-3",
+              isOpen ? "block" : "hidden",
+            )}
+          >
+            <p className="truncate text-sm font-semibold text-[#111827]">
+              {userName ?? fallbackName}
+            </p>
+            <p className="mt-1 text-xs text-[#6B7280]">Session active</p>
+          </div>
+
           {!isMobile ? (
             <button
               type="button"
               onClick={toggleSidebar}
-              className="mt-auto flex h-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+              className="flex h-10 items-center justify-center rounded-xl border border-[#E5E7EB] text-[#4B5563] hover:bg-[#F8F9FA]"
               aria-label={isOpen ? "Reduire le menu" : "Etendre le menu"}
             >
               {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}

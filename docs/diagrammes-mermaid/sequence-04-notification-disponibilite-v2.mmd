@@ -1,23 +1,22 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "20px"}}}%%
 sequenceDiagram
-    participant Admin as Admin
-    participant Systeme as Système
-    participant ServiceNotif as Service notif / email
-    participant BDD as Base de données
-    participant Etudiant as Étudiant
+    autonumber
+    actor Admin as Admin OBC / DECC
+    participant UI as Interface admin
+    participant API as API statut document
+    participant DB as PostgreSQL / Prisma
+    participant Notif as Notifications
+    participant Eleve as Eleve
 
-    Admin->>Systeme: met à jour statut document → DISPONIBLE
-    Systeme->>BDD: vérifie document dans le périmètre admin
-    BDD-->>Systeme: document + élève trouvés
-    Systeme->>BDD: met à jour statut document
-    BDD-->>Systeme: statut mis à jour
-    Systeme->>ServiceNotif: déclenche notification DOCUMENT_DISPONIBLE
-    ServiceNotif->>BDD: crée notification applicative
-    ServiceNotif->>Etudiant: envoie email de disponibilité
-    Etudiant-->>ServiceNotif: réception email
-    ServiceNotif->>BDD: journalise email dans MailLog
-    BDD-->>ServiceNotif: journal créé
-    ServiceNotif-->>Systeme: confirmation envoi
-    Systeme-->>Admin: confirmation mise à jour effectuée
-    Etudiant->>Systeme: consulte document disponible
-    Systeme-->>Etudiant: affiche détails + instructions retrait
-    Etudiant->>Systeme: consulte notification
+    Admin->>UI: marque le document disponible
+    UI->>API: PATCH statut DISPONIBLE
+    API->>DB: met a jour le document
+    API->>DB: identifie le lieu de retrait
+    alt Retrait centre d'examen
+        API->>Notif: message avec prise de RDV obligatoire
+        Notif-->>Eleve: notification document disponible
+    else Retrait antenne regionale
+        API->>Notif: message avec service regional concerne
+        Notif-->>Eleve: notification document disponible
+    end
+    API-->>UI: statut mis a jour

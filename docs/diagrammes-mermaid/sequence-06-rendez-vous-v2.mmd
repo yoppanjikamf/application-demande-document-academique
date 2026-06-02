@@ -1,27 +1,31 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "20px"}}}%%
 sequenceDiagram
-    participant Eleve as Élève
-    participant Systeme as Système
-    participant Service as Service RDV
-    participant BDD as Base de données
-    participant Admin as Administrateur
+    autonumber
+    actor Eleve
+    participant UI as Interface eleve
+    participant API as API rendez-vous
+    participant Route as Service routage
+    participant DB as PostgreSQL / Prisma
+    participant Agent as Agent centre d'examen
+    participant Admin as Admin antenne
 
-    Eleve->>Systeme: clique "Réserver un rendez-vous"
-    Systeme->>Service: vérifie document, routage et besoin RDV
-    Service->>BDD: récupère quota, créneaux, RDV existants et jours fériés
-    BDD-->>Service: données calendrier
-    Service-->>Systeme: liste des créneaux disponibles
-    Systeme-->>Eleve: affiche calendrier des disponibilités
-    Eleve->>Systeme: sélectionne date + heure
-    Systeme->>Service: valide date, créneau et quota
-    Service->>BDD: vérifie absence RDV actif pour le document
-    BDD-->>Service: aucun RDV actif
-    Service->>BDD: crée RDV (statut = CONFIRMÉ)
-    BDD-->>Service: RDV créé
-    Systeme-->>Eleve: confirmation RDV + instructions de retrait
-    Systeme-->>Admin: RDV visible dans le planning
-    Note over Eleve,Systeme: Plus tard...
-    Eleve->>Systeme: clique "Annuler le rendez-vous"
-    Systeme->>BDD: met à jour statut → ANNULÉ
-    BDD-->>Systeme: RDV annulé
-    Systeme-->>Admin: notification "RDV annulé par l'élève"
-    Systeme-->>Eleve: confirmation annulation
+    Eleve->>UI: choisit un creneau
+    UI->>API: POST rendez-vous document
+    API->>DB: verifie document DISPONIBLE et creneau libre
+    API->>Route: determine lieu de retrait
+    Route-->>API: centre d'examen ou antenne regionale
+    API->>DB: cree rendez-vous statut PLANIFIE
+    alt Retrait centre d'examen
+        API->>Agent: transmet le rendez-vous planifie
+    else Retrait antenne regionale
+        API->>Admin: rend le rendez-vous visible a l'antenne
+    end
+    API-->>UI: rendez-vous planifie
+    UI-->>Eleve: affiche date, heure et lieu
+
+    opt Annulation avant retrait
+        Eleve->>UI: annule le rendez-vous
+        UI->>API: DELETE rendez-vous
+        API->>DB: passe le rendez-vous a ANNULE
+        API-->>UI: annulation confirmee
+    end

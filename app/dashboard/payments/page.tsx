@@ -29,16 +29,16 @@ export default async function PaymentsPage() {
       title="Paiements"
       subtitle="Suivi des paiements de duplicata et reçus associés."
     >
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
-        <div className="grid grid-cols-[1fr_auto] border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium text-slate-500">
+      <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
+        <div className="grid grid-cols-[1fr_auto] border-b border-[#E5E7EB] bg-[#F8F9FA] px-5 py-3 text-sm font-medium text-[#6B7280]">
           <span>Paiement</span>
           <span>Statut</span>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-[#E8EEF6]">
           {payments.length === 0 ? (
             <div className="px-5 py-10 text-center">
-              <CreditCard className="mx-auto h-8 w-8 text-slate-400" />
-              <p className="mt-3 text-sm text-slate-500">Aucun paiement enregistré.</p>
+              <CreditCard className="mx-auto h-8 w-8 text-[#9CA3AF]" />
+              <p className="mt-3 text-sm text-[#6B7280]">Aucun paiement enregistré.</p>
             </div>
           ) : (
             payments.map((payment) => {
@@ -49,13 +49,13 @@ export default async function PaymentsPage() {
                   className="grid gap-4 px-5 py-4 md:grid-cols-[1fr_auto] md:items-center"
                 >
                   <div>
-                    <p className="font-medium text-slate-950">{payment.duplicata.nomDuplicata}</p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="font-medium text-[#111827]">{payment.duplicata.nomDuplicata}</p>
+                    <p className="mt-1 text-sm text-[#6B7280]">
                       {payment.modePaiment} · {payment.createdAt.toLocaleDateString("fr-FR")}
                     </p>
                     {receipt ? (
                       <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <span className="text-sm text-slate-500">Reçu : {receipt.numero}</span>
+                        <span className="text-sm text-[#6B7280]">Reçu : {receipt.numero}</span>
                         <Button asChild variant="outline" size="sm">
                           <a
                             href={`/api/students/me/payments/${payment.id}/receipt`}
@@ -74,7 +74,7 @@ export default async function PaymentsPage() {
                         </Button>
                       </div>
                     ) : (
-                      <p className="mt-2 text-sm text-slate-500">
+                      <p className="mt-2 text-sm text-[#6B7280]">
                         Le reçu sera disponible après confirmation du paiement.
                       </p>
                     )}

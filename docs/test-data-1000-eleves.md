@@ -2,6 +2,8 @@
 
 Seed genere pour les tests DR-DOCSCOL.
 
+Derniere verification documentaire: 02/06/2026.
+
 - Eleves crees en base: 1000
 - Eleves avec au moins un document: 990
 - Eleves sans document: 10
@@ -29,3 +31,11 @@ Ces comptes existent dans la table `users` avec `authUserId = null`. Chaque elev
 ```bash
 npm run seed:1000-eleves
 ```
+
+## Notes de perimetre
+
+- Les eleves n'ont pas de mot de passe seed par defaut: ils doivent activer leur compte via `/auth/register`.
+- Les documents BEPC sont routes vers DECC.
+- Les documents Baccalaureat et Probatoire sont routes vers OBC.
+- Les eleves avec 0 document servent a tester l'etat vide du dashboard.
+- Pour tester les connexions completes, voir `connexions-tests-completes.md`.

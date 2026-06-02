@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import {
   formatDateKey,
   getAvailableSlots,
-  isBeforeToday,
+  isBeforeTomorrow,
   parseDateKey,
 } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
@@ -56,8 +56,11 @@ export async function GET(request: Request) {
   }
 
   const date = parseDateKey(dateValue);
-  if (!date || isBeforeToday(date)) {
-    return NextResponse.json({ error: "Date invalide." }, { status: 400 });
+  if (!date || isBeforeTomorrow(date)) {
+    return NextResponse.json(
+      { error: "Les rendez-vous doivent être programmés à partir du lendemain." },
+      { status: 400 },
+    );
   }
 
   const slots = await getAvailableSlots(date);
