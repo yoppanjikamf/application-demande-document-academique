@@ -16,9 +16,9 @@ export default async function AdminRegionPage({ searchParams }: AdminRegionPageP
   const antennas = user.organismeId ? getAntennesForOrganisme(user.organismeId) : [];
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA]">
+    <div className="min-h-screen bg-surface-1">
       <main className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-        <section className="rounded-2xl border border-[#E5E7EB] bg-[#1B4332] p-8 text-white shadow-sm">
+        <section className="rounded-lg border border-[var(--border-token)] bg-obc-800 p-8 text-white shadow-card">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
             Accès régional {organismeName}
           </p>
@@ -32,14 +32,14 @@ export default async function AdminRegionPage({ searchParams }: AdminRegionPageP
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {antennas.map((antenna) => (
-              <div key={antenna.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div key={antenna.id} className="rounded-md border border-white/10 bg-white/5 p-4">
                 <div className="text-sm font-semibold text-white">{antenna.region}</div>
                 <div className="mt-1 text-sm text-white/70">{antenna.ville}</div>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+          <div className="mt-8 rounded-md border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
             Exemple: la clé {organismeName}-CENTRE-2026 donne automatiquement accès à l’antenne du
             Centre uniquement.
           </div>

@@ -235,14 +235,14 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       subtitle="Sélectionnez d'abord un examen déjà composé, puis le document scolaire souhaité."
     >
       {exams.length === 0 ? (
-        <p className="rounded-xl border border-[#E5E7EB] bg-white p-5 text-[#6B7280] shadow-sm">
+        <p className="rounded-md border border-[var(--border-token)] bg-surface-0 p-5 text-text-3 shadow-card">
           Aucun examen composé n&apos;est rattaché à votre matricule.
         </p>
       ) : (
         <section className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold text-[#111827]">Examens déjà composés</h2>
-            <p className="mt-1 text-sm text-[#6B7280]">
+            <h2 className="text-lg font-semibold text-text-1">Examens déjà composés</h2>
+            <p className="mt-1 text-sm text-text-3">
               Les examens non composés ne sont pas affichés.
             </p>
           </div>
@@ -253,19 +253,19 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                 <Link
                   key={exam.id}
                   href={`/dashboard/documents?exam=${exam.diplomeType}`}
-                  className={`rounded-xl border bg-white p-5 shadow-sm transition hover:border-[#1B4332] hover:shadow-sm ${
-                    isActive ? "border-[#1B4332] ring-2 ring-[#E5E7EB]" : "border-[#E5E7EB]"
+                  className={`rounded-md border bg-surface-0 p-5 shadow-card transition hover:border-obc-800 hover:shadow-hover ${
+                    isActive ? "border-obc-800 ring-2 ring-[var(--border-token)]" : "border-[var(--border-token)]"
                   }`}
                 >
-                  <GraduationCap className="h-6 w-6 text-[#1B4332]" />
-                  <p className="mt-4 text-lg font-semibold text-[#111827]">
+                  <GraduationCap className="h-6 w-6 text-obc-800" />
+                  <p className="mt-4 text-lg font-semibold text-text-1">
                     {diplomeLabels[exam.diplomeType]}
                   </p>
-                  <p className="mt-1 text-sm text-[#6B7280]">
+                  <p className="mt-1 text-sm text-text-3">
                     Session {exam.anneeSession ?? "non renseignée"} ·{" "}
                     {exam.centreExamen ?? "Centre non renseigné"}
                   </p>
-                  <p className="mt-1 text-sm text-[#6B7280]">
+                  <p className="mt-1 text-sm text-text-3">
                     Région de composition : {exam.regionComposition ?? "Centre"}
                   </p>
                 </Link>
@@ -278,10 +278,10 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       {currentExam ? (
         <section className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold text-[#111827]">
+            <h2 className="text-lg font-semibold text-text-1">
               Documents du {diplomeLabels[currentExam.diplomeType]}
             </h2>
-            <p className="mt-1 text-sm text-[#6B7280]">
+            <p className="mt-1 text-sm text-text-3">
               Choisissez le type de document scolaire à consulter ou à demander.
             </p>
           </div>
@@ -318,19 +318,19 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                   <Link
                     key={option.type}
                     href={`/dashboard/documents?exam=${currentExam.diplomeType}&type=${option.type}`}
-                    className={`rounded-xl border bg-white p-5 shadow-sm transition hover:border-[#1B4332] hover:shadow-sm ${
-                      isActive ? "border-[#1B4332] ring-2 ring-[#E5E7EB]" : "border-[#E5E7EB]"
+                    className={`rounded-md border bg-surface-0 p-5 shadow-card transition hover:border-obc-800 hover:shadow-hover ${
+                      isActive ? "border-obc-800 ring-2 ring-[var(--border-token)]" : "border-[var(--border-token)]"
                     }`}
                   >
-                    <option.icon className="h-6 w-6 text-[#1B4332]" />
-                    <p className="mt-4 font-semibold text-[#111827]">{optionLabels[option.type]}</p>
-                    <p className="mt-2 text-sm leading-6 text-[#6B7280]">{option.text}</p>
+                    <option.icon className="h-6 w-6 text-obc-800" />
+                    <p className="mt-4 font-semibold text-text-1">{optionLabels[option.type]}</p>
+                    <p className="mt-2 text-sm leading-6 text-text-3">{option.text}</p>
                   </Link>
                 );
               })}
           </div>
           {currentExam.diplomeType === "PROBATOIRE" ? (
-            <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
+            <p className="rounded-md bg-amber-50 p-4 text-sm text-amber-800">
               Le Probatoire ne donne pas lieu à la délivrance d&apos;un diplôme. Seul le relevé de
               notes est disponible.
             </p>
@@ -341,13 +341,13 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       {currentExam &&
       selectedOption === "ORIGINAL" &&
       isDocumentRequestAllowed(currentExam.diplomeType, "ORIGINAL") ? (
-        <section className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+        <section className="rounded-md border border-[var(--border-token)] bg-surface-0 p-6 shadow-card">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h3 className="text-lg font-semibold text-[#111827]">
+              <h3 className="text-lg font-semibold text-text-1">
                 Original du diplôme du {diplomeLabels[currentExam.diplomeType]}
               </h3>
-              <p className="mt-1 text-sm text-[#6B7280]">
+              <p className="mt-1 text-sm text-text-3">
                 {currentExam.diplomeType === "BACCALAUREAT"
                   ? "Retrait à l'antenne régionale OBC avec rendez-vous."
                   : "Retrait au centre d'examen avec rendez-vous."}
@@ -359,7 +359,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
           </div>
 
           {originalDocument?.statut === "RETIRE" ? (
-            <div className="mt-5 rounded-xl bg-[#D8F3DC] p-4 text-sm text-[#1B4332]">
+            <div className="mt-5 rounded-md bg-obc-100 p-4 text-sm text-obc-800">
               Ce document scolaire a déjà été retiré
               {honoredOriginalAppointment
                 ? ` le ${honoredOriginalAppointment.updatedAt.toLocaleDateString("fr-FR")}`
@@ -368,9 +368,9 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
             </div>
           ) : originalDocument?.statut === "DISPONIBLE" ? (
             <div className="mt-5 space-y-4">
-              <p className="text-sm text-[#6B7280]">Lieu de retrait : {originalPickupLocation}</p>
+              <p className="text-sm text-text-3">Lieu de retrait : {originalPickupLocation}</p>
               {originalRoute?.requiresAppointment && activeOriginalAppointment ? (
-                <div className="rounded-xl bg-[#D8F3DC] p-4 text-sm text-[#1B4332]">
+                <div className="rounded-md bg-obc-100 p-4 text-sm text-obc-800">
                   Rendez-vous planifié le{" "}
                   {activeOriginalAppointment.dateRdv.toLocaleDateString("fr-FR")} ·{" "}
                   {activeOriginalAppointment.heureRdv}
@@ -382,14 +382,14 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                   disabled={false}
                 />
               ) : (
-                <div className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">
+                <div className="rounded-md bg-emerald-50 p-4 text-sm text-emerald-800">
                   Votre diplôme est disponible. Suivez les instructions de retrait :{" "}
                   {originalPickupLocation}.
                 </div>
               )}
             </div>
           ) : (
-            <p className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
+            <p className="mt-5 rounded-md bg-amber-50 p-4 text-sm text-amber-800">
               Votre demande est en cours de traitement. Votre diplôme n&apos;est pas encore
               disponible ; vous serez notifié dès sa mise à disposition.
             </p>
@@ -398,13 +398,13 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       ) : null}
 
       {currentExam && selectedOption === "RELEVE_NOTES" ? (
-        <section className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+        <section className="rounded-md border border-[var(--border-token)] bg-surface-0 p-6 shadow-card">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h3 className="text-lg font-semibold text-[#111827]">
+              <h3 className="text-lg font-semibold text-text-1">
                 Relevé de notes du {diplomeLabels[currentExam.diplomeType]}
               </h3>
-              <p className="mt-1 text-sm text-[#6B7280]">
+              <p className="mt-1 text-sm text-text-3">
                 Le relevé se retire au centre d&apos;examen après prise de rendez-vous.
               </p>
             </div>
@@ -414,7 +414,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
           </div>
 
           {releveDocument?.statut === "RETIRE" ? (
-            <div className="mt-5 rounded-xl bg-[#D8F3DC] p-4 text-sm text-[#1B4332]">
+            <div className="mt-5 rounded-md bg-obc-100 p-4 text-sm text-obc-800">
               Ce relevé de notes a déjà été retiré
               {honoredReleveAppointment
                 ? ` le ${honoredReleveAppointment.updatedAt.toLocaleDateString("fr-FR")}`
@@ -423,11 +423,11 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
             </div>
           ) : releveDocument?.statut === "DISPONIBLE" ? (
             <div className="mt-5 space-y-4">
-              <p className="text-sm text-[#6B7280]">
+              <p className="text-sm text-text-3">
                 Lieu de retrait : {relevePickupLocation ?? "Centre d'examen"}
               </p>
               {releveRoute?.requiresAppointment && activeReleveAppointment ? (
-                <div className="rounded-xl bg-[#D8F3DC] p-4 text-sm text-[#1B4332]">
+                <div className="rounded-md bg-obc-100 p-4 text-sm text-obc-800">
                   Rendez-vous planifié le{" "}
                   {activeReleveAppointment.dateRdv.toLocaleDateString("fr-FR")} ·{" "}
                   {activeReleveAppointment.heureRdv}
@@ -439,14 +439,14 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                   disabled={false}
                 />
               ) : (
-                <div className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">
+                <div className="rounded-md bg-emerald-50 p-4 text-sm text-emerald-800">
                   Votre relevé de notes est disponible : {relevePickupLocation}.
                 </div>
               )}
             </div>
           ) : (
             <div className="mt-5 space-y-4">
-              <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
+              <p className="rounded-md bg-amber-50 p-4 text-sm text-amber-800">
                 Votre relevé de notes n&apos;est pas encore disponible dans votre centre
                 d&apos;examen. Vous serez notifié dès sa mise à disposition.
               </p>
@@ -462,10 +462,10 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       {currentExam && selectedOption === "DUPLICATA" ? (
         <section className="space-y-4">
           <div>
-            <h3 className="text-lg font-semibold text-[#111827]">
+            <h3 className="text-lg font-semibold text-text-1">
               Duplicata du {diplomeLabels[currentExam.diplomeType]}
             </h3>
-            <p className="mt-1 text-sm text-[#6B7280]">
+            <p className="mt-1 text-sm text-text-3">
               Sélectionnez le document scolaire source du duplicata.
             </p>
           </div>
@@ -480,12 +480,12 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                   <Link
                     key={target}
                     href={`/dashboard/documents?exam=${currentExam.diplomeType}&type=DUPLICATA&cible=${target}`}
-                    className={`rounded-xl border bg-white p-5 shadow-sm transition hover:border-[#1B4332] hover:shadow-sm ${
-                      isActive ? "border-[#1B4332] ring-2 ring-[#E5E7EB]" : "border-[#E5E7EB]"
+                    className={`rounded-md border bg-surface-0 p-5 shadow-card transition hover:border-obc-800 hover:shadow-hover ${
+                      isActive ? "border-obc-800 ring-2 ring-[var(--border-token)]" : "border-[var(--border-token)]"
                     }`}
                   >
-                    <RotateCcw className="h-6 w-6 text-[#1B4332]" />
-                    <p className="mt-4 font-semibold text-[#111827]">
+                    <RotateCcw className="h-6 w-6 text-obc-800" />
+                    <p className="mt-4 font-semibold text-text-1">
                       {getDuplicataTitle(currentExam.diplomeType, target)}
                     </p>
                   </Link>
@@ -500,13 +500,13 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
               {canSubmitDuplicataRequest ? (
                 <form
                   action={submitDuplicataRequestAction}
-                  className="space-y-4 rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
+                  className="space-y-4 rounded-md border border-[var(--border-token)] bg-surface-0 p-6 shadow-card"
                 >
                   <div>
-                    <h4 className="font-semibold text-[#111827]">
+                    <h4 className="font-semibold text-text-1">
                       {getDuplicataTitle(currentExam.diplomeType, selectedCible)}
                     </h4>
-                    <p className="mt-1 text-sm text-[#6B7280]">Frais à payer : 25 000 FCFA.</p>
+                    <p className="mt-1 text-sm text-text-3">Frais à payer : 25 000 FCFA.</p>
                   </div>
                   <input type="hidden" name="diplomeType" value={currentExam.diplomeType} />
                   <input type="hidden" name="cibleDocument" value={selectedCible} />
@@ -543,27 +543,27 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                     name="motif"
                     placeholder="Motif de la demande"
                     required
-                    className="min-h-28 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-card outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   />
                   <select
                     name="typeJustificatif"
                     defaultValue="CNI"
                     required
-                    className="h-9 w-full rounded-xl border border-input bg-background px-3 text-sm shadow-sm"
+                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-card"
                   >
                     <option value="CNI">Carte Nationale d&apos;Identité (CNI)</option>
                     <option value="CARTE_SCOLAIRE">Carte scolaire</option>
                   </select>
                   <div className="space-y-2">
                     <Input name="piecesJustificatives" type="file" accept="image/*,.pdf" required />
-                    <p className="text-xs text-[#6B7280]">
+                    <p className="text-xs text-text-3">
                       Pièce justificative obligatoire : CNI ou carte scolaire.
                     </p>
                   </div>
                   <select
                     name="modePaiement"
                     defaultValue="ORANGEMONEY"
-                    className="h-9 w-full rounded-xl border border-input bg-background px-3 text-sm shadow-sm"
+                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-card"
                   >
                     <option value="ORANGEMONEY">Orange Money</option>
                     <option value="MTNMONEY">MTN Mobile Money</option>
@@ -575,20 +575,20 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                   </Button>
                 </form>
               ) : activeDifferentDuplicataRequest ? (
-                <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
+                <p className="rounded-md bg-amber-50 p-4 text-sm text-amber-800">
                   Une autre demande de duplicata est déjà en cours pour cet examen. Veuillez
                   attendre sa clôture avant d&apos;en introduire une nouvelle.
                 </p>
               ) : !duplicataAvailability.allowed && duplicataAvailability.nextAllowedAt ? (
-                <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
+                <p className="rounded-md bg-amber-50 p-4 text-sm text-amber-800">
                   Vous avez déjà retiré ce type de duplicata. Une nouvelle demande sera possible à
                   partir du {duplicataAvailability.nextAllowedAt.toLocaleDateString("fr-FR")}. Avant
                   ce délai, veuillez vous rapprocher du service concerné.
                 </p>
               ) : null}
 
-              <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
-                <h4 className="font-semibold text-[#111827]">Statut de la demande</h4>
+              <div className="rounded-md border border-[var(--border-token)] bg-surface-0 p-6 shadow-card">
+                <h4 className="font-semibold text-text-1">Statut de la demande</h4>
                 {latestDuplicata ? (
                   <div className="mt-4 space-y-4">
                     <StatusBadge
@@ -609,12 +609,12 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                       }
                     </StatusBadge>
                     {latestDuplicata.paiement?.recu[0] ? (
-                      <p className="text-sm text-[#6B7280]">
+                      <p className="text-sm text-text-3">
                         Reçu : {latestDuplicata.paiement.recu[0].numero}
                       </p>
                     ) : null}
                     {latestDuplicata.statut === "RETIRE" ? (
-                      <div className="rounded-xl bg-[#D8F3DC] p-4 text-sm text-[#1B4332]">
+                      <div className="rounded-md bg-obc-100 p-4 text-sm text-obc-800">
                         Ce duplicata a déjà été retiré
                         {honoredDuplicataAppointment
                           ? ` le ${honoredDuplicataAppointment.updatedAt.toLocaleDateString("fr-FR")}`
@@ -623,11 +623,11 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                       </div>
                     ) : latestDuplicata.statut === "DISPONIBLE" ? (
                       <div className="space-y-3">
-                        <p className="text-sm text-[#6B7280]">
+                        <p className="text-sm text-text-3">
                           Lieu de retrait : {duplicataRoute?.location ?? "Centre d'examen"}
                         </p>
                         {duplicataRoute?.requiresAppointment && activeDuplicataAppointment ? (
-                          <div className="rounded-xl bg-[#D8F3DC] p-4 text-sm text-[#1B4332]">
+                          <div className="rounded-md bg-obc-100 p-4 text-sm text-obc-800">
                             Rendez-vous planifié le{" "}
                             {activeDuplicataAppointment.dateRdv.toLocaleDateString("fr-FR")} ·{" "}
                             {activeDuplicataAppointment.heureRdv}
@@ -642,7 +642,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                             disabled={false}
                           />
                         ) : (
-                          <div className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">
+                          <div className="rounded-md bg-emerald-50 p-4 text-sm text-emerald-800">
                             Votre duplicata est prêt. Veuillez le retirer dans votre établissement
                             ou centre d&apos;examen :{" "}
                             {duplicataRoute?.location ?? "Centre d'examen"}. Aucun rendez-vous
@@ -651,14 +651,14 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                         )}
                       </div>
                     ) : (
-                      <p className="text-sm leading-6 text-[#6B7280]">
+                      <p className="text-sm leading-6 text-text-3">
                         Votre demande de duplicata a été enregistrée avec succès et elle est en
                         cours de traitement.
                       </p>
                     )}
                   </div>
                 ) : (
-                  <p className="mt-4 text-sm leading-6 text-[#6B7280]">
+                  <p className="mt-4 text-sm leading-6 text-text-3">
                     Aucune demande de duplicata n&apos;a encore été enregistrée pour ce choix.
                   </p>
                 )}

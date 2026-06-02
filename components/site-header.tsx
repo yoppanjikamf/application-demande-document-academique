@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 
 import { getCurrentUser, getHomePathForRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { DocScolLogo } from "@/components/ui/DocScolLogo";
 
 export async function SiteHeader() {
   const cookieStore = await cookies();
@@ -15,16 +16,10 @@ export async function SiteHeader() {
     : null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.95)] backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link
-          href="/"
-          className="flex items-center gap-3 font-semibold tracking-tight text-[#1B4332]"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1B4332] text-sm font-bold text-white shadow-sm">
-            OD
-          </span>
-          <span className="hidden sm:block">OBC/DECC</span>
+        <Link href="/" className="flex items-center gap-3 text-obc-800">
+          <DocScolLogo variant="full" theme="light" />
         </Link>
         <nav className="flex items-center gap-2">
           {dbUser ? (

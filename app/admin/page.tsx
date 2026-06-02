@@ -181,7 +181,7 @@ export default async function AdminPage() {
       </div>
 
       {quotaAlmostReached ? (
-        <section className="flex items-start gap-3 rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] p-4 text-sm text-[#92400E] shadow-sm">
+        <section className="flex items-start gap-3 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] p-4 text-sm text-[#92400E] shadow-card">
           <AlertTriangle className="mt-0.5 h-5 w-5" aria-hidden="true" />
           <p>
             Quota journalier presque atteint : {rendezVousTodayCount}/{quota} rendez-vous planifiés.
@@ -189,17 +189,17 @@ export default async function AdminPage() {
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+      <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-semibold text-[#111827]">Évolution des retraits sur 30 jours</h2>
-            <p className="mt-1 text-sm text-[#6B7280]">
+            <h2 className="font-semibold text-text-1">Évolution des retraits sur 30 jours</h2>
+            <p className="mt-1 text-sm text-text-3">
               Retraits confirmés sur les 30 derniers jours.
             </p>
           </div>
           <StatusBadge tone="green">{honoredAppointments.length} retraits</StatusBadge>
         </div>
-        <div className="mt-6 h-44 rounded-2xl bg-[#F8F9FA] p-4">
+        <div className="mt-6 h-44 rounded-lg bg-surface-1 p-4">
           <svg
             viewBox="0 0 100 36"
             className="h-full w-full"
@@ -219,13 +219,13 @@ export default async function AdminPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <section className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
-          <div className="border-b border-[#E5E7EB] bg-[#F8F9FA] px-5 py-4">
-            <h2 className="font-semibold text-[#111827]">Documents récents</h2>
+        <section className="overflow-hidden rounded-lg border border-[var(--border-token)] bg-surface-0 shadow-card">
+          <div className="border-b border-[var(--border-token)] bg-surface-1 px-5 py-4">
+            <h2 className="font-semibold text-text-1">Documents récents</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-white text-left text-xs uppercase text-[#6B7280]">
+              <thead className="bg-surface-0 text-left text-xs uppercase text-text-3">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Élève</th>
                   <th className="px-5 py-3 font-semibold">Type</th>
@@ -234,22 +234,22 @@ export default async function AdminPage() {
                   <th className="px-5 py-3 font-semibold">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5E7EB]">
+              <tbody className="divide-y divide-[var(--border-token)]">
                 {recentDocuments.map((document) => (
                   <tr key={document.id}>
                     <td className="px-5 py-4">
-                      <p className="font-medium text-[#111827]">
+                      <p className="font-medium text-text-1">
                         {document.eleve.prenom} {document.eleve.nom}
                       </p>
-                      <p className="font-mono text-xs text-[#6B7280]">{document.eleve.matricule}</p>
+                      <p className="font-mono text-xs text-text-3">{document.eleve.matricule}</p>
                     </td>
-                    <td className="px-5 py-4 text-[#4B5563]">{getDocumentTitle(document)}</td>
+                    <td className="px-5 py-4 text-text-2">{getDocumentTitle(document)}</td>
                     <td className="px-5 py-4">
                       <StatusBadge tone={documentTone(document.statut)}>
                         {getStatusLabel(document.statut)}
                       </StatusBadge>
                     </td>
-                    <td className="px-5 py-4 text-[#4B5563]">
+                    <td className="px-5 py-4 text-text-2">
                       {document.organisme?.nom ?? "Non défini"}
                     </td>
                     <td className="px-5 py-4">
@@ -264,22 +264,22 @@ export default async function AdminPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
-          <h2 className="font-semibold text-[#111827]">Rendez-vous du jour</h2>
+        <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
+          <h2 className="font-semibold text-text-1">Rendez-vous du jour</h2>
           <div className="mt-5 flex gap-3 overflow-x-auto pb-2">
             {todayAppointments.length === 0 ? (
-              <p className="text-sm text-[#6B7280]">
+              <p className="text-sm text-text-3">
                 Aucun rendez-vous programmé aujourd&apos;hui.
               </p>
             ) : (
               todayAppointments.map((rdv) => (
                 <div
                   key={rdv.id}
-                  className="min-w-56 rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] p-4"
+                  className="min-w-56 rounded-lg border border-[var(--border-token)] bg-surface-1 p-4"
                 >
-                  <p className="font-semibold text-[#1B4332]">{rdv.heureRdv}</p>
-                  <p className="mt-2 text-sm font-medium text-[#111827]">{rdv.eleve.matricule}</p>
-                  <p className="mt-1 truncate text-xs text-[#6B7280]">
+                  <p className="font-semibold text-obc-800">{rdv.heureRdv}</p>
+                  <p className="mt-2 text-sm font-medium text-text-1">{rdv.eleve.matricule}</p>
+                  <p className="mt-1 truncate text-xs text-text-3">
                     {rdv.document ? getDocumentTitle(rdv.document) : "Document académique"}
                   </p>
                   <div className="mt-3">
@@ -292,8 +292,8 @@ export default async function AdminPage() {
         </section>
       </div>
 
-      <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
-        <h2 className="font-semibold text-[#111827]">Actions rapides</h2>
+      <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
+        <h2 className="font-semibold text-text-1">Actions rapides</h2>
         <div className="mt-4 flex flex-wrap gap-3">
           <Button asChild variant="outline">
             <Link href="/admin/documents">Documents</Link>

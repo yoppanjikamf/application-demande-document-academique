@@ -22,11 +22,11 @@ export default async function AdminImportPage() {
     >
       <form
         action={importTestDataAction}
-        className="max-w-2xl space-y-4 rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
+        className="max-w-2xl space-y-4 rounded-md border border-[var(--border-token)] bg-surface-0 p-6 shadow-card"
       >
         <div>
-          <h2 className="font-semibold text-[#111827]">Fichier CSV</h2>
-          <p className="mt-1 text-sm text-[#6B7280]">
+          <h2 className="font-semibold text-text-1">Fichier CSV</h2>
+          <p className="mt-1 text-sm text-text-3">
             Le fichier ne doit contenir aucun mot de passe. Les élèves activent eux-mêmes leur
             compte avec leur matricule et leur adresse email.
           </p>

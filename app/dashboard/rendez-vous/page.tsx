@@ -38,15 +38,15 @@ export default async function RendezVousPage({ searchParams }: RendezVousPagePro
       subtitle="Suivi des rendez-vous de retrait liés à vos documents scolaires."
     >
       {rendezVous.length === 0 ? (
-        <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
-          <p className="text-[#6B7280]">Aucun rendez-vous trouve.</p>
+        <div className="space-y-3 rounded-md border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
+          <p className="text-text-3">Aucun rendez-vous trouve.</p>
           <Button asChild variant="outline">
             <Link href="/dashboard/documents">Retour à mes documents scolaires</Link>
           </Button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
-          <div className="grid grid-cols-[1fr_auto] border-b border-[#E5E7EB] bg-[#F8F9FA] px-4 py-3 text-sm font-medium text-[#6B7280]">
+        <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
+          <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-4 py-3 text-sm font-medium text-text-3">
             <span>Rendez-vous</span>
             <span>Statut</span>
           </div>
@@ -56,21 +56,21 @@ export default async function RendezVousPage({ searchParams }: RendezVousPagePro
               className="grid gap-3 border-b px-4 py-4 last:border-0 sm:grid-cols-[1fr_auto]"
             >
               <div>
-                <p className="text-lg font-semibold text-[#111827]">
+                <p className="text-lg font-semibold text-text-1">
                   {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
                 </p>
-                <p className="text-sm text-[#6B7280]">
+                <p className="text-sm text-text-3">
                   {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} · {rdv.lieu}
                 </p>
               </div>
               <StatusBadge tone={appointmentTone(rdv.statut)} className="self-start">
                 {rdv.statut}
               </StatusBadge>
-              <p className="text-sm text-[#6B7280]">
+              <p className="text-sm text-text-3">
                 Agent: {rdv.admin.prenom} {rdv.admin.nom}
               </p>
               {rdv.commentaire ? (
-                <p className="text-sm text-[#6B7280]">Commentaire: {rdv.commentaire}</p>
+                <p className="text-sm text-text-3">Commentaire: {rdv.commentaire}</p>
               ) : null}
               {rdv.statut === "PLANIFIE" || rdv.statut === "CONFIRME" ? (
                 <form action={cancelRendezVousAction}>

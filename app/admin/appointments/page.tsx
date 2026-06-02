@@ -38,14 +38,14 @@ export default async function AdminAppointmentsPage() {
       title="Planning des retraits"
       subtitle="Rendez-vous actifs à suivre ou à annuler dans OBC/DECC."
     >
-      <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
-        <div className="grid grid-cols-[1fr_auto] border-b border-[#E5E7EB] bg-[#F8F9FA] px-5 py-3 text-sm font-medium text-[#6B7280]">
+      <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
+        <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3">
           <span>Rendez-vous</span>
           <span>Actions</span>
         </div>
         <div className="divide-y divide-[#E8EEF6]">
           {appointments.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-[#6B7280]">Aucun rendez-vous actif.</p>
+            <p className="px-5 py-6 text-sm text-text-3">Aucun rendez-vous actif.</p>
           ) : (
             appointments.map((appointment) => (
               <div
@@ -54,7 +54,7 @@ export default async function AdminAppointmentsPage() {
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium text-[#111827]">
+                    <p className="font-medium text-text-1">
                       {appointment.document
                         ? getDocumentTitle(appointment.document)
                         : "Document scolaire"}
@@ -63,16 +63,16 @@ export default async function AdminAppointmentsPage() {
                       {appointment.statut}
                     </StatusBadge>
                   </div>
-                  <p className="mt-1 text-sm text-[#6B7280]">
+                  <p className="mt-1 text-sm text-text-3">
                     {appointment.dateRdv.toLocaleDateString("fr-FR")} · {appointment.heureRdv} ·{" "}
                     {appointment.lieu}
                   </p>
-                  <p className="text-sm text-[#6B7280]">
+                  <p className="text-sm text-text-3">
                     {appointment.eleve.prenom} {appointment.eleve.nom} ·{" "}
                     {appointment.eleve.matricule}
                   </p>
                   {appointment.document ? (
-                    <p className="text-sm text-[#6B7280]">
+                    <p className="text-sm text-text-3">
                       {appointment.document.organisme?.nom ?? "Organisme non defini"}
                       {appointment.document.antenneRegionale
                         ? ` · ${appointment.document.antenneRegionale.nom}`

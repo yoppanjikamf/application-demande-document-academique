@@ -74,28 +74,28 @@ export default async function CentreExamenPage({ searchParams }: CentreExamenPag
       subtitle="Confirmation des retraits physiques du jour."
     >
       <section className="grid gap-4 lg:grid-cols-[1fr_auto]">
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium text-[#6B7280]">Centre d&apos;examen</p>
-          <h2 className="mt-2 text-2xl font-bold text-[#111827]">{centre.nom}</h2>
-          <p className="mt-2 flex items-center gap-2 text-sm text-[#6B7280]">
+        <div className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
+          <p className="text-sm font-medium text-text-3">Centre d&apos;examen</p>
+          <h2 className="mt-2 text-2xl font-bold text-text-1">{centre.nom}</h2>
+          <p className="mt-2 flex items-center gap-2 text-sm text-text-3">
             <MapPin className="h-4 w-4" aria-hidden="true" />
             {centre.region}
             {centre.ville ? ` · ${centre.ville}` : ""}
           </p>
         </div>
-        <div className="rounded-2xl border border-[#B7E4C7] bg-[#D8F3DC] p-5 shadow-sm lg:min-w-72">
-          <p className="text-sm font-medium text-[#1B4332]">Retraits confirmés aujourd&apos;hui</p>
-          <p className="mt-2 text-3xl font-bold text-[#1B4332]">
+        <div className="rounded-lg border border-obc-200 bg-obc-100 p-5 shadow-card lg:min-w-72">
+          <p className="text-sm font-medium text-obc-800">Retraits confirmés aujourd&apos;hui</p>
+          <p className="mt-2 text-3xl font-bold text-obc-800">
             {confirmedToday}/{todayAppointments.length}
           </p>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+      <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-semibold text-[#111827]">Filtrer par créneau horaire</h2>
-            <p className="mt-1 text-sm text-[#6B7280]">
+            <h2 className="font-semibold text-text-1">Filtrer par créneau horaire</h2>
+            <p className="mt-1 text-sm text-text-3">
               Rendez-vous planifiés pour aujourd&apos;hui.
             </p>
           </div>
@@ -117,16 +117,16 @@ export default async function CentreExamenPage({ searchParams }: CentreExamenPag
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
-        <div className="grid grid-cols-[1fr_auto] border-b border-[#E5E7EB] bg-[#F8F9FA] px-5 py-3 text-sm font-medium text-[#6B7280]">
+      <section className="overflow-hidden rounded-lg border border-[var(--border-token)] bg-surface-0 shadow-card">
+        <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3">
           <span>Rendez-vous planifiés</span>
           <span>Action</span>
         </div>
-        <div className="divide-y divide-[#E5E7EB]">
+        <div className="divide-y divide-[var(--border-token)]">
           {listedAppointments.length === 0 ? (
             <div className="px-5 py-10 text-center">
-              <ClipboardList className="mx-auto h-8 w-8 text-[#9CA3AF]" aria-hidden="true" />
-              <p className="mt-3 text-sm text-[#6B7280]">Aucun rendez-vous sur ce créneau.</p>
+              <ClipboardList className="mx-auto h-8 w-8 text-text-muted" aria-hidden="true" />
+              <p className="mt-3 text-sm text-text-3">Aucun rendez-vous sur ce créneau.</p>
             </div>
           ) : (
             listedAppointments.map((appointment) => {
@@ -142,24 +142,24 @@ export default async function CentreExamenPage({ searchParams }: CentreExamenPag
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-[#111827]">
+                      <p className="font-semibold text-text-1">
                         {appointment.eleve.nom} {appointment.eleve.prenom}
                       </p>
-                      <span className="rounded-full bg-[#F8F9FA] px-2 py-1 font-mono text-xs text-[#6B7280]">
+                      <span className="rounded-full bg-surface-1 px-2 py-1 font-mono text-xs text-text-3">
                         {appointment.eleve.matricule}
                       </span>
                       <StatusBadge tone={appointmentTone(appointment.statut)}>
                         {appointment.statut}
                       </StatusBadge>
                     </div>
-                    <div className="mt-3 grid gap-2 text-sm text-[#6B7280] sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="mt-3 grid gap-2 text-sm text-text-3 sm:grid-cols-2 xl:grid-cols-4">
                       <span className="inline-flex items-center gap-2">
-                        <ClipboardList className="h-4 w-4 text-[#52B788]" aria-hidden="true" />
+                        <ClipboardList className="h-4 w-4 text-obc-400" aria-hidden="true" />
                         {documentTitle}
                       </span>
                       <span>{appointment.document?.centreExamen ?? centre.nom}</span>
                       <span className="inline-flex items-center gap-2">
-                        <CalendarDays className="h-4 w-4 text-[#52B788]" aria-hidden="true" />
+                        <CalendarDays className="h-4 w-4 text-obc-400" aria-hidden="true" />
                         {appointment.dateRdv.toLocaleDateString("fr-FR")}
                       </span>
                       <span>{appointment.heureRdv}</span>

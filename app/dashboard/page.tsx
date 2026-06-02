@@ -74,7 +74,7 @@ export default async function DashboardPage() {
       title="Tableau de bord élève"
       subtitle={`Matricule ${user.matricule}`}
     >
-      <section className="rounded-2xl border border-[#E5E7EB] bg-[#1B4332] p-6 text-white shadow-sm">
+      <section className="rounded-lg border border-[var(--border-token)] bg-obc-800 p-6 text-white shadow-card">
         <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <p className="text-sm font-medium text-white/70">Bienvenue</p>
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
             </h2>
             <p className="mt-2 text-sm text-white/75">Matricule : {user.matricule}</p>
           </div>
-          <div className="rounded-2xl border border-white/15 bg-white/10 px-5 py-4">
+          <div className="rounded-lg border border-white/15 bg-white/10 px-5 py-4">
             <p className="text-xs uppercase tracking-wide text-white/60">Statut global</p>
             <p className="mt-2 text-lg font-semibold">{globalStatus}</p>
           </div>
@@ -98,18 +98,18 @@ export default async function DashboardPage() {
           return (
             <article
               key={item.type}
-              className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm"
+              className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card"
             >
               <div className="flex items-start justify-between gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#D8F3DC] text-[#1B4332]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-md bg-obc-100 text-obc-800">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <StatusBadge tone={document ? documentTone(document.statut) : "slate"}>
                   {document ? getStatusLabel(document.statut) : "Non disponible"}
                 </StatusBadge>
               </div>
-              <h3 className="mt-5 text-lg font-semibold text-[#111827]">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-[#6B7280]">
+              <h3 className="mt-5 text-lg font-semibold text-text-1">{item.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-text-3">
                 {document ? getDocumentTitle(document) : "Aucun document rattaché pour le moment."}
               </p>
             </article>
@@ -118,21 +118,21 @@ export default async function DashboardPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+        <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
           <div className="flex items-center gap-3">
-            <CalendarDays className="h-5 w-5 text-[#1B4332]" aria-hidden="true" />
-            <h2 className="font-semibold text-[#111827]">Prochain rendez-vous</h2>
+            <CalendarDays className="h-5 w-5 text-obc-800" aria-hidden="true" />
+            <h2 className="font-semibold text-text-1">Prochain rendez-vous</h2>
           </div>
           {nextRendezVous ? (
-            <div className="mt-5 rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] p-4">
+            <div className="mt-5 rounded-lg border border-[var(--border-token)] bg-surface-1 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="font-semibold text-[#111827]">
+                  <p className="font-semibold text-text-1">
                     {nextRendezVous.document
                       ? getDocumentTitle(nextRendezVous.document)
                       : "Document académique"}
                   </p>
-                  <p className="mt-2 text-sm text-[#6B7280]">
+                  <p className="mt-2 text-sm text-text-3">
                     {nextRendezVous.dateRdv.toLocaleDateString("fr-FR")} à {nextRendezVous.heureRdv}{" "}
                     · {nextRendezVous.lieu}
                   </p>
@@ -141,30 +141,30 @@ export default async function DashboardPage() {
                   <StatusBadge tone={appointmentTone(nextRendezVous.statut)}>
                     {nextRendezVous.statut}
                   </StatusBadge>
-                  <p className="mt-2 text-sm font-semibold text-[#1B4332]">
+                  <p className="mt-2 text-sm font-semibold text-obc-800">
                     {getCountdownLabel(nextRendezVous.dateRdv)}
                   </p>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="mt-5 rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] p-4 text-sm text-[#6B7280]">
+            <p className="mt-5 rounded-lg border border-[var(--border-token)] bg-surface-1 p-4 text-sm text-text-3">
               Aucun rendez-vous actif.
             </p>
           )}
         </section>
 
-        <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+        <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
           <div className="flex items-center gap-3">
-            <Bell className="h-5 w-5 text-[#1B4332]" aria-hidden="true" />
-            <h2 className="font-semibold text-[#111827]">Notifications récentes</h2>
+            <Bell className="h-5 w-5 text-obc-800" aria-hidden="true" />
+            <h2 className="font-semibold text-text-1">Notifications récentes</h2>
           </div>
-          <div className="mt-5 divide-y divide-[#E5E7EB]">
+          <div className="mt-5 divide-y divide-[var(--border-token)]">
             {notifications.length === 0 ? (
-              <p className="py-3 text-sm text-[#6B7280]">Aucune notification récente.</p>
+              <p className="py-3 text-sm text-text-3">Aucune notification récente.</p>
             ) : (
               notifications.map((notification) => (
-                <p key={notification.id} className="py-3 text-sm leading-6 text-[#4B5563]">
+                <p key={notification.id} className="py-3 text-sm leading-6 text-text-2">
                   {notification.message}
                 </p>
               ))
@@ -173,8 +173,8 @@ export default async function DashboardPage() {
         </section>
       </div>
 
-      <section className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
-        <h2 className="font-semibold text-[#111827]">Actions rapides</h2>
+      <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
+        <h2 className="font-semibold text-text-1">Actions rapides</h2>
         <div className="mt-4 flex flex-wrap gap-3">
           <Button asChild variant="outline">
             <Link href="/dashboard/documents">Demander un relevé</Link>

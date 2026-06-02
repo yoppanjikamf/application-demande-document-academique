@@ -5,6 +5,35 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        obc: {
+          50: "var(--obc-50)",
+          100: "var(--obc-100)",
+          200: "var(--obc-200)",
+          300: "var(--obc-300)",
+          400: "var(--obc-400)",
+          500: "var(--obc-500)",
+          600: "var(--obc-600)",
+          700: "var(--obc-700)",
+          800: "var(--obc-800)",
+          900: "var(--obc-900)",
+        },
+        gold: {
+          100: "var(--gold-100)",
+          300: "var(--gold-300)",
+          400: "var(--gold-400)",
+          500: "var(--gold-500)",
+        },
+        surface: {
+          0: "var(--surface-0)",
+          1: "var(--surface-1)",
+          2: "var(--surface-2)",
+        },
+        text: {
+          1: "var(--text-1)",
+          2: "var(--text-2)",
+          3: "var(--text-3)",
+          muted: "var(--text-muted)",
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -40,9 +69,20 @@ module.exports = {
         ring: "hsl(var(--ring))",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        sm: "var(--radius-sm)",
+        md: "var(--radius-md)",
+        lg: "var(--radius-lg)",
+        xl: "var(--radius-xl)",
+        "2xl": "var(--radius-xl)",
+      },
+      boxShadow: {
+        card: "var(--shadow-card)",
+        hover: "var(--shadow-hover)",
+        modal: "var(--shadow-modal)",
+      },
+      fontFamily: {
+        display: ["var(--font-display)", "Georgia", "serif"],
+        sans: ["var(--font-body)", "system-ui", "sans-serif"],
       },
     },
   },

@@ -65,8 +65,8 @@ export function DashboardHeader({
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
-      <div className="flex min-h-16 flex-wrap items-center gap-4 px-4 py-3 lg:px-6">
+    <header className="sticky top-0 z-30 border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md">
+      <div className="flex min-h-16 flex-wrap items-center gap-4 px-4 py-3 lg:px-8">
         <Button
           type="button"
           variant="outline"
@@ -80,7 +80,7 @@ export function DashboardHeader({
 
         <div className="min-w-0 flex-1">
           <nav
-            className="mb-1 flex items-center gap-1 text-xs font-medium text-[#6B7280]"
+            className="mb-1 flex items-center gap-1 text-xs font-semibold text-text-3"
             aria-label="Fil d'Ariane"
           >
             <span>{areaLabel}</span>
@@ -91,12 +91,12 @@ export function DashboardHeader({
               </span>
             ))}
           </nav>
-          <h1 className="text-xl font-semibold tracking-normal text-[#111827] sm:text-2xl">
+          <h1 className="font-display text-2xl leading-tight text-text-1 sm:text-3xl">
             {title}
           </h1>
-          <p className="mt-1 text-sm text-[#6B7280]">{subtitle}</p>
+          <p className="mt-1 text-sm text-text-3">{subtitle}</p>
           {scopeLabel ? (
-            <p className="mt-2 inline-flex rounded-full border border-[#B7E4C7] bg-[#D8F3DC] px-3 py-1 text-xs font-medium text-[#1B4332]">
+            <p className="mt-2 inline-flex rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-obc-800 ring-1 ring-gold-300">
               Périmètre: {scopeLabel}
             </p>
           ) : null}
@@ -105,16 +105,16 @@ export function DashboardHeader({
         {role === "ADMINISTRATEUR" ? (
           <form
             onSubmit={handleAdminSearch}
-            className="hidden min-w-[320px] items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] px-3 py-2 text-sm text-[#6B7280] xl:flex"
+            className="hidden min-w-[320px] items-center gap-2 rounded-full border border-[var(--border-token)] bg-surface-1 px-4 py-2 text-sm text-text-3 xl:flex"
           >
             <Search className="h-4 w-4" aria-hidden="true" />
             <input
               name="q"
               type="search"
               placeholder="Rechercher matricule, nom, prénom"
-              className="min-w-0 flex-1 bg-transparent text-[#111827] outline-none placeholder:text-[#9CA3AF]"
+              className="min-w-0 flex-1 bg-transparent text-text-1 outline-none placeholder:text-text-muted"
             />
-            <button type="submit" className="text-xs font-semibold text-[#1B4332]">
+            <button type="submit" className="text-xs font-bold text-obc-700">
               Rechercher
             </button>
           </form>
@@ -127,12 +127,12 @@ export function DashboardHeader({
           className="relative hidden sm:inline-flex"
         >
           <Bell className="h-4 w-4" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#DC2626]" />
+          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--status-cancelled)]" />
           <span className="sr-only">Notifications</span>
         </Button>
 
         <div className="hidden items-center gap-3 md:flex">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1B4332] text-sm font-semibold text-white">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-obc-800 text-sm font-bold text-white ring-2 ring-gold-300/70">
             {(userName ?? "OBC/DECC")
               .split(" ")
               .filter(Boolean)
@@ -141,14 +141,8 @@ export function DashboardHeader({
               .join("")
               .toUpperCase()}
           </div>
-          <div className="max-w-36 truncate text-sm font-medium text-[#111827]">{userName}</div>
+          <div className="max-w-36 truncate text-sm font-semibold text-text-1">{userName}</div>
         </div>
-
-        <form action="/logout" method="post">
-          <Button type="submit" variant="outline">
-            Déconnexion
-          </Button>
-        </form>
       </div>
     </header>
   );

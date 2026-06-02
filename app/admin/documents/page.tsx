@@ -96,8 +96,8 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
       title="Documents scolaires"
       subtitle="Verification physique, changement de statut et suivi des rendez-vous des documents scolaires."
     >
-      <form className="rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
-        <label htmlFor="admin-document-search" className="text-sm font-medium text-[#111827]">
+      <form className="rounded-md border border-[var(--border-token)] bg-surface-0 p-4 shadow-card">
+        <label htmlFor="admin-document-search" className="text-sm font-medium text-text-1">
           Recherche par élève
         </label>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row">
@@ -129,8 +129,8 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
-        <div className="grid grid-cols-[1fr_auto] border-b border-[#E5E7EB] bg-[#F8F9FA] px-4 py-3 text-sm font-medium text-[#6B7280]">
+      <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
+        <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-4 py-3 text-sm font-medium text-text-3">
           <span>Demande</span>
           <span>Statut</span>
         </div>
@@ -139,21 +139,21 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-lg font-semibold text-[#111827]">
+                  <p className="text-lg font-semibold text-text-1">
                     {getDocumentTitle(document)}
                   </p>
                   <StatusBadge tone={documentTone(document.statut)}>
                     {getStatusLabel(document.statut)}
                   </StatusBadge>
                 </div>
-                <p className="text-sm text-[#6B7280]">
+                <p className="text-sm text-text-3">
                   {document.eleve.prenom} {document.eleve.nom} · {document.eleve.matricule}
                 </p>
-                <p className="text-sm text-[#6B7280]">
+                <p className="text-sm text-text-3">
                   {document.organisme?.nom ?? "Organisme non defini"}
                   {document.antenneRegionale ? ` · ${document.antenneRegionale.nom}` : ""}
                 </p>
-                <p className="text-sm text-[#6B7280]">
+                <p className="text-sm text-text-3">
                   {document.rendezVous[0]
                     ? `RDV: ${document.rendezVous[0].dateRdv.toLocaleDateString("fr-FR")} ${document.rendezVous[0].heureRdv}`
                     : "Aucun rendez-vous actif"}
@@ -167,7 +167,7 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
                 <select
                   name="statut"
                   defaultValue={document.statut}
-                  className="h-9 rounded-xl border bg-background px-3 text-sm"
+                  className="h-9 rounded-md border bg-background px-3 text-sm"
                 >
                   {STATUSES.map((item) => (
                     <option key={item} value={item}>

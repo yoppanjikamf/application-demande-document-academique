@@ -21,12 +21,12 @@ export type StatusValue =
   | "LUE";
 
 const tones: Record<BadgeTone, string> = {
-  slate: "bg-[#F8F9FA] text-[#4B5563] ring-[#E5E7EB]",
-  blue: "bg-[#E3F2FD] text-[#1565C0] ring-[#BBDEFB]",
-  green: "bg-[#DCFCE7] text-[#16A34A] ring-[#BBF7D0]",
-  orange: "bg-[#FEF3C7] text-[#B45309] ring-[#FDE68A]",
-  amber: "bg-[#FEF3C7] text-[#B45309] ring-[#FDE68A]",
-  red: "bg-[#FEE2E2] text-[#DC2626] ring-[#FECACA]",
+  slate: "bg-surface-2 text-text-2 ring-[var(--border-token)]",
+  blue: "bg-blue-50 text-blue-700 ring-blue-200",
+  green: "bg-obc-50 text-[var(--status-available)] ring-obc-200",
+  orange: "bg-gold-100 text-[var(--status-pending)] ring-gold-300",
+  amber: "bg-gold-100 text-[var(--status-pending)] ring-gold-300",
+  red: "bg-red-50 text-[var(--status-cancelled)] ring-red-200",
 };
 
 const statusLabels: Partial<Record<StatusValue, string>> = {
@@ -92,7 +92,7 @@ export function StatusBadge(props: {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset",
         tones[resolvedTone],
         className,
       )}

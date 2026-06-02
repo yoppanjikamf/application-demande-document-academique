@@ -27,7 +27,7 @@ export function DashboardShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#F8F9FA]">
+    <div className="min-h-screen bg-surface-1 text-text-1">
       <div className="flex min-h-screen">
         <DashboardSidebar
           role={role}
@@ -47,8 +47,8 @@ export function DashboardShell({
             scopeLabel={scopeLabel}
             activePath={activePath}
           />
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-6">
-            <div className="space-y-6">{children}</div>
+          <main className="min-h-[calc(100vh-64px)] flex-1 bg-surface-1 px-4 py-5 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl space-y-6">{children}</div>
           </main>
         </div>
       </div>

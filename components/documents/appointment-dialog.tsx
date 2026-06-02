@@ -221,7 +221,7 @@ export function AppointmentDialog({
                     key={key}
                     type="button"
                     onClick={() => setDate(key)}
-                    className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
+                    className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
                       isSelected ? "border-foreground bg-accent" : "border-border hover:bg-accent"
                     }`}
                   >
@@ -256,7 +256,7 @@ export function AppointmentDialog({
                   type="button"
                   disabled={slot.disabled}
                   onClick={() => setSelectedSlot(slot.value)}
-                  className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors disabled:opacity-50 ${
+                  className={`rounded-md border px-3 py-2 text-left text-sm transition-colors disabled:opacity-50 ${
                     selectedSlot === slot.value ? "border-foreground bg-accent" : "border-border"
                   }`}
                 >

@@ -1,14 +1,18 @@
 import {
+  BarChart3,
   CalendarDays,
+  CalendarCheck,
   ClipboardCheck,
+  Clock,
   CreditCard,
+  Bell,
   FileText,
-  FolderCheck,
-  Home,
-  Import,
+  FolderOpen,
+  HelpCircle,
+  Receipt,
+  Shield,
+  Upload,
   LayoutDashboard,
-  MessageSquareText,
-  ScrollText,
   UsersRound,
   UserRound,
 } from "lucide-react";
@@ -29,56 +33,80 @@ export type NavSection = {
 
 const obcAdminSections: NavSection[] = [
   {
-    label: "Administration",
+    label: "Navigation",
     items: [
-      { title: "Vue d'ensemble", url: "/admin", icon: LayoutDashboard },
-      { title: "Élèves", url: "/admin/students", icon: UsersRound },
-      { title: "Documents scolaires", url: "/admin/documents", icon: FolderCheck },
-      { title: "Planning", url: "/admin/appointments", icon: CalendarDays },
+      { title: "Tableau de bord Admin", url: "/admin", icon: BarChart3 },
+      { title: "Documents", url: "/admin/documents", icon: FileText },
+      { title: "Étudiants", url: "/admin/students", icon: UsersRound },
       { title: "Paiements", url: "/admin/payments", icon: CreditCard },
-      { title: "Audit logs", url: "/admin/audit-logs", icon: ScrollText },
-      { title: "Disponibilités", url: "/admin/rdv-disponibilites", icon: CalendarDays },
-      { title: "Import CSV", url: "/admin/import", icon: Import },
-      { title: "Compte", url: "/account", icon: UserRound },
+      { title: "Rendez-vous", url: "/admin/appointments", icon: CalendarCheck },
+      { title: "Disponibilités", url: "/admin/rdv-disponibilites", icon: Clock },
+      { title: "Import CSV", url: "/admin/import", icon: Upload },
+      { title: "Journaux d'audit", url: "/admin/audit-logs", icon: Shield },
+    ],
+  },
+  {
+    label: "Compte",
+    items: [
+      { title: "Mon Compte", url: "/account", icon: UserRound },
+      { title: "Aide", url: "/", icon: HelpCircle },
     ],
   },
 ];
 
 const deccAdminSections: NavSection[] = [
   {
-    label: "Administration DECC",
+    label: "Navigation",
     items: [
-      { title: "Vue d'ensemble", url: "/admin", icon: LayoutDashboard },
-      { title: "Élèves", url: "/admin/students", icon: UsersRound },
-      { title: "Documents scolaires BEPC", url: "/admin/documents", icon: FolderCheck },
+      { title: "Tableau de bord Admin", url: "/admin", icon: BarChart3 },
+      { title: "Documents", url: "/admin/documents", icon: FileText },
+      { title: "Étudiants", url: "/admin/students", icon: UsersRound },
       { title: "Paiements", url: "/admin/payments", icon: CreditCard },
-      { title: "Audit logs", url: "/admin/audit-logs", icon: ScrollText },
-      { title: "Import CSV", url: "/admin/import", icon: Import },
-      { title: "Compte", url: "/account", icon: UserRound },
+      { title: "Import CSV", url: "/admin/import", icon: Upload },
+      { title: "Journaux d'audit", url: "/admin/audit-logs", icon: Shield },
+    ],
+  },
+  {
+    label: "Compte",
+    items: [
+      { title: "Mon Compte", url: "/account", icon: UserRound },
+      { title: "Aide", url: "/", icon: HelpCircle },
     ],
   },
 ];
 
 const eleveSections: NavSection[] = [
   {
-    label: "Espace élève",
+    label: "Navigation",
     items: [
-      { title: "Accueil", url: "/dashboard", icon: Home },
-      { title: "Mes documents scolaires", url: "/dashboard/documents", icon: FileText },
-      { title: "Rendez-vous", url: "/dashboard/rendez-vous", icon: CalendarDays },
-      { title: "Paiements", url: "/dashboard/payments", icon: CreditCard },
-      { title: "Notifications", url: "/dashboard/notifications", icon: MessageSquareText },
-      { title: "Compte", url: "/account", icon: UserRound },
+      { title: "Tableau de bord", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Mes Documents", url: "/dashboard/documents", icon: FolderOpen },
+      { title: "Mes Rendez-vous", url: "/dashboard/rendez-vous", icon: CalendarDays },
+      { title: "Paiements", url: "/dashboard/payments", icon: Receipt },
+      { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
+    ],
+  },
+  {
+    label: "Compte",
+    items: [
+      { title: "Mon Compte", url: "/account", icon: UserRound },
+      { title: "Aide", url: "/", icon: HelpCircle },
     ],
   },
 ];
 
 const agentCentreSections: NavSection[] = [
   {
-    label: "Centre d'examen",
+    label: "Navigation",
     items: [
-      { title: "Rendez-vous", url: "/centre-examen", icon: ClipboardCheck },
-      { title: "Compte", url: "/account", icon: UserRound },
+      { title: "Retraits du jour", url: "/centre-examen", icon: ClipboardCheck },
+    ],
+  },
+  {
+    label: "Compte",
+    items: [
+      { title: "Mon Compte", url: "/account", icon: UserRound },
+      { title: "Aide", url: "/", icon: HelpCircle },
     ],
   },
 ];

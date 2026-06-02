@@ -29,7 +29,7 @@ export default async function AccountPage() {
       title="Compte"
       subtitle="Coordonnees et informations personnelles du profil connecte."
     >
-      <div className="max-w-2xl rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="max-w-2xl rounded-md border border-slate-200 bg-surface-0 p-6 shadow-card">
         <ProfileForm
           role={user.role}
           email={user.email}

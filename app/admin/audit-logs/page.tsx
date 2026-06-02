@@ -123,16 +123,16 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
         />
       </form>
 
-      <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
-        <div className="grid grid-cols-[1fr_auto] border-b border-[#E5E7EB] bg-[#F8F9FA] px-5 py-3 text-sm font-medium text-[#6B7280]">
+      <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
+        <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3">
           <span>Action</span>
           <span>Date</span>
         </div>
         <div className="divide-y divide-[#E8EEF6]">
           {logs.length === 0 ? (
             <div className="px-5 py-10 text-center">
-              <ScrollText className="mx-auto h-8 w-8 text-[#9CA3AF]" />
-              <p className="mt-3 text-sm text-[#6B7280]">Aucun journal trouvé.</p>
+              <ScrollText className="mx-auto h-8 w-8 text-text-muted" />
+              <p className="mt-3 text-sm text-text-3">Aucun journal trouvé.</p>
             </div>
           ) : (
             logs.map((log) => {
@@ -142,27 +142,27 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
                 <div key={log.id} className="grid gap-4 px-5 py-4 lg:grid-cols-[1fr_auto]">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-[#111827]">{log.action}</p>
+                      <p className="font-medium text-text-1">{log.action}</p>
                       <StatusBadge>{log.resource}</StatusBadge>
                     </div>
-                    <p className="mt-1 text-sm text-[#6B7280]">
+                    <p className="mt-1 text-sm text-text-3">
                       Ressource {log.resourceId}
                       {log.user
                         ? ` · ${log.user.prenom} ${log.user.nom} · ${log.user.matricule}`
                         : " · Utilisateur système"}
                     </p>
                     {details ? (
-                      <details className="mt-3 text-sm text-[#6B7280]">
-                        <summary className="cursor-pointer font-medium text-[#111827]">
+                      <details className="mt-3 text-sm text-text-3">
+                        <summary className="cursor-pointer font-medium text-text-1">
                           Détails
                         </summary>
-                        <pre className="mt-2 max-h-64 overflow-auto rounded-xl bg-[#1B4332] p-3 text-xs text-white/90">
+                        <pre className="mt-2 max-h-64 overflow-auto rounded-md bg-obc-800 p-3 text-xs text-white/90">
                           {details}
                         </pre>
                       </details>
                     ) : null}
                   </div>
-                  <p className="text-sm text-[#6B7280]">{log.createdAt.toLocaleString("fr-FR")}</p>
+                  <p className="text-sm text-text-3">{log.createdAt.toLocaleString("fr-FR")}</p>
                 </div>
               );
             })

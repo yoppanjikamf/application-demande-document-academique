@@ -47,10 +47,10 @@ export default async function NotificationsPage() {
       title="Notifications"
       subtitle="Messages de disponibilité, confirmations et rappels liés à vos documents scolaires."
     >
-      <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
+      <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
         <div className="divide-y divide-[#E8EEF6]">
           {notifications.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-[#6B7280]">Aucune notification.</p>
+            <p className="px-5 py-6 text-sm text-text-3">Aucune notification.</p>
           ) : (
             notifications.map((notification) => {
               const canScheduleAppointment =
@@ -64,11 +64,11 @@ export default async function NotificationsPage() {
                     <StatusBadge tone={notification.statut === "LUE" ? "blue" : "amber"}>
                       {notification.typeNotification}
                     </StatusBadge>
-                    <span className="text-sm text-[#6B7280]">
+                    <span className="text-sm text-text-3">
                       {notification.dateEnvoi.toLocaleDateString("fr-FR")}
                     </span>
                   </div>
-                  <p className="mt-3 whitespace-pre-line text-sm leading-6 text-[#6B7280]">
+                  <p className="mt-3 whitespace-pre-line text-sm leading-6 text-text-3">
                     {notification.message}
                   </p>
                   {canScheduleAppointment ? (

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 
 import { getCurrentUser, getHomePathForRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { DocScolLogo } from "@/components/ui/DocScolLogo";
 
 export async function NavBar() {
   const cookieStore = await cookies();
@@ -15,18 +16,10 @@ export async function NavBar() {
     : null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.9)] backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
-        <Link href="/" className="flex items-center gap-3 text-[#111827]">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1B4332] text-sm font-bold text-white shadow-sm">
-            OD
-          </span>
-          <span className="leading-tight">
-            <span className="block text-base font-semibold text-[#1B4332]">OBC/DECC</span>
-            <span className="hidden text-xs text-[#6B7280] md:block">
-              Portail des documents académiques
-            </span>
-          </span>
+        <Link href="/" className="flex items-center gap-3 text-text-1">
+          <DocScolLogo variant="full" theme="light" />
         </Link>
 
         <nav className="flex items-center gap-2">
