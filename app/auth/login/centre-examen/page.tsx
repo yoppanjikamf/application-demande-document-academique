@@ -6,6 +6,7 @@ import { LoginForm } from "@/components/auth/login-form";
 export default function AgentCentreExamenLoginPage() {
   return (
     <AuthShell
+      portal="agent"
       title="Connexion agent centre"
       description="Accès réservé aux agents qui confirment les retraits physiques."
     >

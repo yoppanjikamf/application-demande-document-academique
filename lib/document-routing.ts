@@ -213,11 +213,10 @@ export function resolveDocumentRoute(document: RoutableDocument): DocumentRoute 
   const centrePickupLocation =
     regionalCentre?.nom ??
     (document.centreExamen?.trim() || `Centre d'examen ${region}`);
-  const isBacDiplome =
-    document.diplomeType === "BACCALAUREAT" && document.typeDocument === "ORIGINAL";
-  const isBepcDuplicata = document.diplomeType === "BEPC" && document.typeDocument === "DUPLICATA";
-  const pickupType: PickupType =
-    isBacDiplome || isBepcDuplicata ? "ANTENNE_REGIONALE" : "CENTRE_EXAMEN";
+  const isAntennePickup =
+    document.typeDocument === "DUPLICATA" ||
+    (document.diplomeType === "BACCALAUREAT" && document.typeDocument === "ORIGINAL");
+  const pickupType: PickupType = isAntennePickup ? "ANTENNE_REGIONALE" : "CENTRE_EXAMEN";
   const antenne = getAntenneForRegion(region, organismeName);
   const antennaLocation = antenne
     ? `${antenne.nom}${antenne.ville ? ` - ${antenne.ville}` : ""}`
@@ -229,7 +228,7 @@ export function resolveDocumentRoute(document: RoutableDocument): DocumentRoute 
     antenneRegionaleId: antenne?.id ?? null,
     pickupType,
     location: pickupType === "ANTENNE_REGIONALE" ? antennaLocation : centrePickupLocation,
-    requiresAppointment: document.typeDocument !== "DUPLICATA",
+    requiresAppointment: true,
   };
 }
 

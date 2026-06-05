@@ -72,18 +72,20 @@ export function DashboardHeader({
 
         <div className="min-w-0 flex-1">
           <nav
-            className="mb-1 flex items-center gap-1 text-xs font-semibold text-text-3"
+            className="mb-1 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs font-semibold text-text-3"
             aria-label="Fil d'Ariane"
           >
             <span>{areaLabel}</span>
             {breadcrumbItems.map((item) => (
               <span key={item} className="inline-flex items-center gap-1">
-                <ChevronRight className="h-3 w-3" aria-hidden="true" />
+                <ChevronRight className="h-3 w-3 shrink-0" aria-hidden="true" />
                 <span>{item}</span>
               </span>
             ))}
           </nav>
-          <h1 className="font-display text-2xl leading-tight text-text-1 sm:text-3xl">{title}</h1>
+          <h1 className="font-display text-xl leading-tight text-text-1 sm:text-2xl lg:text-3xl">
+            {title}
+          </h1>
           <p className="mt-1 text-sm text-text-3">{subtitle}</p>
           {scopeLabel ? (
             <p className="mt-2 inline-flex rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-obc-800 ring-1 ring-gold-300">
@@ -93,7 +95,7 @@ export function DashboardHeader({
         </div>
 
         {role === "ELEVE" ? (
-          <Button asChild variant="outline" size="icon" className="relative hidden sm:inline-flex">
+          <Button asChild variant="outline" size="icon" className="relative ml-auto inline-flex sm:ml-0">
             <Link href="/dashboard/notifications">
               <Bell className="h-4 w-4" />
               {unreadNotificationCount > 0 ? (

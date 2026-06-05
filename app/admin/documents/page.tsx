@@ -9,7 +9,11 @@ import {
 import type { StatutDocument } from "@/lib/generated/prisma/client";
 import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope, getAdminScopeLabel } from "@/lib/document-routing";
+import {
+  getAdminDocumentScope,
+  getAdminScopeLabel,
+  resolveDocumentRoute,
+} from "@/lib/document-routing";
 import { createDuplicataSignedUrl, DUPLICATA_REQUIRED_PIECES } from "@/lib/duplicata-storage";
 import { parseDuplicataInstruction } from "@/lib/duplicata-service";
 import { prisma } from "@/lib/prisma";
@@ -157,7 +161,7 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
       scopeLabel={scopeLabel}
       activePath="/admin/documents"
       title="Documents scolaires"
-      subtitle="Verification physique, changement de statut et suivi des rendez-vous des documents scolaires."
+      subtitle="Vérification physique, mise à jour des statuts et suivi des rendez-vous des documents scolaires."
     >
       <form className="rounded-md border border-[var(--border-token)] bg-surface-0 p-4 shadow-card">
         <label htmlFor="admin-document-search" className="text-sm font-medium text-text-1">
@@ -230,7 +234,12 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
                   defaultValue={document.statut}
                   className="h-9 rounded-md border bg-background px-3 text-sm"
                 >
-                  {STATUSES.map((item) => (
+                  {STATUSES.filter(
+                    (item) =>
+                      item !== "RETIRE" ||
+                      document.statut === "RETIRE" ||
+                      resolveDocumentRoute(document).pickupType === "ANTENNE_REGIONALE",
+                  ).map((item) => (
                     <option key={item} value={item}>
                       {getStatusLabel(item)}
                     </option>

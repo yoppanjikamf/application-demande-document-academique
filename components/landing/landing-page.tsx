@@ -6,12 +6,9 @@ import {
   ArrowRight,
   Bell,
   Building2,
-  CalendarCheck,
   CheckCircle2,
   ChevronDown,
-  ClipboardCheck,
   Clock3,
-  FileCheck2,
   GraduationCap,
   MapPin,
   ShieldCheck,
@@ -26,104 +23,137 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ActivationSteps, type ActivationStep } from "@/components/landing/activation-steps";
 import { DocScolLogo } from "@/components/ui/DocScolLogo";
+import { MarqueeCarousel } from "@/components/ui/marquee-carousel";
 import { Reveal } from "@/components/ui/reveal";
 import { landingTestimonials } from "@/content/landing-testimonials";
 import { cn } from "@/lib/utils";
 
-const features = [
+type PortalAccent = "eleve" | "admin" | "agent";
+
+const portalAccentClasses: Record<
+  PortalAccent,
+  { icon: string; ring: string }
+> = {
+  eleve: { icon: "bg-edu-600 text-white", ring: "hover:border-edu-300" },
+  admin: { icon: "bg-obc-800 text-white", ring: "hover:border-obc-300" },
+  agent: { icon: "bg-gold-500 text-white", ring: "hover:border-gold-300" },
+};
+
+const features: Array<{ image: string; title: string; description: string }> = [
   {
-    icon: FileCheck2,
-    title: "Suivi clair de vos documents",
+    image: "/images/photos/documents.jpg",
+    title: "Le statut de vos documents en temps réel",
     description:
-      "Consultez l'état de chaque demande — en attente, disponible ou retiré — depuis un seul espace personnel.",
+      "Suivez chaque demande — en attente, disponible ou retirée — sans relancer personne, depuis votre espace personnel.",
   },
   {
-    icon: CalendarCheck,
-    title: "Rendez-vous en ligne",
+    image: "/images/photos/rendez-vous.jpg",
+    title: "Le retrait sur rendez-vous",
     description:
-      "Réservez votre créneau de retrait au centre d'examen ou à l'antenne régionale, selon votre document.",
+      "Réservez votre créneau au centre d'examen ou à l'antenne régionale compétente, et présentez-vous sans faire la queue.",
   },
   {
-    icon: Bell,
-    title: "Notifications utiles",
+    image: "/images/photos/notifications.png",
+    title: "Des notifications au bon moment",
     description:
-      "Soyez informé dès qu'un document est disponible, qu'un rendez-vous approche ou qu'une action est attendue.",
+      "Soyez prévenu dès qu'un document est prêt, qu'un rendez-vous approche ou qu'une action vous attend.",
   },
   {
-    icon: ShieldCheck,
-    title: "Parcours sécurisé",
+    image: "/images/photos/securite.png",
+    title: "Un accès strictement sécurisé",
     description:
-      "Activation du compte par matricule, accès personnalisé et traçabilité des démarches pour chaque élève.",
+      "Activation par matricule, accès personnel et traçabilité complète : chaque démarche reste protégée et vérifiable.",
   },
   {
-    icon: Building2,
-    title: "OBC & DECC réunis",
+    image: "/images/photos/graduation.jpg",
+    title: "L'OBC et la DECC réunis",
     description:
-      "Un portail unique pour les organismes officiels : gestion des dossiers, disponibilités et retraits encadrés.",
+      "Un seul portail pour les deux organismes officiels : dossiers, disponibilités et retraits gérés dans les règles.",
   },
   {
-    icon: ClipboardCheck,
-    title: "Retrait confirmé sur place",
+    image: "/images/photos/retrait.png",
+    title: "Un retrait confirmé sur place",
     description:
-      "Les agents de centre valident le retrait physique ; les administrations gardent la visibilité sur les dossiers.",
+      "L'agent du centre valide chaque retrait physique ; l'administration garde la visibilité sur tous les dossiers.",
   },
 ];
 
 const whyChoose = [
-  "Moins de déplacements inutiles : vous savez quand et où retirer votre document.",
-  "Moins d'incertitude : le statut de votre demande est visible à tout moment.",
-  "Moins de files d'attente mal organisées : les créneaux structurent l'accueil.",
-  "Une expérience adaptée aux règles officielles BEPC, Probatoire et Baccalauréat.",
+  "Moins de déplacements inutiles : vous savez exactement quand et où retirer votre document.",
+  "Plus aucune incertitude : le statut de votre demande reste visible à tout moment.",
+  "Moins d'attente au guichet : les créneaux organisent l'accueil tout au long de la journée.",
+  "Un parcours conforme aux règles officielles du BEPC, du Probatoire et du Baccalauréat.",
 ];
 
-const steps = [
+const steps: ActivationStep[] = [
   {
     title: "Activez votre compte",
-    text: "Avec votre matricule et votre adresse e-mail déjà enregistrés par l'administration.",
+    text: "Avec votre matricule et l'adresse e-mail déjà connus de l'administration — en quelques minutes.",
+    image: "/images/landing/step-activation.png",
   },
   {
     title: "Soumettez votre demande",
-    text: "Relevé, diplôme original ou duplicata selon votre situation et les règles de votre organisme.",
+    text: "Relevé, diplôme original ou duplicata : choisissez le document adapté à votre situation, selon les règles de votre organisme.",
+    image: "/images/landing/step-demande.png",
   },
   {
     title: "Suivez et payez si besoin",
-    text: "Notifications à chaque étape ; paiement en ligne pour les duplicatas concernés.",
+    text: "Suivez l'avancement à chaque étape et réglez en ligne, en toute sécurité, les duplicatas concernés.",
+    image: "/images/landing/step-suivi-paiement.png",
   },
   {
     title: "Retirez sur rendez-vous",
-    text: "Choisissez un créneau au centre d'examen ou à l'antenne régionale compétente.",
+    text: "Réservez un créneau au centre d'examen ou à l'antenne régionale, et repartez avec votre document.",
+    image: "/images/landing/step-retrait.png",
   },
 ];
 
-const portals = [
+const portals: Array<{
+  title: string;
+  text: string;
+  href: string;
+  cta: string;
+  icon: typeof GraduationCap;
+  accent: PortalAccent;
+  image: string;
+}> = [
   {
     title: "Espace élève",
-    text: "Documents, rendez-vous, notifications et reçus de paiement.",
+    text: "Vos documents, rendez-vous, notifications et reçus, réunis en un seul espace.",
     href: "/auth/register",
     cta: "Activer mon compte",
     icon: GraduationCap,
+    accent: "eleve",
+    image: "/images/photos/portal-eleve.png",
   },
   {
     title: "Administration OBC",
-    text: "Baccalauréat, Probatoire et relevés selon votre antenne régionale.",
+    text: "Baccalauréat, Probatoire et relevés, gérés selon votre antenne régionale.",
     href: "/auth/login/obc",
     cta: "Connexion OBC",
     icon: ShieldCheck,
+    accent: "admin",
+    image: "/images/photos/portal-obc.png",
   },
   {
     title: "Administration DECC",
-    text: "BEPC et dossiers DECC selon votre antenne régionale.",
+    text: "BEPC et dossiers d'État, gérés selon votre antenne régionale.",
     href: "/auth/login/decc",
     cta: "Connexion DECC",
     icon: Building2,
+    accent: "admin",
+    image: "/images/photos/portal-decc.png",
   },
   {
     title: "Centre d'examen",
-    text: "Confirmation des retraits effectués sur place.",
+    text: "Confirmez en un geste les retraits effectués sur place.",
     href: "/auth/login/centre-examen",
     cta: "Accès agent",
     icon: MapPin,
+    accent: "agent",
+    image: "/images/photos/portal-centre.png",
   },
 ];
 
@@ -192,6 +222,21 @@ function ProductMockup() {
           </div>
         </div>
         <CardContent className="space-y-3 p-4">
+          <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-edu-800 via-edu-700 to-edu-600 p-3 text-white">
+            <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-edu-400/25 blur-2xl" />
+            <div className="relative flex items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-white/20 bg-white/10">
+                <GraduationCap className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">
+                  Bienvenue
+                </p>
+                <p className="text-sm font-bold leading-tight">Awa Njoya</p>
+                <p className="text-[11px] text-white/75">Matricule : OBC-2024-0157</p>
+              </div>
+            </div>
+          </div>
           <div className="rounded-lg border border-[var(--border-token)] bg-surface-1 p-3">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold text-text-1">Relevé — Baccalauréat</p>
@@ -232,8 +277,20 @@ export function LandingPage() {
         id="accueil"
         className="relative overflow-hidden bg-obc-900 text-white"
       >
+        <Image
+          src="/images/landing/hero-graduation.png"
+          alt="Diplômés célébrant l'obtention de leurs documents scolaires"
+          fill
+          priority
+          sizes="100vw"
+          className="absolute inset-0 h-full w-full object-cover object-right"
+        />
         <div
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(240,192,64,0.18),_transparent_50%),radial-gradient(ellipse_at_bottom_left,_rgba(82,183,136,0.2),_transparent_55%)]"
+          className="absolute inset-0 bg-gradient-to-r from-obc-900 via-obc-900/90 to-obc-900/45"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(245,158,11,0.16),_transparent_50%),radial-gradient(ellipse_at_bottom_left,_rgba(59,130,246,0.18),_transparent_55%)]"
           aria-hidden="true"
         />
         <div
@@ -245,22 +302,23 @@ export function LandingPage() {
           }}
           aria-hidden="true"
         />
-        <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-16 lg:px-8 lg:pb-28 lg:pt-24">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+        <div className="relative mx-auto flex min-h-[560px] max-w-7xl flex-col justify-center px-4 pb-20 pt-16 lg:px-8 lg:pb-28 lg:pt-24">
+          <div className="max-w-2xl">
             <Reveal>
               <div>
                 <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium text-white/90">
                   <Sparkles className="h-4 w-4 text-gold-400" aria-hidden="true" />
-                  Portail officiel documents scolaires
+                  Portail officiel des documents scolaires
                 </p>
                 <h1 className="mt-6 font-display text-4xl leading-[1.08] sm:text-5xl lg:text-6xl">
                   Vos documents scolaires,{" "}
-                  <span className="text-gold-400">simples à obtenir</span>
+                  <span className="text-gold-400">enfin simples à obtenir</span>
                 </h1>
                 <p className="mt-6 max-w-xl text-lg leading-8 text-white/82">
-                  DR-DOCSCOL accompagne les élèves, les équipes OBC/DECC et les centres
-                  d&apos;examen : demandes en ligne, suivi en temps réel, rendez-vous de retrait
-                  et notifications — sans paperasse inutile.
+                  DR-DOCSCOL réunit les élèves, les équipes OBC/DECC et les centres
+                  d&apos;examen sur un même portail : demande en ligne, suivi en temps réel,
+                  rendez-vous de retrait et notifications — sans paperasse ni allers-retours
+                  inutiles.
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <Button asChild size="lg" variant="secondary">
@@ -294,13 +352,10 @@ export function LandingPage() {
                 </ul>
               </div>
             </Reveal>
-            <Reveal delay={120}>
-              <ProductMockup />
-            </Reveal>
           </div>
           <a
             href="#probleme"
-            className="mt-14 inline-flex items-center gap-2 text-sm text-white/60 transition-colors hover:text-white"
+            className="mt-14 inline-flex w-fit items-center gap-2 text-sm text-white/70 transition-colors hover:text-white"
           >
             Découvrir la solution
             <ChevronDown className="h-4 w-4 animate-bounce" aria-hidden="true" />
@@ -314,12 +369,25 @@ export function LandingPage() {
             <SectionHeading
               eyebrow="Problème & solution"
               title="Fini les démarches floues et les allers-retours"
-              description="Avant, difficile de savoir si un document était prêt, où le retirer ou quand se présenter. DR-DOCSCOL centralise l'information pour tout le monde."
+              description="Hier, impossible de savoir si un document était prêt, où le retirer ou quand se présenter. DR-DOCSCOL réunit toute l'information au même endroit, pour tout le monde."
             />
           </Reveal>
           <div className="mt-14 grid gap-8 lg:grid-cols-2">
             <Reveal delay={80}>
-              <Card className="border-red-200/60 bg-red-50/40">
+              <Card className="overflow-hidden border-red-200/60 bg-red-50/40">
+                <div className="relative aspect-[16/9] w-full overflow-hidden">
+                  <Image
+                    src="/images/landing/probleme-file.png"
+                    alt="Longue file d'attente d'usagers patientant sous le soleil devant une administration"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 600px"
+                    className="object-cover"
+                  />
+                  <div
+                    className="absolute inset-0 bg-gradient-to-t from-red-950/40 to-transparent"
+                    aria-hidden="true"
+                  />
+                </div>
                 <CardHeader>
                   <CardTitle className="text-red-900">Sans portail structuré</CardTitle>
                   <CardDescription className="text-red-800/80">
@@ -335,7 +403,20 @@ export function LandingPage() {
               </Card>
             </Reveal>
             <Reveal delay={160}>
-              <Card className="border-obc-200 bg-obc-50/50">
+              <Card className="overflow-hidden border-obc-200 bg-obc-50/50">
+                <div className="relative aspect-[16/9] w-full overflow-hidden">
+                  <Image
+                    src="/images/landing/solution-portail.png"
+                    alt="Élève consultant sereinement le statut de ses documents en ligne depuis chez lui"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 600px"
+                    className="object-cover"
+                  />
+                  <div
+                    className="absolute inset-0 bg-gradient-to-t from-obc-900/40 to-transparent"
+                    aria-hidden="true"
+                  />
+                </div>
                 <CardHeader>
                   <CardTitle className="text-obc-900">Avec DR-DOCSCOL</CardTitle>
                   <CardDescription className="text-obc-700">
@@ -363,24 +444,33 @@ export function LandingPage() {
               description="Chaque fonctionnalité répond à un besoin réel du terrain — pas à une contrainte technique."
             />
           </Reveal>
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <Reveal key={feature.title} delay={index * 60}>
-                  <Card className="h-full transition-[var(--transition-base)] hover:-translate-y-0.5 hover:shadow-hover">
-                    <CardHeader>
-                      <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-obc-100 text-obc-700">
-                        <Icon className="h-5 w-5" aria-hidden="true" />
-                      </span>
-                      <CardTitle className="mt-4 text-xl">{feature.title}</CardTitle>
-                      <CardDescription className="leading-6">{feature.description}</CardDescription>
-                    </CardHeader>
-                  </Card>
-                </Reveal>
-              );
-            })}
-          </div>
+        </div>
+        <div className="mt-14">
+          <MarqueeCarousel
+            ariaLabel="Fonctionnalités principales"
+            durationSeconds={46}
+            itemClassName="w-[300px] sm:w-[340px]"
+            items={features.map((feature) => (
+              <Card
+                key={feature.title}
+                className="group h-full overflow-hidden transition-[var(--transition-base)] hover:-translate-y-0.5 hover:shadow-hover"
+              >
+                <div className="relative aspect-[16/10] w-full overflow-hidden bg-edu-50">
+                  <Image
+                    src={feature.image}
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 300px, 340px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <CardHeader>
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <CardDescription className="leading-6">{feature.description}</CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          />
         </div>
       </section>
 
@@ -407,31 +497,34 @@ export function LandingPage() {
               </ul>
             </Reveal>
             <Reveal delay={120}>
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-[var(--border-token)] bg-gradient-to-br from-obc-100 via-surface-0 to-gold-100 shadow-card">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-[var(--border-token)] shadow-card">
                 <Image
-                  src="/images/logo/logo.svg"
-                  alt=""
-                  width={120}
-                  height={120}
-                  className="absolute right-8 top-8 opacity-20"
+                  src="/images/photos/eleves.jpg"
+                  alt="Des élèves consultant le portail ensemble"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div
+                  className="absolute inset-0 bg-gradient-to-t from-obc-900/92 via-obc-900/55 to-obc-900/20"
                   aria-hidden="true"
                 />
-                <div className="flex h-full flex-col justify-center p-8 sm:p-10">
-                  <p className="font-display text-2xl text-obc-900 sm:text-3xl">
+                <div className="relative flex h-full flex-col justify-end p-8 sm:p-10">
+                  <p className="font-display text-2xl text-white sm:text-3xl">
                     Clarté, confiance et gain de temps
                   </p>
-                  <p className="mt-4 max-w-md text-sm leading-7 text-text-3 sm:text-base">
+                  <p className="mt-4 max-w-md text-sm leading-7 text-white/85 sm:text-base">
                     Que vous soyez élève, administrateur ou agent de centre, vous travaillez
                     sur les mêmes données à jour — sans double saisie ni confusion.
                   </p>
                   <div className="mt-8 grid grid-cols-2 gap-4">
-                    <div className="rounded-lg bg-white/80 p-4 shadow-card">
-                      <p className="font-display text-3xl text-obc-800">3</p>
-                      <p className="mt-1 text-xs font-medium text-text-3">profils utilisateurs</p>
+                    <div className="rounded-lg border border-white/20 bg-white/15 p-4 backdrop-blur-sm">
+                      <p className="font-display text-3xl text-white">3</p>
+                      <p className="mt-1 text-xs font-medium text-white/80">profils utilisateurs</p>
                     </div>
-                    <div className="rounded-lg bg-white/80 p-4 shadow-card">
-                      <p className="font-display text-3xl text-obc-800">24/7</p>
-                      <p className="mt-1 text-xs font-medium text-text-3">suivi en ligne</p>
+                    <div className="rounded-lg border border-white/20 bg-white/15 p-4 backdrop-blur-sm">
+                      <p className="font-display text-3xl text-white">24/7</p>
+                      <p className="mt-1 text-xs font-medium text-white/80">suivi en ligne</p>
                     </div>
                   </div>
                 </div>
@@ -488,22 +581,14 @@ export function LandingPage() {
             <SectionHeading
               eyebrow="Comment ça marche"
               title="Quatre étapes, de l'activation au retrait"
-              description="Un parcours guidé pour les élèves — les équipes admin et centre interviennent aux bonnes moments."
+              description="Un parcours guidé pour les élèves — les équipes admin et centre interviennent aux bons moments."
             />
           </Reveal>
-          <ol className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map((step, index) => (
-              <Reveal key={step.title} delay={index * 70}>
-                <li className="relative rounded-xl border border-[var(--border-token)] bg-surface-1 p-6 shadow-card">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-obc-800 text-sm font-bold text-white">
-                    {index + 1}
-                  </span>
-                  <h3 className="mt-4 font-display text-xl text-text-1">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-text-3">{step.text}</p>
-                </li>
-              </Reveal>
-            ))}
-          </ol>
+          <div className="mt-14">
+            <Reveal>
+              <ActivationSteps steps={steps} />
+            </Reveal>
+          </div>
         </div>
       </section>
 
@@ -519,14 +604,34 @@ export function LandingPage() {
           <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {portals.map((portal, index) => {
               const Icon = portal.icon;
+              const accent = portalAccentClasses[portal.accent];
               return (
                 <Reveal key={portal.title} delay={index * 80}>
-                  <Card className="flex h-full flex-col transition-[var(--transition-base)] hover:-translate-y-0.5 hover:shadow-hover">
-                    <CardHeader>
-                      <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-obc-800 text-white">
+                  <Card
+                    className={cn(
+                      "group flex h-full flex-col overflow-hidden border-2 border-transparent transition-[var(--transition-base)] hover:-translate-y-0.5 hover:shadow-hover",
+                      accent.ring,
+                    )}
+                  >
+                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-edu-50">
+                      <Image
+                        src={portal.image}
+                        alt=""
+                        fill
+                        sizes="(max-width: 640px) 100vw, 320px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <span
+                        className={cn(
+                          "absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-lg shadow-card",
+                          accent.icon,
+                        )}
+                      >
                         <Icon className="h-5 w-5" aria-hidden="true" />
                       </span>
-                      <CardTitle className="mt-4">{portal.title}</CardTitle>
+                    </div>
+                    <CardHeader>
+                      <CardTitle>{portal.title}</CardTitle>
                       <CardDescription className="leading-6">{portal.text}</CardDescription>
                     </CardHeader>
                     <CardContent className="mt-auto pt-0">
@@ -542,41 +647,65 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="temoignages" className="bg-surface-1 py-20 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 lg:px-8">
+      <section id="temoignages" className="relative overflow-hidden py-20 lg:py-24">
+        <Image
+          src="/images/landing/testimonials-bg.png"
+          alt=""
+          fill
+          sizes="100vw"
+          className="absolute inset-0 h-full w-full object-cover"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-obc-900/90" aria-hidden="true" />
+        <div
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(245,158,11,0.16),_transparent_55%)]"
+          aria-hidden="true"
+        />
+        <div className="relative mx-auto max-w-7xl px-4 lg:px-8">
           <Reveal>
-            <SectionHeading
-              eyebrow="Retours utilisateurs"
-              title="Ce que les équipes apprécient"
-              description="Modifiez les citations dans content/landing-testimonials.ts dès que vous disposez de retours authentifiés."
-            />
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-gold-400">
+                Retours utilisateurs
+              </p>
+              <h2 className="mt-3 font-display text-3xl text-white sm:text-4xl">
+                Ce que les équipes apprécient
+              </h2>
+              <p className="mt-4 text-base leading-7 text-white/80 sm:text-lg">
+                Élèves, administrations et centres d&apos;examen partagent les bénéfices d&apos;un
+                parcours plus simple, plus rapide et plus transparent.
+              </p>
+            </div>
           </Reveal>
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {landingTestimonials.map((item, index) => (
-              <Reveal key={`${item.role}-${index}`} delay={index * 80}>
-                <Card
-                  className={cn(
-                    "h-full bg-surface-0",
-                    item.isPlaceholder
-                      ? "border-dashed border-obc-200/80"
-                      : "border-obc-200 shadow-card",
-                  )}
-                >
-                  <CardContent className="p-6">
-                    {item.isPlaceholder ? (
-                      <span className="mb-3 inline-block rounded-full bg-gold-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-obc-900">
-                        Exemple indicatif
-                      </span>
-                    ) : null}
-                    <p className="text-sm leading-7 text-text-2">&ldquo;{item.quote}&rdquo;</p>
-                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-text-muted">
-                      {item.role}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Reveal>
+        </div>
+        <div className="relative mt-14">
+          <MarqueeCarousel
+            ariaLabel="Retours utilisateurs"
+            durationSeconds={52}
+            itemClassName="w-[300px] sm:w-[360px]"
+            items={landingTestimonials.map((item, index) => (
+              <Card
+                key={`${item.role}-${index}`}
+                className={cn(
+                  "h-full bg-surface-0",
+                  item.isPlaceholder
+                    ? "border-dashed border-obc-200/80"
+                    : "border-obc-200 shadow-card",
+                )}
+              >
+                <CardContent className="p-6">
+                  {item.isPlaceholder ? (
+                    <span className="mb-3 inline-block rounded-full bg-gold-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-obc-900">
+                      Exemple indicatif
+                    </span>
+                  ) : null}
+                  <p className="text-sm leading-7 text-text-2">&ldquo;{item.quote}&rdquo;</p>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                    {item.role}
+                  </p>
+                </CardContent>
+              </Card>
             ))}
-          </div>
+          />
         </div>
       </section>
 
@@ -586,7 +715,7 @@ export function LandingPage() {
             <SectionHeading
               eyebrow="FAQ"
               title="Questions fréquentes"
-              description="Les réponses essentielles avant de démarrer votre démarche."
+              description="Les réponses essentielles pour démarrer votre démarche en toute confiance."
             />
           </Reveal>
           <div className="mt-12 space-y-3">
@@ -610,15 +739,27 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-obc-900 py-16 text-white lg:py-20">
-        <div className="mx-auto max-w-4xl px-4 text-center lg:px-8">
+      <section className="relative overflow-hidden bg-obc-900 py-16 text-white lg:py-20">
+        <Image
+          src="/images/landing/cta-documents.png"
+          alt=""
+          fill
+          sizes="100vw"
+          className="absolute inset-0 h-full w-full object-cover"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-0 bg-obc-900/88"
+          aria-hidden="true"
+        />
+        <div className="relative mx-auto max-w-4xl px-4 text-center lg:px-8">
           <Reveal>
             <h2 className="font-display text-3xl sm:text-4xl">
-              Prêt à simplifier vos démarches documentaires ?
+              Prêt à obtenir vos documents sans détour ?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-white/80">
               Activez votre compte élève ou connectez-vous à votre espace professionnel en
-              quelques clics.
+              quelques clics — et suivez chaque démarche jusqu&apos;au retrait.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg" variant="secondary">

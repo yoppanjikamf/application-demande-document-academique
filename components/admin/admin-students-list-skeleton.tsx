@@ -3,9 +3,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function AdminStudentsListSkeleton({ rows = 6 }: { rows?: number }) {
   return (
     <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
-      <div className="grid grid-cols-[1.2fr_1fr_auto] gap-4 border-b border-[var(--border-token)] bg-surface-1 px-5 py-3">
+      <div className="hidden grid-cols-[1.2fr_1fr_auto] gap-4 border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 md:grid">
         <Skeleton className="h-4 w-16" />
-        <Skeleton className="hidden h-4 w-20 md:block" />
+        <Skeleton className="h-4 w-20" />
         <Skeleton className="h-4 w-14" />
       </div>
       <div className="divide-y divide-[#E8EEF6]">

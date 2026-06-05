@@ -41,13 +41,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Document introuvable." }, { status: 404 });
   }
 
-  if (document.typeDocument === "DUPLICATA") {
-    return NextResponse.json({
-      error: "Les duplicatas ne passent pas par les rendez-vous centre d'examen.",
-      slots: [],
-    });
-  }
-
   if (
     document.statut !== "DISPONIBLE" ||
     !(await resolvePickupRouteForDocument(document)).requiresAppointment

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { loginPortals } from "@/components/landing/login-portals";
 import {
   Sheet,
   SheetClose,
@@ -80,6 +81,29 @@ export function LandingNavLinks() {
                 className="block rounded-md px-2 py-2 text-base hover:bg-obc-50"
               />
             </SheetClose>
+
+            <div className="mt-4 border-t border-[var(--border-token)] pt-4 sm:hidden">
+              <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                Se connecter en tant que
+              </p>
+              <div className="flex flex-col">
+                {loginPortals.map((portal) => (
+                  <SheetClose asChild key={portal.href}>
+                    <Link
+                      href={portal.href}
+                      className="rounded-md px-2 py-2 text-base font-medium text-text-2 hover:bg-obc-50"
+                    >
+                      {portal.label}
+                    </Link>
+                  </SheetClose>
+                ))}
+              </div>
+              <SheetClose asChild>
+                <Button asChild className="mt-3 w-full justify-start">
+                  <Link href="/auth/register">Activer mon compte élève</Link>
+                </Button>
+              </SheetClose>
+            </div>
           </nav>
         </SheetContent>
       </Sheet>

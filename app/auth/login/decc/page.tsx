@@ -6,6 +6,7 @@ import { LoginForm } from "@/components/auth/login-form";
 export default function DeccLoginPage() {
   return (
     <AuthShell
+      portal="decc"
       title="Connexion admin DECC"
       description="Accès réservé aux administrateurs DECC habilités."
     >

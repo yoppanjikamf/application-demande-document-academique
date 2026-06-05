@@ -6,6 +6,7 @@ import { LoginForm } from "@/components/auth/login-form";
 export default function LoginPage() {
   return (
     <AuthShell
+      portal="eleve"
       title="Connexion élève"
       description="Connectez-vous avec votre matricule, email et mot de passe."
     >

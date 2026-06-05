@@ -845,20 +845,14 @@ async function writeSvgAndPng(path, svg) {
   await sharp(Buffer.from(svg)).png().toFile(path.replace(/\.svg$/, ".png"));
 }
 
-const onlySoutenance = process.argv.includes("--classes-soutenance");
+// NOTE: le diagramme de classes de soutenance (complet) est desormais genere a
+// partir de docs/diagrammes-graphviz/diagramme-classes-soutenance.dot via
+// `bash scripts/export-diagrams-v3.sh` (rendu Graphviz/Kroki, noir sur blanc,
+// liaisons orthogonales). Ce script ne (re)genere donc plus
+// diagramme-classes-soutenance.* pour ne pas l'ecraser.
+await writeSvgAndPng("docs/diagrammes-images/diagramme-mld-v2.svg", generateMld());
+await writeSvgAndPng("docs/diagrammes-images/diagramme-mcd-v2.svg", generateMcd());
+await writeSvgAndPng("docs/diagrammes-images/diagramme-classes-v2.svg", generateClasses());
+await writeSvgAndPng("docs/diagrammes-images/diagramme-mcd-mld-v2.svg", generateCombined());
 
-if (onlySoutenance) {
-  await writeSvgAndPng(
-    "docs/diagrammes-images/diagramme-classes-soutenance.svg",
-    generateClassesSoutenance(),
-  );
-} else {
-  await writeSvgAndPng("docs/diagrammes-images/diagramme-mld-v2.svg", generateMld());
-  await writeSvgAndPng("docs/diagrammes-images/diagramme-mcd-v2.svg", generateMcd());
-  await writeSvgAndPng("docs/diagrammes-images/diagramme-classes-v2.svg", generateClasses());
-  await writeSvgAndPng("docs/diagrammes-images/diagramme-mcd-mld-v2.svg", generateCombined());
-  await writeSvgAndPng(
-    "docs/diagrammes-images/diagramme-classes-soutenance.svg",
-    generateClassesSoutenance(),
-  );
-}
+void generateClassesSoutenance;

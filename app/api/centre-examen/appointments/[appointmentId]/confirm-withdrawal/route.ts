@@ -1,6 +1,7 @@
 import { getAgentCentreExamen, isCentreExamenDocumentEligible } from "@/lib/centre-examen-service";
 import { getDocumentTitle } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, requireApiUser } from "@/lib/api-utils";
+import { syncLatestDuplicataStatus } from "@/lib/duplicata-service";
 import { notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
@@ -113,6 +114,12 @@ export async function PATCH(_request: Request, { params }: RouteContext) {
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
+
+    if (appointment.document?.typeDocument === "DUPLICATA") {
+      await syncLatestDuplicataStatus(appointment.document, "RETIRE").catch((error) => {
+        console.error("Impossible de synchroniser le statut du duplicata:", error);
+      });
+    }
 
     if (appointment.document) {
       await notifyDocumentRetired({

@@ -597,6 +597,16 @@ export async function updateDocumentStatusAction(formData: FormData) {
   const previousStatus = document.statut;
   const nextStatus = parsed.data.statut;
 
+  if (
+    nextStatus === "RETIRE" &&
+    previousStatus !== "RETIRE" &&
+    resolveDocumentRoute(document).pickupType === "CENTRE_EXAMEN"
+  ) {
+    throw new Error(
+      "Ce retrait est confirmé par l'agent du centre d'examen lors du rendez-vous. L'administrateur gère uniquement la disponibilité (Disponible / Pas disponible).",
+    );
+  }
+
   if (document.typeDocument === "DUPLICATA" && nextStatus === "DISPONIBLE") {
     const latestDuplicata = await findLatestDuplicataForDocument(document);
 

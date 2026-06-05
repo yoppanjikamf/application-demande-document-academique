@@ -2,7 +2,11 @@ import { z } from "zod";
 
 import { getDocumentTitle, getPickupLocation } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
-import { getAdminDocumentScope, isDocumentRequestAllowed } from "@/lib/document-routing";
+import {
+  getAdminDocumentScope,
+  isDocumentRequestAllowed,
+  resolveDocumentRoute,
+} from "@/lib/document-routing";
 import { findLatestDuplicataForDocument, syncLatestDuplicataStatus } from "@/lib/duplicata-service";
 import { notifyDocumentAvailable, notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
@@ -34,6 +38,18 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const previousStatus = document.statut;
+
+    if (
+      input.statut === "RETIRE" &&
+      previousStatus !== "RETIRE" &&
+      resolveDocumentRoute(document).pickupType === "CENTRE_EXAMEN"
+    ) {
+      throw new ApiError(
+        "Ce retrait est confirmé par l'agent du centre d'examen lors du rendez-vous. L'administrateur gère uniquement la disponibilité (Disponible / Pas disponible).",
+        409,
+      );
+    }
+
     if (document.typeDocument === "DUPLICATA" && input.statut === "DISPONIBLE") {
       const latestDuplicata = await findLatestDuplicataForDocument(document);
 

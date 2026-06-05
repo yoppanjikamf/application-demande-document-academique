@@ -111,7 +111,7 @@ export default async function AdminDisponibilitesPage() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-text-1">Paramètres RDV</h2>
-        <form action={toggleWeekendBookingsAction} className="flex items-center gap-3">
+        <form action={toggleWeekendBookingsAction} className="flex flex-wrap items-center gap-3">
           <input type="hidden" name="allow" value={String(!allowWeekend)} />
           <div className="text-sm">Autoriser prises de RDV le weekend</div>
           <Button type="submit">{allowWeekend ? "Désactiver" : "Activer"}</Button>
@@ -122,17 +122,19 @@ export default async function AdminDisponibilitesPage() {
         <h2 className="text-lg font-semibold text-text-1">Jours fériés</h2>
         <form
           action={upsertHolidayAction}
-          className="flex max-w-xl items-end gap-3 rounded-md border border-[var(--border-token)] bg-surface-0 p-4"
+          className="flex max-w-xl flex-col gap-3 rounded-md border border-[var(--border-token)] bg-surface-0 p-4 sm:flex-row sm:items-end"
         >
-          <div>
+          <div className="sm:flex-1">
             <label className="block text-sm">Date</label>
-            <Input id="date" name="date" type="date" />
+            <Input id="date" name="date" type="date" className="w-full" />
           </div>
-          <div>
+          <div className="sm:flex-1">
             <label className="block text-sm">Nom</label>
-            <Input id="nom" name="nom" type="text" />
+            <Input id="nom" name="nom" type="text" className="w-full" />
           </div>
-          <Button type="submit">Ajouter / Mettre à jour</Button>
+          <Button type="submit" className="w-full sm:w-auto">
+            Ajouter / Mettre à jour
+          </Button>
         </form>
 
         {holidays.length === 0 ? (

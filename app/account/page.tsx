@@ -28,7 +28,7 @@ export default async function AccountPage() {
       scopeLabel={scopeLabel}
       activePath="/account"
       title="Compte"
-      subtitle="Coordonnees et informations personnelles du profil connecte."
+      subtitle="Vos coordonnées et informations personnelles — à vérifier et tenir à jour."
     >
       <div className="max-w-2xl rounded-md border border-slate-200 bg-surface-0 p-6 shadow-card">
         <ProfileForm

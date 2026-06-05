@@ -60,7 +60,7 @@ export function ConfirmWithdrawalButton({
         <DialogHeader>
           <DialogTitle>Confirmer le retrait</DialogTitle>
           <DialogDescription>
-            Confirmez-vous que l&apos;étudiant a effectivement retiré son document ?
+            Confirmez-vous que l&apos;élève a effectivement retiré son document ?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

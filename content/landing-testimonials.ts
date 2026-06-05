@@ -11,13 +11,13 @@ export type LandingTestimonial = {
 export const landingTestimonials: LandingTestimonial[] = [
   {
     quote:
-      "Les élèves voient enfin où en est leur dossier. On reçoit beaucoup moins d'appels pour un simple statut.",
+      "Les élèves voient enfin où en est leur dossier. Nous recevons beaucoup moins d'appels pour un simple statut.",
     role: "Administration régionale",
     isPlaceholder: true,
   },
   {
     quote:
-      "La prise de rendez-vous évite l'engorgement au guichet. Les créneaux sont plus fluides.",
+      "La prise de rendez-vous a désengorgé le guichet : les retraits s'enchaînent sans bousculade.",
     role: "Centre d'examen",
     isPlaceholder: true,
   },

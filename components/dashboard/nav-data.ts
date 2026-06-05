@@ -36,7 +36,7 @@ const obcAdminSections: NavSection[] = [
     items: [
       { title: "Tableau de bord Admin", url: "/admin", icon: BarChart3 },
       { title: "Documents", url: "/admin/documents", icon: FileText },
-      { title: "Étudiants", url: "/admin/students", icon: UsersRound },
+      { title: "Élèves", url: "/admin/students", icon: UsersRound },
       { title: "Paiements", url: "/admin/payments", icon: CreditCard },
       { title: "Rendez-vous", url: "/admin/appointments", icon: CalendarCheck },
       { title: "Disponibilités", url: "/admin/rdv-disponibilites", icon: Clock },
@@ -58,7 +58,7 @@ const deccAdminSections: NavSection[] = [
     items: [
       { title: "Tableau de bord Admin", url: "/admin", icon: BarChart3 },
       { title: "Documents", url: "/admin/documents", icon: FileText },
-      { title: "Étudiants", url: "/admin/students", icon: UsersRound },
+      { title: "Élèves", url: "/admin/students", icon: UsersRound },
       { title: "Paiements", url: "/admin/payments", icon: CreditCard },
       { title: "Journaux d'audit", url: "/admin/audit-logs", icon: Shield },
     ],

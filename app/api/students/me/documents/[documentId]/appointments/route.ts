@@ -16,7 +16,7 @@ import {
 } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
 import { syncDocumentPickupFromExam } from "@/lib/centre-examen-service";
-import { resolvePickupRouteForDocument } from "@/lib/duplicata-service";
+import { findLatestDuplicataForDocument, resolvePickupRouteForDocument } from "@/lib/duplicata-service";
 import { notifyAppointmentConfirmed } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
@@ -59,10 +59,13 @@ export async function POST(request: Request, { params }: RouteContext) {
     }
 
     if (document.typeDocument === "DUPLICATA") {
-      throw new ApiError(
-        "Les duplicatas sont traités par l'administration et ne passent pas par un rendez-vous centre d'examen.",
-        409,
-      );
+      const latestDuplicata = await findLatestDuplicataForDocument(document);
+      if (latestDuplicata?.statut !== "DISPONIBLE") {
+        throw new ApiError(
+          "Votre duplicata n'est pas encore prêt. Vous pourrez prendre rendez-vous lorsque l'administration l'aura confirmé.",
+          409,
+        );
+      }
     }
 
     const route = await resolvePickupRouteForDocument(document);

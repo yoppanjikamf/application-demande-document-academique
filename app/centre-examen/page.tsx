@@ -7,6 +7,7 @@ import type { Prisma, StatutRendezVous } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { CentreAppointmentsPanel } from "@/components/centre-examen/centre-appointments-panel";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
 import type { CentreAppointment } from "@/components/centre-examen/centre-appointments-panel";
 
 type CentreExamenPageProps = {
@@ -102,23 +103,23 @@ export default async function CentreExamenPage({ searchParams }: CentreExamenPag
       title="Rendez-vous du centre"
       subtitle="Consultez les rendez-vous à venir et confirmez les retraits le jour J."
     >
-      <section className="grid gap-4 lg:grid-cols-[1fr_auto]">
-        <div className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
-          <p className="text-sm font-medium text-text-3">Centre d&apos;examen</p>
-          <h2 className="mt-2 text-2xl font-bold text-text-1">{centre.nom}</h2>
-          <p className="mt-2 flex items-center gap-2 text-sm text-text-3">
-            <MapPin className="h-4 w-4" aria-hidden="true" />
-            {centre.region}
-            {centre.ville ? ` · ${centre.ville}` : ""}
-          </p>
-        </div>
-        <div className="rounded-lg border border-obc-200 bg-obc-100 p-5 shadow-card lg:min-w-72">
-          <p className="text-sm font-medium text-obc-800">Retraits confirmés aujourd&apos;hui</p>
-          <p className="mt-2 text-3xl font-bold text-obc-800">
-            {confirmedToday}/{todayAppointments.length}
-          </p>
-        </div>
-      </section>
+      <WelcomeBanner
+        accent="agent"
+        eyebrow="Centre d'examen"
+        title={centre.nom}
+        subtitle={`${centre.region}${centre.ville ? ` · ${centre.ville}` : ""}`}
+        icon={MapPin}
+        trailing={
+          <div className="rounded-lg border border-white/15 bg-white/10 px-5 py-4 text-center lg:min-w-56">
+            <p className="text-xs uppercase tracking-wide text-white/70">
+              Retraits confirmés aujourd&apos;hui
+            </p>
+            <p className="mt-2 text-3xl font-bold">
+              {confirmedToday}/{todayAppointments.length}
+            </p>
+          </div>
+        }
+      />
 
       <CentreAppointmentsPanel
         centreName={centre.nom}

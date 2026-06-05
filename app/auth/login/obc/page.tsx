@@ -6,6 +6,7 @@ import { LoginForm } from "@/components/auth/login-form";
 export default function ObcLoginPage() {
   return (
     <AuthShell
+      portal="obc"
       title="Connexion admin OBC"
       description="Accès réservé aux administrateurs OBC habilités."
     >

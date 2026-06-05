@@ -275,7 +275,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       userMatricule={user.matricule}
       activePath="/dashboard/documents"
       title="Mes documents scolaires"
-      subtitle="Vue compacte des documents, statuts et actions disponibles."
+      subtitle="Suivez le statut de chaque document et lancez vos demandes en quelques clics."
     >
       {exams.length === 0 || !currentExam ? (
         <p className="rounded-md border border-[var(--border-token)] bg-surface-0 p-5 text-text-3 shadow-card">
@@ -291,7 +291,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                   Les examens non composés ne sont pas affichés.
                 </p>
               </div>
-              <div className="grid gap-2 sm:grid-cols-3 md:min-w-[520px]">
+              <div className="grid gap-2 sm:grid-cols-3 md:w-auto md:min-w-0 lg:min-w-[520px]">
                 {exams.map((exam) => {
                   const isActive = exam.diplomeType === currentExam.diplomeType;
                   return (

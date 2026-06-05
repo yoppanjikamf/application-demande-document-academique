@@ -7,7 +7,12 @@ import {
   normalizeRegion,
 } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
-import type { DocumentAcademique, Prisma } from "@/lib/generated/prisma/client";
+import type {
+  DiplomePrincipal,
+  DocumentAcademique,
+  Prisma,
+  TypeDocument,
+} from "@/lib/generated/prisma/client";
 
 export type AgentAppointmentFilter = "today" | "upcoming" | "processed";
 
@@ -45,18 +50,11 @@ export function getCentreDocumentWhere(centre: CentreExamenScope): Prisma.Docume
   const centreRegion = normalizeRegion(centre.region);
 
   return {
-    typeDocument: { not: "DUPLICATA" },
+    // Retraits au centre d'examen : diplome BEPC, releves (BEPC/Probatoire/Bac),
+    // hors antenne regionale (diplome original du Bac, tous les duplicatas).
     AND: [
-      {
-        OR: [
-          { diplomeType: "BEPC" },
-          { diplomeType: "PROBATOIRE" },
-          {
-            diplomeType: "BACCALAUREAT",
-            typeDocument: { not: "ORIGINAL" },
-          },
-        ],
-      },
+      { typeDocument: { not: "DUPLICATA" } },
+      { NOT: { diplomeType: "BACCALAUREAT", typeDocument: "ORIGINAL" } },
       {
         OR: [
           { regionComposition: { equals: centreRegion, mode: "insensitive" } },
@@ -170,11 +168,14 @@ export function isCentreExamenDocumentEligible(
   },
   centre: CentreExamenScope,
 ) {
-  if (document.typeDocument === "DUPLICATA") {
-    return false;
-  }
-
-  if (document.diplomeType === "BACCALAUREAT" && document.typeDocument === "ORIGINAL") {
+  // Seuls les retraits au centre d'examen sont confirmes par l'agent. Les
+  // retraits en antenne regionale (Bac original, tous les duplicatas) sont exclus.
+  if (
+    !isCentreExamenPickupDocument({
+      diplomeType: document.diplomeType as DiplomePrincipal,
+      typeDocument: document.typeDocument as TypeDocument,
+    })
+  ) {
     return false;
   }
 

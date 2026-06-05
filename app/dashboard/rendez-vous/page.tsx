@@ -36,11 +36,11 @@ export default async function RendezVousPage({ searchParams }: RendezVousPagePro
       userMatricule={user.matricule}
       activePath="/dashboard/rendez-vous"
       title="Mes rendez-vous"
-      subtitle="Suivi des rendez-vous de retrait liés à vos documents scolaires."
+      subtitle="Vos rendez-vous de retrait, avec la date, l'heure et le lieu où vous présenter."
     >
       {rendezVous.length === 0 ? (
         <div className="space-y-3 rounded-md border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
-          <p className="text-text-3">Aucun rendez-vous trouve.</p>
+          <p className="text-text-3">Vous n&apos;avez aucun rendez-vous pour le moment.</p>
           <Button asChild variant="outline">
             <Link href="/dashboard/documents">Retour à mes documents scolaires</Link>
           </Button>
@@ -54,33 +54,33 @@ export default async function RendezVousPage({ searchParams }: RendezVousPagePro
           {rendezVous.map((rdv) => (
             <div
               key={rdv.id}
-              className="grid gap-3 border-b px-4 py-4 last:border-0 sm:grid-cols-[1fr_auto]"
+              className="flex flex-col gap-3 border-b px-4 py-4 last:border-0 sm:flex-row sm:items-start sm:justify-between"
             >
-              <div>
+              <div className="min-w-0 space-y-1">
                 <p className="text-lg font-semibold text-text-1">
                   {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
                 </p>
                 <p className="text-sm text-text-3">
                   {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} · {rdv.lieu}
                 </p>
+                <p className="text-sm text-text-3">
+                  Agent: {rdv.admin.prenom} {rdv.admin.nom}
+                </p>
+                {rdv.commentaire ? (
+                  <p className="text-sm text-text-3">Commentaire: {rdv.commentaire}</p>
+                ) : null}
               </div>
-              <StatusBadge tone={appointmentTone(rdv.statut)} className="self-start">
-                {rdv.statut}
-              </StatusBadge>
-              <p className="text-sm text-text-3">
-                Agent: {rdv.admin.prenom} {rdv.admin.nom}
-              </p>
-              {rdv.commentaire ? (
-                <p className="text-sm text-text-3">Commentaire: {rdv.commentaire}</p>
-              ) : null}
-              {rdv.statut === "PLANIFIE" || rdv.statut === "CONFIRME" ? (
-                <form action={cancelRendezVousAction}>
-                  <input type="hidden" name="rendezVousId" value={rdv.id} />
-                  <Button type="submit" size="sm" variant="outline">
-                    Annuler
-                  </Button>
-                </form>
-              ) : null}
+              <div className="flex items-center gap-3 sm:flex-col sm:items-end">
+                <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>
+                {rdv.statut === "PLANIFIE" || rdv.statut === "CONFIRME" ? (
+                  <form action={cancelRendezVousAction}>
+                    <input type="hidden" name="rendezVousId" value={rdv.id} />
+                    <Button type="submit" size="sm" variant="outline">
+                      Annuler
+                    </Button>
+                  </form>
+                ) : null}
+              </div>
             </div>
           ))}
         </div>

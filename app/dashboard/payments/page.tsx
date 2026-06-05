@@ -28,7 +28,7 @@ export default async function PaymentsPage() {
       userMatricule={user.matricule}
       activePath="/dashboard/payments"
       title="Paiements"
-      subtitle="Suivi des paiements de duplicata et reçus associés."
+      subtitle="Vos paiements de duplicata et leurs reçus, téléchargeables à tout moment."
     >
       <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
         <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3">
@@ -39,7 +39,7 @@ export default async function PaymentsPage() {
           {payments.length === 0 ? (
             <div className="px-5 py-10 text-center">
               <CreditCard className="mx-auto h-8 w-8 text-text-muted" />
-              <p className="mt-3 text-sm text-text-3">Aucun paiement enregistré.</p>
+              <p className="mt-3 text-sm text-text-3">Aucun paiement enregistré pour le moment.</p>
             </div>
           ) : (
             payments.map((payment) => {

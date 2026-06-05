@@ -9,7 +9,7 @@ import {
   parseJson,
   requireApiUser,
 } from "@/lib/api-utils";
-import { getAdminDocumentScope } from "@/lib/document-routing";
+import { getAdminDocumentScope, resolveDocumentRoute } from "@/lib/document-routing";
 import { notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 
@@ -72,6 +72,13 @@ export async function POST(request: Request) {
 
     if (!document) {
       throw new ApiError("Document introuvable.", 404);
+    }
+
+    if (resolveDocumentRoute(document).pickupType === "CENTRE_EXAMEN") {
+      throw new ApiError(
+        "Ce retrait est confirmé par l'agent du centre d'examen. Utilisez la confirmation de retrait depuis l'espace agent.",
+        409,
+      );
     }
 
     const now = new Date();

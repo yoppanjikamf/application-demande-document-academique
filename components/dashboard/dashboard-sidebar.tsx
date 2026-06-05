@@ -60,7 +60,7 @@ export function DashboardSidebar({
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 bg-obc-800 text-white shadow-modal transition-all lg:static lg:z-auto lg:translate-x-0 lg:shadow-none",
+          "fixed inset-y-0 left-0 z-50 h-screen bg-obc-800 text-white shadow-modal transition-all lg:relative lg:z-auto lg:h-full lg:shrink-0 lg:translate-x-0 lg:shadow-none",
           isOpen ? "w-[260px]" : "w-[72px]",
           isOpen ? "translate-x-0" : "-translate-x-full",
           !isMobile && !isOpen ? "translate-x-0" : "",

@@ -1,13 +1,14 @@
+import Image from "next/image";
 import Link from "next/link";
-import { Bell, CalendarDays, CreditCard, FileText, GraduationCap, RotateCcw } from "lucide-react";
+import { Bell, CalendarDays, FileText, GraduationCap, RotateCcw } from "lucide-react";
 
 import { getDocumentTitle, getStudentDocumentStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { TypeDocument } from "@/lib/generated/prisma/client";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
 import { StatusBadge, appointmentTone, documentTone } from "@/components/dashboard/status-badge";
-import { Button } from "@/components/ui/button";
 
 const documentCards: Array<{
   type: TypeDocument;
@@ -17,6 +18,50 @@ const documentCards: Array<{
   { type: "ORIGINAL", title: "Diplôme", icon: GraduationCap },
   { type: "RELEVE_NOTES", title: "Relevé", icon: FileText },
   { type: "DUPLICATA", title: "Duplicata", icon: RotateCcw },
+];
+
+const quickActions: Array<{
+  title: string;
+  text: string;
+  href: string;
+  image: string;
+}> = [
+  {
+    title: "Demander un relevé",
+    text: "Relevé de notes officiel",
+    href: "/dashboard/documents",
+    image: "/images/photos/documents.jpg",
+  },
+  {
+    title: "Demander un diplôme",
+    text: "Diplôme original",
+    href: "/dashboard/documents",
+    image: "/images/photos/diplome.jpg",
+  },
+  {
+    title: "Demander un duplicata",
+    text: "En cas de perte ou de réédition",
+    href: "/dashboard/documents",
+    image: "/images/photos/duplicata.png",
+  },
+  {
+    title: "Prendre un rendez-vous",
+    text: "Choisir un créneau de retrait",
+    href: "/dashboard/rendez-vous",
+    image: "/images/photos/rendez-vous.jpg",
+  },
+  {
+    title: "Mes paiements",
+    text: "Reçus et duplicatas",
+    href: "/dashboard/payments",
+    image: "/images/photos/paiement.png",
+  },
+  {
+    title: "Suivre mes documents",
+    text: "État de chaque demande",
+    href: "/dashboard/documents",
+    image: "/images/photos/suivi.png",
+  },
 ];
 
 function getCountdownLabel(date: Date) {
@@ -80,21 +125,19 @@ export default async function DashboardPage() {
       title="Tableau de bord élève"
       subtitle={`Matricule ${user.matricule}`}
     >
-      <section className="rounded-lg border border-[var(--border-token)] bg-obc-800 p-6 text-white shadow-card">
-        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div>
-            <p className="text-sm font-medium text-white/70">Bienvenue</p>
-            <h2 className="mt-2 text-2xl font-bold">
-              {user.prenom} {user.nom}
-            </h2>
-            <p className="mt-2 text-sm text-white/75">Matricule : {user.matricule}</p>
-          </div>
+      <WelcomeBanner
+        accent="eleve"
+        eyebrow="Bienvenue"
+        title={`${user.prenom} ${user.nom}`}
+        subtitle={`Matricule : ${user.matricule}`}
+        icon={GraduationCap}
+        trailing={
           <div className="rounded-lg border border-white/15 bg-white/10 px-5 py-4">
             <p className="text-xs uppercase tracking-wide text-white/60">Statut global</p>
             <p className="mt-2 text-lg font-semibold">{globalStatus}</p>
           </div>
-        </div>
-      </section>
+        }
+      />
 
       <section className="grid gap-4 md:grid-cols-3">
         {documentCards.map((item) => {
@@ -159,7 +202,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <p className="mt-5 rounded-lg border border-[var(--border-token)] bg-surface-1 p-4 text-sm text-text-3">
-              Aucun rendez-vous actif.
+              Aucun rendez-vous actif pour le moment.
             </p>
           )}
         </section>
@@ -188,19 +231,32 @@ export default async function DashboardPage() {
 
       <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
         <h2 className="font-semibold text-text-1">Actions rapides</h2>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/documents">Demander un relevé</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/documents">Demander un duplicata</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/payments">
-              <CreditCard className="h-4 w-4" aria-hidden="true" />
-              Voir mes paiements ({paymentCount})
-            </Link>
-          </Button>
+        <p className="mt-1 text-sm text-text-3">Ce que vous pouvez faire depuis votre espace.</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {quickActions.map((action) => {
+            const text =
+              action.href === "/dashboard/payments" && paymentCount > 0
+                ? `${paymentCount} paiement${paymentCount > 1 ? "s" : ""} enregistré${paymentCount > 1 ? "s" : ""}`
+                : action.text;
+
+            return (
+              <Link
+                key={action.title}
+                href={action.href}
+                className="group flex items-center gap-4 rounded-lg border border-[var(--border-token)] bg-surface-1 p-3 transition-[var(--transition-base)] hover:-translate-y-0.5 hover:border-obc-200 hover:shadow-hover"
+              >
+                <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[var(--border-token)] bg-surface-0">
+                  <Image src={action.image} alt="" fill sizes="56px" className="object-cover" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate font-semibold text-text-1 group-hover:text-obc-800">
+                    {action.title}
+                  </span>
+                  <span className="block text-sm text-text-3">{text}</span>
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
     </DashboardShell>

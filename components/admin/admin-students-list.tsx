@@ -57,9 +57,9 @@ export async function AdminStudentsList({ user, query }: AdminStudentsListProps)
         </p>
       ) : null}
     <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
-      <div className="grid grid-cols-[1.2fr_1fr_auto] gap-4 border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3">
+      <div className="hidden grid-cols-[1.2fr_1fr_auto] gap-4 border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3 md:grid">
         <span>Élève</span>
-        <span className="hidden md:block">Contact</span>
+        <span>Contact</span>
         <span>Dossier</span>
       </div>
       <div className="divide-y divide-[#E8EEF6]">
@@ -69,17 +69,17 @@ export async function AdminStudentsList({ user, query }: AdminStudentsListProps)
           students.map((student) => (
             <div
               key={student.id}
-              className="grid gap-4 px-5 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center"
+              className="grid gap-3 px-5 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center md:gap-4"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="font-medium text-text-1">
                   {student.prenom} {student.nom}
                 </p>
                 <p className="text-sm text-text-3">{student.matricule}</p>
               </div>
-              <p className="flex items-center gap-2 text-sm text-text-3">
-                <Mail className="h-4 w-4" />
-                {student.email}
+              <p className="flex min-w-0 items-center gap-2 text-sm text-text-3">
+                <Mail className="h-4 w-4 shrink-0" />
+                <span className="truncate">{student.email}</span>
               </p>
               <p className="text-sm text-text-3">
                 {student._count.documentsAcademique} documents scolaires ·{" "}

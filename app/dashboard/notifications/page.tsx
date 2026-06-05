@@ -53,7 +53,7 @@ export default async function NotificationsPage() {
       userMatricule={user.matricule}
       activePath="/dashboard/notifications"
       title="Notifications"
-      subtitle="Messages de disponibilité, confirmations et rappels liés à vos documents scolaires."
+      subtitle="Disponibilités, confirmations et rappels concernant vos documents scolaires."
     >
       <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-token)] px-5 py-4">
@@ -75,7 +75,7 @@ export default async function NotificationsPage() {
         </div>
         <div className="divide-y divide-[#E8EEF6]">
           {notifications.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-text-3">Aucune notification.</p>
+            <p className="px-5 py-6 text-sm text-text-3">Vous êtes à jour : aucune notification pour le moment.</p>
           ) : (
             notifications.map((notification) => {
               const canScheduleAppointment =

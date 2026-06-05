@@ -36,7 +36,7 @@ export default async function AdminAppointmentsPage() {
       scopeLabel={scopeLabel}
       activePath="/admin/appointments"
       title="Planning des retraits"
-      subtitle="Rendez-vous actifs à suivre ou à annuler dans OBC/DECC."
+      subtitle="Rendez-vous de retrait à suivre, confirmer ou annuler pour votre périmètre OBC/DECC."
     >
       <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
         <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3">

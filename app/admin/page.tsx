@@ -1,11 +1,19 @@
 import Link from "next/link";
-import { AlertTriangle, CalendarDays, CreditCard, FileClock, UsersRound } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarDays,
+  CreditCard,
+  FileClock,
+  ShieldCheck,
+  UsersRound,
+} from "lucide-react";
 
 import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
 import { getAdminDocumentScope, getAdminScopeLabel, ORGANISME_IDS } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { StatusBadge, appointmentTone, documentTone } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
@@ -154,6 +162,20 @@ export default async function AdminPage() {
       title={`Administration ${user.nomService ?? ""}`.trim()}
       subtitle={`Périmètre ${scopeLabel ?? "administration"}`}
     >
+      <WelcomeBanner
+        accent="admin"
+        eyebrow={scopeLabel ? `Administration · ${scopeLabel}` : "Administration"}
+        title={`${user.prenom} ${user.nom}`}
+        subtitle={`Périmètre ${scopeLabel ?? "administration"}`}
+        icon={ShieldCheck}
+        trailing={
+          <div className="rounded-lg border border-white/15 bg-white/10 px-5 py-4 text-center lg:min-w-56">
+            <p className="text-xs uppercase tracking-wide text-white/70">Élèves suivis</p>
+            <p className="mt-2 text-3xl font-bold">{elevesCount}</p>
+          </div>
+        }
+      />
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total élèves"
@@ -223,44 +245,42 @@ export default async function AdminPage() {
           <div className="border-b border-[var(--border-token)] bg-surface-1 px-5 py-4">
             <h2 className="font-semibold text-text-1">Documents récents</h2>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-surface-0 text-left text-xs uppercase text-text-3">
-                <tr>
-                  <th className="px-5 py-3 font-semibold">Élève</th>
-                  <th className="px-5 py-3 font-semibold">Type</th>
-                  <th className="px-5 py-3 font-semibold">Statut</th>
-                  <th className="px-5 py-3 font-semibold">Organisme</th>
-                  <th className="px-5 py-3 font-semibold">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border-token)]">
-                {recentDocuments.map((document) => (
-                  <tr key={document.id}>
-                    <td className="px-5 py-4">
-                      <p className="font-medium text-text-1">
-                        {document.eleve.prenom} {document.eleve.nom}
-                      </p>
-                      <p className="font-mono text-xs text-text-3">{document.eleve.matricule}</p>
-                    </td>
-                    <td className="px-5 py-4 text-text-2">{getDocumentTitle(document)}</td>
-                    <td className="px-5 py-4">
-                      <StatusBadge tone={documentTone(document.statut)}>
-                        {getStatusLabel(document.statut)}
-                      </StatusBadge>
-                    </td>
-                    <td className="px-5 py-4 text-text-2">
+          <div className="hidden grid-cols-[1.4fr_1fr_auto_auto] gap-4 border-b border-[var(--border-token)] bg-surface-0 px-5 py-3 text-xs font-semibold uppercase text-text-3 md:grid">
+            <span>Élève</span>
+            <span>Type</span>
+            <span>Statut</span>
+            <span className="text-right">Action</span>
+          </div>
+          <div className="divide-y divide-[var(--border-token)]">
+            {recentDocuments.length === 0 ? (
+              <p className="px-5 py-6 text-sm text-text-3">Aucun document récent.</p>
+            ) : (
+              recentDocuments.map((document) => (
+                <div
+                  key={document.id}
+                  className="grid gap-3 px-5 py-4 md:grid-cols-[1.4fr_1fr_auto_auto] md:items-center"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-text-1">
+                      {document.eleve.prenom} {document.eleve.nom}
+                    </p>
+                    <p className="font-mono text-xs text-text-3">{document.eleve.matricule}</p>
+                  </div>
+                  <div className="min-w-0 text-sm text-text-2">
+                    <p className="truncate">{getDocumentTitle(document)}</p>
+                    <p className="truncate text-xs text-text-3">
                       {document.organisme?.nom ?? "Non défini"}
-                    </td>
-                    <td className="px-5 py-4">
-                      <Button asChild size="sm" variant="outline">
-                        <Link href={`/admin/documents?q=${document.eleve.matricule}`}>Ouvrir</Link>
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </p>
+                  </div>
+                  <StatusBadge tone={documentTone(document.statut)}>
+                    {getStatusLabel(document.statut)}
+                  </StatusBadge>
+                  <Button asChild size="sm" variant="outline" className="justify-self-start md:justify-self-end">
+                    <Link href={`/admin/documents?q=${document.eleve.matricule}`}>Ouvrir</Link>
+                  </Button>
+                </div>
+              ))
+            )}
           </div>
         </section>
 
