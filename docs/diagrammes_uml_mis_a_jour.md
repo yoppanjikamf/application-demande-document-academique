@@ -1,4 +1,4 @@
-# DIAGRAMMES UML — Application de Gestion des Documents Académiques
+# DIAGRAMMES UML — Application de Gestion des Documents Scolaires
 ## OBC / DECC — Cameroun | Version 2.1
 
 ---
@@ -34,11 +34,21 @@ Important: pour les livrables Word/PDF, utiliser les images finales ci-dessus pl
 
 Le document de reference final est `ETAT_FINAL_PROJET.md`.
 
+Mise a jour du 04/06/2026 — diagrammes de sequence **v3 soutenance** :
+
+- Sources : `docs/diagrammes-mermaid/sequence-*-v3-soutenance.mmd`
+- Images PNG/SVG : `docs/diagrammes-images/sequence-*-v3-soutenance.{png,svg}`
+- Structure : Acteur → Systeme DR-DOCSCOL → Base de donnees, avec `alt` Donnees valides / invalides
+- Regeneration : `npm run diagrams:export-v3`
+- Cas supplementaires par rapport a la v2 : ajout eleves admin (SEQ-09), demande releve/diplome par l eleve (SEQ-10)
+
+Pour la soutenance, preferer les images v3 ; la section 3 ci-dessous conserve les diagrammes v2 detailles (composants API, Supabase, etc.).
+
 ---
 
 ## 1. Diagramme de Cas d'Utilisation
 
-Ce diagramme représente les interactions entre les acteurs principaux et le système de gestion des documents académiques. Les acteurs humains restent à l’extérieur du système, tandis que les cas d’utilisation sont regroupés dans le rectangle système intitulé "Gestion de retrait de documents académiques".
+Ce diagramme représente les interactions entre les acteurs principaux et le système de gestion des documents scolaires. Les acteurs humains restent à l’extérieur du système, tandis que les cas d’utilisation sont regroupés dans le rectangle système intitulé "Gestion de retrait de documents scolaires".
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "22px", "primaryColor": "#eaf6ff", "primaryBorderColor": "#1f6f9f", "lineColor": "#4b5563"}}}%%
@@ -177,7 +187,7 @@ flowchart TB
 
 | Acteur | Rôle |
 |--------|------|
-| Étudiant | Élève ou diplômé souhaitant consulter, demander ou retirer un document académique. |
+| Étudiant | Élève ou diplômé souhaitant consulter, demander ou retirer un document scolaire. |
 | Administration | Service OBC / DECC chargé de gérer les élèves, documents, statuts, rendez-vous, retraits et statistiques. |
 | Système interne | Composant technique chargé des notifications, emails, webhooks de paiement et traitements internes protégés. |
 
@@ -200,7 +210,11 @@ flowchart TB
 
 Ce diagramme présente la structure statique du système, les entités métier, leurs attributs, leurs méthodes principales et les relations entre elles. Les classes reprennent les concepts historiques des diagrammes initiaux tout en les alignant avec le code actuel : Supabase Auth, Prisma, OBC / DECC, antennes régionales, paiements, reçus et journaux d’emails.
 
-Version finale conforme: `docs/diagrammes-images/diagramme-classes-v2.png`.
+Version detaillee: `docs/diagrammes-images/diagramme-classes-v2.png`.
+
+Version principale pour la soutenance (structure en croix du modele de reference + 9 classes metier : Eleve, Document, Duplicata, ExamenValide, CentreExamen, RendezVous, Organisme, Paiement, types de documents) : `docs/diagrammes-images/diagramme-classes-soutenance.png`. Regeneration : `npm run diagrams:classes-soutenance`.
+
+Version technique exhaustive (20 tables Prisma) : `diagramme-classes-v2.png` via `npm run diagrams:conform`.
 
 Cette image remplace le rendu Mermaid pour la presentation finale lorsque la notation stricte du modele fourni est exigee.
 
@@ -376,7 +390,7 @@ classDiagram
 | Organisme | Structure responsable des documents, actuellement OBC ou DECC. |
 | AntenneRegionale | Antenne régionale OBC ou DECC utilisée selon l'organisme, le diplome et la region de composition. |
 | ExamenValide | Examen obtenu par l’élève, utilisé pour déterminer les documents demandables. |
-| DocumentAcademique | Entité centrale représentant un document académique : diplôme, relevé ou duplicata. |
+| DocumentAcademique | Entité centrale représentant un document scolaire : diplôme, relevé ou duplicata. |
 | RendezVous | Planification d’un retrait physique ou trace d’un retrait honoré. |
 | DisponibiliteRdv | Modèle de disponibilité dédié encore présent dans le schéma. |
 | ParametreRendezVous | Paramètres globaux de rendez-vous, notamment quota journalier et lieu OBC. |
@@ -391,6 +405,25 @@ classDiagram
 ---
 
 ## 3. Diagrammes de Séquence
+
+### Version v3 soutenance (recommandee pour le dossier)
+
+| Ref. | Image | Cas metier |
+|------|-------|------------|
+| SEQ-01 | `diagrammes-images/sequence-01-inscription-v3-soutenance.png` | Activation compte eleve |
+| SEQ-02 | `diagrammes-images/sequence-02-connexion-v3-soutenance.png` | Connexion multi-role |
+| SEQ-03 | `diagrammes-images/sequence-03-consultation-documents-v3-soutenance.png` | Consultation Mes documents |
+| SEQ-04 | `diagrammes-images/sequence-04-notification-disponibilite-v3-soutenance.png` | Admin : disponibilite + notification |
+| SEQ-05 | `diagrammes-images/sequence-05-duplicata-paiement-v3-soutenance.png` | Duplicata et paiement |
+| SEQ-06 | `diagrammes-images/sequence-06-rendez-vous-v3-soutenance.png` | RDV planifie par l eleve |
+| SEQ-07 | `diagrammes-images/sequence-07-statut-document-v3-soutenance.png` | Admin : changement de statut |
+| SEQ-08 | `diagrammes-images/sequence-08-retrait-physique-v3-soutenance.png` | Agent : confirmation retrait |
+| SEQ-09 | `diagrammes-images/sequence-09-ajout-eleve-admin-v3-soutenance.png` | Admin : ajout manuel ou import CSV |
+| SEQ-10 | `diagrammes-images/sequence-10-demande-document-v3-soutenance.png` | Eleve : demande releve ou diplome |
+
+Formats vectoriels : remplacer `.png` par `.svg` si besoin.
+
+### Version v2 detaillee (reference technique)
 
 ### SEQ-01 — Inscription et activation du compte
 
@@ -469,7 +502,7 @@ sequenceDiagram
 | 4 | Prisma met à jour la dernière connexion. | La traçabilité de connexion est conservée. |
 | 5 | L’utilisateur se déconnecte. | La session Supabase est fermée. |
 
-### SEQ-03 — Consultation des documents académiques
+### SEQ-03 — Consultation des documents scolaires
 
 Ce diagramme décrit la consultation des documents par un élève connecté. Le système garantit que seuls les documents de l’élève courant sont chargés, puis affiche le statut, le lieu de retrait et l’éventuel rendez-vous actif.
 
@@ -881,7 +914,7 @@ erDiagram
 | `organismes` | Organismes responsables, OBC ou DECC. |
 | `antennes_regionales` | Antennes régionales OBC. |
 | `examens_valides` | Examens validés permettant de générer les documents. |
-| `documents` | Documents académiques suivis par l’application. |
+| `documents` | Documents scolaires suivis par l’application. |
 | `rendez_vous` | Rendez-vous et retraits honorés. |
 | `notifications` | Notifications applicatives. |
 | `mail_logs` | Journalisation des emails. |

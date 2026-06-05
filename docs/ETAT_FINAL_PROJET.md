@@ -99,11 +99,16 @@ Il ne faut pas encore le presenter comme une production totalement terminee, car
 
 2. Brancher un paiement reel.
    - Le flux duplicata cree un paiement et un recu applicatif.
+   - Le bareme duplicata est differencie: 10 000 FCFA pour un releve et 15 000 FCFA pour un original.
    - Le webhook existe, mais aucun prestataire Orange Money / MTN Money / carte bancaire n'est integre.
 
 3. Stocker vraiment les pieces justificatives.
    - Le formulaire exige un fichier.
    - Le code conserve surtout le nom du fichier dans les instructions.
+
+4. Ajouter les demandes futures.
+   - Demandes de traduction de diplome.
+   - Demandes de rectification de diplome.
    - Pour production, utiliser Supabase Storage ou un stockage equivalent.
 
 4. Ajouter des tests automatises de bout en bout.

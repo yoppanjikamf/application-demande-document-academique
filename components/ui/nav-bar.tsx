@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 
+import { LandingNavLinks } from "@/components/landing/landing-nav-links";
 import { getCurrentUser, getHomePathForRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { DocScolLogo } from "@/components/ui/DocScolLogo";
@@ -17,12 +18,18 @@ export async function NavBar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.9)] backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
-        <Link href="/" className="flex items-center gap-3 text-text-1">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 lg:px-8">
+        <Link href="/" className="flex shrink-0 items-center gap-3 text-text-1">
           <DocScolLogo variant="full" theme="light" />
         </Link>
 
-        <nav className="flex items-center gap-2">
+        {!dbUser ? (
+          <div className="flex flex-1 justify-center">
+            <LandingNavLinks />
+          </div>
+        ) : null}
+
+        <nav className="flex shrink-0 items-center gap-2">
           {dbUser ? (
             <>
               <Button asChild variant="ghost">

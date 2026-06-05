@@ -176,7 +176,7 @@ curl -X POST http://localhost:3000/api/payments/webhook \
     "paymentId": "PAYMENT_ID",
     "statut": "EFFECTUE",
     "numeroRecu": "REC-TEST-001",
-    "montant": 25000,
+    "montant": 10000,
     "commentaire": "Paiement de test"
   }'
 ```

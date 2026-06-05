@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1380" height="1060" viewBox="0 0 1380 1060">
+    <defs>
+      <style>
+        .canvas { fill: #ffffff; }
+        .umlBox { fill: #ffffff; stroke: #111111; stroke-width: 1.5; }
+        .umlSep { stroke: #111111; stroke-width: 1.5; }
+        .umlLine { fill: none; stroke: #111111; stroke-width: 1.5; }
+        .umlLabelBox { fill: #ffffff; stroke: #111111; stroke-width: 1.2; }
+        .umlTitle { fill: #111111; font: 700 15px Arial, sans-serif; text-anchor: middle; }
+        .attr { fill: #111111; font: 13px Arial, sans-serif; }
+        .umlAssoc { fill: #111111; font: 13px Arial, sans-serif; text-anchor: middle; }
+        .umlCard { fill: #111111; font: 12px Arial, sans-serif; }
+        .caption { fill: #111111; font: 700 18px Arial, sans-serif; text-anchor: middle; }
+        .subtitle { fill: #374151; font: 13px Arial, sans-serif; text-anchor: middle; }
+      </style>
+    </defs>
+    <rect class="canvas" width="1380" height="1060"/>
+    <text class="caption" x="690" y="32">Figure : Diagramme de classe - DR-DOCSCOL</text>
+    <text class="subtitle" x="690" y="52">Retrait au centre d'examen ou a l'antenne regionale OBC/DECC selon le type de document</text>
+    <path class="umlLine" d="M300 155 H330 V328 H380"/>
+      <rect class="umlLabelBox" x="276" y="219" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="320" y="237">Contenir</text>
+      <text class="umlCard" x="308" y="149">1,1</text>
+      <text class="umlCard" x="356" y="322">*</text>
+<path class="umlLine" d="M1080 176 H710"/>
+      <rect class="umlLabelBox" x="891" y="227" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="935" y="245">Demander</text>
+      <text class="umlCard" x="1040" y="170">1,1</text>
+      <text class="umlCard" x="718" y="322">0,n</text>
+<path class="umlLine" d="M1205 262 V260"/>
+      <rect class="umlLabelBox" x="1193" y="248" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="1237" y="266">Recevoir</text>
+      <text class="umlCard" x="1165" y="256">1,1</text>
+      <text class="umlCard" x="1181" y="254">0,n</text>
+<path class="umlLine" d="M1205 262 V430"/>
+      <rect class="umlLabelBox" x="1197" y="333" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="1241" y="351">Demander</text>
+      <text class="umlCard" x="1165" y="256">1,1</text>
+      <text class="umlCard" x="1181" y="424">0,n</text>
+<path class="umlLine" d="M1205 623 V600"/>
+      <rect class="umlLabelBox" x="1191" y="599" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="1235" y="617">Payer</text>
+      <text class="umlCard" x="1165" y="617">1,1</text>
+      <text class="umlCard" x="1181" y="594">1,1</text>
+<path class="umlLine" d="M380 328 H175 V750"/>
+      <rect class="umlLabelBox" x="179" y="532" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="223" y="550">Concerner</text>
+      <text class="umlCard" x="340" y="322">0,n</text>
+      <text class="umlCard" x="183" y="744">1,1</text>
+<path class="umlLine" d="M545 456 V750"/>
+      <rect class="umlLabelBox" x="449" y="590" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="493" y="608">Planifier</text>
+      <text class="umlCard" x="505" y="450">1,1</text>
+      <text class="umlCard" x="533" y="744">0,1</text>
+<path class="umlLine" d="M710 328 H700"/>
+      <rect class="umlLabelBox" x="661" y="433" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="705" y="451">Acquerir</text>
+      <text class="umlCard" x="670" y="322">0,n</text>
+      <text class="umlCard" x="708" y="578.5">1,1</text>
+<path class="umlLine" d="M1080 526.5 H950"/>
+      <rect class="umlLabelBox" x="971" y="551" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="1015" y="569">Acquerir</text>
+      <text class="umlCard" x="1040" y="520.5">0,n</text>
+      <text class="umlCard" x="958" y="578.5">1,1</text>
+<path class="umlLine" d="M825 639 V750"/>
+      <rect class="umlLabelBox" x="813" y="682" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="857" y="700">Posseder</text>
+      <text class="umlCard" x="785" y="633">1,1</text>
+      <text class="umlCard" x="801" y="744">1,n</text>
+<path class="umlLine" d="M380 846.5 H300"/>
+      <rect class="umlLabelBox" x="288" y="806" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="332" y="824">Au centre</text>
+      <text class="umlCard" x="340" y="840.5">0,n</text>
+      <text class="umlCard" x="308" y="809">1,1</text>
+<path class="umlLine" d="M670 846.5 H700"/>
+      <rect class="umlLabelBox" x="642.5" y="811" width="101" height="24" rx="2"/>
+      <text class="umlAssoc" x="693" y="829">A l'antenne</text>
+      <text class="umlCard" x="678" y="840.5">0,n</text>
+      <text class="umlCard" x="676" y="819.5">1,1</text>
+<path class="umlLine" d="M1205 262 V700 H525 V750"/>
+      <rect class="umlLabelBox" x="921" y="485" width="88" height="24" rx="2"/>
+      <text class="umlAssoc" x="965" y="503">Prendre</text>
+      <text class="umlCard" x="1165" y="256">1,1</text>
+      <text class="umlCard" x="533" y="744">0,n</text>
+    <g id="type" transform="translate(50 90)">
+      <rect class="umlBox" width="250" height="130"/>
+      <line x1="0" y1="32" x2="250" y2="32" class="umlSep"/>
+      <text class="umlTitle" x="125" y="22">Type de document</text>
+      <text class="attr" x="14" y="50">- code : ORIGINAL</text>
+<text class="attr" x="14" y="71">- code : RELEVE_NOTES</text>
+<text class="attr" x="14" y="92">- code : DUPLICATA</text>
+<text class="attr" x="14" y="113">- diplome : BEPC / PROBATOIRE / BAC</text>
+    </g>
+<g id="document" transform="translate(380 200)">
+      <rect class="umlBox" width="330" height="256"/>
+      <line x1="0" y1="32" x2="330" y2="32" class="umlSep"/>
+      <text class="umlTitle" x="165" y="22">Document academique</text>
+      <text class="attr" x="14" y="50">- id : String</text>
+<text class="attr" x="14" y="71">- typeDocument : enum</text>
+<text class="attr" x="14" y="92">- diplomeType : enum</text>
+<text class="attr" x="14" y="113">- statut : enum</text>
+<text class="attr" x="14" y="134">- demandeSoumiseAt : DateTime</text>
+<text class="attr" x="14" y="155">- centreExamen : String</text>
+<text class="attr" x="14" y="176">- regionComposition : String</text>
+<text class="attr" x="14" y="197">- eleveId : String</text>
+<text class="attr" x="14" y="218">- organismeId : String</text>
+<text class="attr" x="14" y="239">- antenneRegionaleId : String</text>
+    </g>
+<g id="eleve" transform="translate(1080 90)">
+      <rect class="umlBox" width="250" height="172"/>
+      <line x1="0" y1="32" x2="250" y2="32" class="umlSep"/>
+      <text class="umlTitle" x="125" y="22">Eleve</text>
+      <text class="attr" x="14" y="50">- id : String</text>
+<text class="attr" x="14" y="71">- matricule : String</text>
+<text class="attr" x="14" y="92">- nom : String</text>
+<text class="attr" x="14" y="113">- prenom : String</text>
+<text class="attr" x="14" y="134">- email : String</text>
+<text class="attr" x="14" y="155">- role : ELEVE</text>
+    </g>
+<g id="notification" transform="translate(1080 260)">
+      <rect class="umlBox" width="250" height="172"/>
+      <line x1="0" y1="32" x2="250" y2="32" class="umlSep"/>
+      <text class="umlTitle" x="125" y="22">Notification</text>
+      <text class="attr" x="14" y="50">- id : String</text>
+<text class="attr" x="14" y="71">- typeNotification : String</text>
+<text class="attr" x="14" y="92">- statut : enum</text>
+<text class="attr" x="14" y="113">- message : String</text>
+<text class="attr" x="14" y="134">- dateEnvoi : DateTime</text>
+<text class="attr" x="14" y="155">- userId : String</text>
+    </g>
+<g id="duplicata" transform="translate(1080 430)">
+      <rect class="umlBox" width="250" height="193"/>
+      <line x1="0" y1="32" x2="250" y2="32" class="umlSep"/>
+      <text class="umlTitle" x="125" y="22">Duplicata</text>
+      <text class="attr" x="14" y="50">- id : String</text>
+<text class="attr" x="14" y="71">- typeDocument : enum</text>
+<text class="attr" x="14" y="92">- statut : enum</text>
+<text class="attr" x="14" y="113">- statutValidation : enum</text>
+<text class="attr" x="14" y="134">- eleveId : String</text>
+<text class="attr" x="14" y="155">- organismeId : String</text>
+<text class="attr" x="14" y="176">- antenneRegionaleId : String</text>
+    </g>
+<g id="paiement" transform="translate(1080 600)">
+      <rect class="umlBox" width="250" height="130"/>
+      <line x1="0" y1="32" x2="250" y2="32" class="umlSep"/>
+      <text class="umlTitle" x="125" y="22">Paiement</text>
+      <text class="attr" x="14" y="50">- id : String</text>
+<text class="attr" x="14" y="71">- statut : enum</text>
+<text class="attr" x="14" y="92">- modePaiement : enum</text>
+<text class="attr" x="14" y="113">- duplicataId : String</text>
+    </g>
+<g id="organisme" transform="translate(700 530)">
+      <rect class="umlBox" width="250" height="109"/>
+      <line x1="0" y1="32" x2="250" y2="32" class="umlSep"/>
+      <text class="umlTitle" x="125" y="22">Organisme</text>
+      <text class="attr" x="14" y="50">- id : String</text>
+<text class="attr" x="14" y="71">- nom : String</text>
+<text class="attr" x="14" y="92">- type : OBC / DECC</text>
+    </g>
+<g id="centre" transform="translate(50 750)">
+      <rect class="umlBox" width="250" height="130"/>
+      <line x1="0" y1="32" x2="250" y2="32" class="umlSep"/>
+      <text class="umlTitle" x="125" y="22">Centre d'examen</text>
+      <text class="attr" x="14" y="50">- id : String</text>
+<text class="attr" x="14" y="71">- nom : String</text>
+<text class="attr" x="14" y="92">- region : String</text>
+<text class="attr" x="14" y="113">- ville : String</text>
+    </g>
+<g id="rdv" transform="translate(380 750)">
+      <rect class="umlBox" width="290" height="193"/>
+      <line x1="0" y1="32" x2="290" y2="32" class="umlSep"/>
+      <text class="umlTitle" x="145" y="22">Rendez-vous</text>
+      <text class="attr" x="14" y="50">- id : String</text>
+<text class="attr" x="14" y="71">- dateRdv : DateTime</text>
+<text class="attr" x="14" y="92">- heureRdv : String</text>
+<text class="attr" x="14" y="113">- lieu : String</text>
+<text class="attr" x="14" y="134">- statut : enum</text>
+<text class="attr" x="14" y="155">- eleveId : String</text>
+<text class="attr" x="14" y="176">- documentId : String</text>
+    </g>
+<g id="antenne" transform="translate(700 750)">
+      <rect class="umlBox" width="250" height="151"/>
+      <line x1="0" y1="32" x2="250" y2="32" class="umlSep"/>
+      <text class="umlTitle" x="125" y="22">Antenne regionale</text>
+      <text class="attr" x="14" y="50">- id : String</text>
+<text class="attr" x="14" y="71">- nom : String</text>
+<text class="attr" x="14" y="92">- region : String</text>
+<text class="attr" x="14" y="113">- ville : String</text>
+<text class="attr" x="14" y="134">- organismeId : String</text>
+    </g>
+  </svg>

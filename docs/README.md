@@ -1,6 +1,6 @@
 # Documentation du projet DR-DOCSCOL
 
-Ce dossier contient la documentation fonctionnelle et technique de l'application de gestion des demandes et retraits de documents academiques.
+Ce dossier contient la documentation fonctionnelle et technique de l'application de gestion des demandes et retraits de documents scolaires.
 
 Derniere mise a jour globale: 02/06/2026.
 
@@ -24,6 +24,8 @@ Voir `ETAT_FINAL_PROJET.md` pour le verdict detaille.
 | `cahier_des_charges_mis_a_jour.md` | Cahier des charges aligne avec le code actuel |
 | `guide_api_mis_a_jour.md` | Guide API + statut des routes implementees |
 | `GUIDE_TEST_FONCTIONNEL.md` | Guide de test fonctionnel aligne avec les parcours actuels |
+| `GUIDE_SOUTENANCE_COMPLET_NIVEAU_DEBUTANT.md` | Guide exhaustif soutenance : backend, frontend, methodologie, glossaire, Q&R jury |
+| `documents-word/GUIDE_SOUTENANCE_COMPLET_NIVEAU_DEBUTANT.docx` | Version Word du guide de soutenance (lecture par un remplacant) |
 | `diagrammes_uml_mis_a_jour.md` | Documentation UML, notes de coherence et references vers les diagrammes conformes |
 | `documents-word/` | Versions Word regenerees depuis les Markdown actuels |
 | `diagrammes-images/` | Images PNG/SVG finales, dont MCD, MLD et classes detailles conformes au modele fourni |

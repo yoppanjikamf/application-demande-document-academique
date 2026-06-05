@@ -4,7 +4,7 @@ Derniere mise a jour: 02/06/2026.
 
 ## Objectif atteint
 
-Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retraits de documents academiques pour:
+Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retraits de documents scolaires pour:
 
 - eleves;
 - administrateurs OBC;
@@ -110,9 +110,11 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 
 1. Stabiliser `DATABASE_URL` / Supabase pooler pour Prisma.
 2. Brancher un vrai prestataire de paiement.
+   - Conserver le bareme duplicata: 10 000 FCFA pour un releve, 15 000 FCFA pour un original.
 3. Stocker les justificatifs dans Supabase Storage ou equivalent.
-4. Ajouter tests automatises E2E.
-5. Regenerer les `.docx` si necessaire.
+4. Ajouter les futures demandes de traduction et de rectification de diplome.
+5. Ajouter tests automatises E2E.
+6. Regenerer les `.docx` si necessaire.
 
 ### Pour soutenance
 

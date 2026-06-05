@@ -1,39 +1,24 @@
-import { importTestDataAction } from "@/app/admin/actions";
-import { requireRole } from "@/lib/auth";
-import { getAdminScopeLabel } from "@/lib/document-routing";
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { redirect } from "next/navigation";
 
-export default async function AdminImportPage() {
-  const user = await requireRole("ADMINISTRATEUR", "/admin/import");
-  const scopeLabel = getAdminScopeLabel(user);
+type AdminImportRedirectProps = {
+  searchParams?: Promise<{
+    importStatus?: string;
+    importMessage?: string;
+  }>;
+};
 
-  return (
-    <DashboardShell
-      role="ADMINISTRATEUR"
-      organismeId={user.organismeId}
-      userName={`${user.prenom} ${user.nom}`}
-      userMatricule={user.matricule}
-      scopeLabel={scopeLabel}
-      activePath="/admin/import"
-      title="Import CSV"
-      subtitle="Importer des élèves, documents et rendez-vous depuis un fichier CSV structuré."
-    >
-      <form
-        action={importTestDataAction}
-        className="max-w-2xl space-y-4 rounded-md border border-[var(--border-token)] bg-surface-0 p-6 shadow-card"
-      >
-        <div>
-          <h2 className="font-semibold text-text-1">Fichier CSV</h2>
-          <p className="mt-1 text-sm text-text-3">
-            Le fichier ne doit contenir aucun mot de passe. Les élèves activent eux-mêmes leur
-            compte avec leur matricule et leur adresse email.
-          </p>
-        </div>
-        <Input type="file" name="file" accept=".csv" />
-        <Button type="submit">Importer</Button>
-      </form>
-    </DashboardShell>
-  );
+export default async function AdminImportRedirectPage({ searchParams }: AdminImportRedirectProps) {
+  const params = await searchParams;
+  const query = new URLSearchParams();
+
+  if (params?.importStatus) {
+    query.set("importStatus", params.importStatus);
+  }
+
+  if (params?.importMessage) {
+    query.set("importMessage", params.importMessage);
+  }
+
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  redirect(`/admin/students${suffix}`);
 }

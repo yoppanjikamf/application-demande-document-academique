@@ -107,7 +107,7 @@ curl -X POST http://localhost:3000/api/internal/notifications/reminder-30days \
 curl -X POST http://localhost:3000/api/payments/webhook \
   -H "Authorization: Bearer YOUR_INTERNAL_SECRET" \
   -H "Content-Type: application/json" \
-  -d '{"paymentId":"PAYMENT_ID","statut":"EFFECTUE","numeroRecu":"REC-TEST","montant":25000}'
+  -d '{"paymentId":"PAYMENT_ID","statut":"EFFECTUE","numeroRecu":"REC-TEST","montant":10000}'
 ```
 
 ## 8. Erreurs connues a diagnostiquer

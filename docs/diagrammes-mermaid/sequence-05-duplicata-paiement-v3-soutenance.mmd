@@ -1,0 +1,17 @@
+%%{init: {"theme": "base", "themeVariables": {"darkMode": false, "background": "#ffffff", "mainBkg": "#ffffff", "secondaryBkg": "#ffffff", "tertiaryBkg": "#ffffff", "fontFamily": "Arial", "fontSize": "18px", "textColor": "#333333", "lineColor": "#333333", "signalColor": "#333333", "signalTextColor": "#333333"}}}%%
+sequenceDiagram
+    actor Eleve
+    participant Sys as Systeme DR-DOCSCOL
+    participant DB as Base de donnees
+
+    Eleve->>Sys: demander un duplicata
+    Sys-->>Eleve: Afficher le formulaire de duplicata(examen, document cible, motif, pieces, mode de paiement)
+    Eleve->>Sys: saisir les details du duplicata et joindre les justificatifs
+
+    alt Donnees valides
+        Sys->>DB: enregistrer la demande, les pieces et le paiement
+        DB-->>Sys: confirmer l enregistrement
+        Sys-->>Eleve: confirmer la demande, afficher le recu et le statut En cours de traitement
+    else Donnees invalides
+        Sys-->>Eleve: afficher le message d erreur(pieces manquantes, delai non respecte ou autre demande en cours)
+    end

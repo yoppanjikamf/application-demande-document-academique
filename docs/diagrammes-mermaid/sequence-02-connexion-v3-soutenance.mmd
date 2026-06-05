@@ -1,0 +1,23 @@
+%%{init: {"theme": "base", "themeVariables": {"darkMode": false, "background": "#ffffff", "mainBkg": "#ffffff", "secondaryBkg": "#ffffff", "tertiaryBkg": "#ffffff", "fontFamily": "Arial", "fontSize": "18px", "textColor": "#333333", "lineColor": "#333333", "signalColor": "#333333", "signalTextColor": "#333333"}}}%%
+sequenceDiagram
+    actor Utilisateur
+    participant Sys as Systeme DR-DOCSCOL
+    participant DB as Base de donnees
+
+    Utilisateur->>Sys: se connecter
+    Sys-->>Utilisateur: Afficher le formulaire de connexion(email, mot de passe, type de compte)
+    Utilisateur->>Sys: saisir les identifiants(email, mot de passe)
+
+    alt Donnees valides
+        Sys->>DB: verifier l authentification et charger le profil applicatif
+        DB-->>Sys: confirmer role et rattachements OBC, DECC ou centre
+        alt Eleve
+            Sys-->>Utilisateur: ouvrir le tableau de bord eleve
+        else Administrateur OBC ou DECC
+            Sys-->>Utilisateur: ouvrir l espace administrateur
+        else Agent centre d examen
+            Sys-->>Utilisateur: ouvrir l espace centre d examen
+        end
+    else Donnees invalides
+        Sys-->>Utilisateur: afficher le message d erreur(identifiants incorrects ou compte non active)
+    end

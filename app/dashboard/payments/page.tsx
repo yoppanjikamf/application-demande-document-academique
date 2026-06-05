@@ -23,6 +23,7 @@ export default async function PaymentsPage() {
   return (
     <DashboardShell
       role="ELEVE"
+      userId={user.id}
       userName={`${user.prenom} ${user.nom}`}
       userMatricule={user.matricule}
       activePath="/dashboard/payments"

@@ -1,13 +1,15 @@
 // Structure responsive commune aux espaces élève et administrateur.
 import type { ReactNode } from "react";
 
+import { getUnreadNotificationCount } from "@/lib/notification-service";
 import type { Role } from "@/lib/generated/prisma/client";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 
-export function DashboardShell({
+export async function DashboardShell({
   role,
   organismeId,
+  userId,
   userName,
   userMatricule,
   title,
@@ -18,6 +20,7 @@ export function DashboardShell({
 }: {
   role: Role;
   organismeId?: string | null;
+  userId?: string;
   userName?: string;
   userMatricule?: string;
   title: string;
@@ -26,6 +29,9 @@ export function DashboardShell({
   activePath: string;
   children: ReactNode;
 }) {
+  const unreadNotificationCount =
+    role === "ELEVE" && userId ? await getUnreadNotificationCount(userId) : 0;
+
   return (
     <div className="min-h-screen bg-surface-1 text-text-1">
       <div className="flex min-h-screen">
@@ -46,6 +52,7 @@ export function DashboardShell({
             subtitle={subtitle}
             scopeLabel={scopeLabel}
             activePath={activePath}
+            unreadNotificationCount={unreadNotificationCount}
           />
           <main className="min-h-[calc(100vh-64px)] flex-1 bg-surface-1 px-4 py-5 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-7xl space-y-6">{children}</div>

@@ -113,7 +113,20 @@ const tables = [
     x: 720,
     y: 1030,
     w: 390,
-    fields: ["PK id", "typeNotification", "statut", "message", "dateEnvoi", "FK userId", "createdAt", "updatedAt"],
+    fields: [
+      "PK id",
+      "typeNotification",
+      "title",
+      "statut",
+      "message",
+      "actionUrl",
+      "metadata",
+      "deletedAt",
+      "dateEnvoi",
+      "FK userId",
+      "createdAt",
+      "updatedAt",
+    ],
   },
   {
     name: "MAIL_LOGS",
@@ -139,6 +152,7 @@ const tables = [
       "typeDocument",
       "diplomeType",
       "statut",
+      "demandeSoumiseAt",
       "centreExamen",
       "regionComposition",
       "FK eleveId",
@@ -162,6 +176,10 @@ const tables = [
       "typeDocument",
       "nomDuplicata",
       "statut",
+      "statutValidation",
+      "motifRejet",
+      "analysedAt",
+      "FK analysedById",
       "intruction",
       "regionComposition",
       "FK eleveId",
@@ -228,7 +246,33 @@ const tables = [
     w: 390,
     fields: ["PK id", "numero UNIQUE", "montant", "dateEmission", "modePaiement", "commentaire", "FK userId", "FK paiementId", "createdAt", "updatedAt"],
   },
+  {
+    name: "PIECES_DUPLICATA",
+    x: 2180,
+    y: 1520,
+    w: 390,
+    fields: [
+      "PK id",
+      "typePiece",
+      "statut",
+      "bucket",
+      "path",
+      "fileName",
+      "mimeType",
+      "size",
+      "commentaire",
+      "validatedAt",
+      "FK validatedById",
+      "FK duplicataId",
+      "createdAt",
+      "updatedAt",
+      "UNIQUE duplicataId + typePiece",
+    ],
+  },
 ];
+
+const diagramWidth = 2680;
+const diagramHeight = 2100;
 
 const tableByName = new Map(tables.map((table) => [table.name, table]));
 
@@ -303,6 +347,10 @@ const relations = [
   ["DUPLICATAS", "right", "DIPLOMES", "left", "duplicataId", 80, 30],
   ["PAIEMENTS", "bottom", "RECUS", "top", "paiementId", 0, 0],
   ["RENDEZ_VOUS", "bottom", "DISPONIBILITES_RDV", "top", "disponibiliteId", 80, 0],
+  ["DUPLICATAS", "right", "PIECES_DUPLICATA", "left", "duplicataId", 60, -40],
+  ["USERS", "right", "PIECES_DUPLICATA", "left", "validatedById", 200, 60],
+  ["USERS", "right", "DUPLICATAS", "left", "analysedById", 120, 100],
+  ["USERS", "right", "RENDEZ_VOUS", "left", "retraitConfirmeParId", 200, -120],
 ];
 
 function baseStyles() {
@@ -325,8 +373,8 @@ function baseStyles() {
 }
 
 function generateMld() {
-  const width = 2680;
-  const height = 1960;
+  const width = diagramWidth;
+  const height = diagramHeight;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
     ${baseStyles()}
     <rect class="canvas" width="${width}" height="${height}"/>
@@ -350,8 +398,8 @@ function mcdRelation(from, fromSide, assocX, assocY, to, toSide, labelA, labelB)
 }
 
 function generateMcd() {
-  const width = 2680;
-  const height = 1960;
+  const width = diagramWidth;
+  const height = diagramHeight;
   const mcdRelations = [
     ["ORGANISMES", "right", 585, 420, "ANTENNES_REGIONALES", "right", "1,1", "1,n", "possede"],
     ["ORGANISMES", "right", 580, 170, "USERS", "left", "0,1", "1,n", "rattache"],
@@ -372,6 +420,10 @@ function generateMcd() {
     ["USERS", "right", 1250, 1200, "MAIL_LOGS", "left", "0,1", "0,n", "journaliser"],
     ["USERS", "right", 1250, 1500, "AUDIT_LOGS", "left", "0,1", "0,n", "tracer"],
     ["USERS", "right", 1250, 610, "EXAMENS_VALIDES", "left", "1,1", "0,n", "composer"],
+    ["DUPLICATAS", "right", 2005, 1180, "PIECES_DUPLICATA", "left", "1,1", "1,n", "fournir"],
+    ["USERS", "right", 1250, 1320, "PIECES_DUPLICATA", "left", "0,1", "0,n", "valider"],
+    ["USERS", "right", 1250, 720, "DUPLICATAS", "left", "0,1", "0,n", "analyser"],
+    ["USERS", "right", 1250, 1080, "RENDEZ_VOUS", "left", "0,1", "0,n", "confirmer_retrait"],
   ];
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
@@ -385,13 +437,13 @@ function generateMcd() {
 }
 
 function generateClasses() {
-  const width = 2680;
-  const height = 1960;
+  const width = diagramWidth;
+  const height = diagramHeight;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
     ${baseStyles()}
     <rect class="canvas" width="${width}" height="${height}"/>
-    <text class="caption" x="${width / 2}" y="44">Diagramme de classes detaille - DR-DOCSCOL</text>
-    ${relations.slice(0, 22).map((item) => relation(...item)).join("\n")}
+    <text class="caption" x="${width / 2}" y="44">Diagramme de classes detaille - DR-DOCSCOL (20 tables Prisma)</text>
+    ${relations.map((item) => relation(...item)).join("\n")}
     ${tables.map((table) => tableSvg({ ...table, name: table.name.replaceAll("_", " ") }, "table")).join("\n")}
   </svg>`;
 }
@@ -416,12 +468,397 @@ function generateCombined() {
   </svg>`;
 }
 
+const UML_HEADER_H = 32;
+const UML_LINE_H = 21;
+
+function umlClassHeight(cl) {
+  return UML_HEADER_H + cl.attrs.length * UML_LINE_H + 14;
+}
+
+function buildUmlClassDiagram({ width, height, caption, subtitle, classes, links }) {
+  function umlClassBox(cl) {
+    const h = umlClassHeight(cl);
+    const attrs = cl.attrs
+      .map(
+        (attr, index) =>
+          `<text class="attr" x="14" y="${UML_HEADER_H + 18 + index * UML_LINE_H}">- ${escape(attr)}</text>`,
+      )
+      .join("\n");
+    return `<g id="${cl.key}" transform="translate(${cl.x} ${cl.y})">
+      <rect class="umlBox" width="${cl.w}" height="${h}"/>
+      <line x1="0" y1="${UML_HEADER_H}" x2="${cl.w}" y2="${UML_HEADER_H}" class="umlSep"/>
+      <text class="umlTitle" x="${cl.w / 2}" y="22">${escape(cl.name)}</text>
+      ${attrs}
+    </g>`;
+  }
+
+  const byKey = Object.fromEntries(classes.map((cl) => [cl.key, cl]));
+
+  function point(key, side) {
+    const cl = byKey[key];
+    const h = umlClassHeight(cl);
+    if (side === "right") return { x: cl.x + cl.w, y: cl.y + h / 2 };
+    if (side === "left") return { x: cl.x, y: cl.y + h / 2 };
+    if (side === "top") return { x: cl.x + cl.w / 2, y: cl.y };
+    return { x: cl.x + cl.w / 2, y: cl.y + h };
+  }
+
+  function association(from, fromSide, to, toSide, label, cardFrom, cardTo, route, labelOffset = { x: 0, y: 0 }) {
+    const a = point(from, fromSide);
+    const b = point(to, toSide);
+    const d = route(a, b);
+    const lx = Math.round((a.x + b.x) / 2 + labelOffset.x);
+    const ly = Math.round((a.y + b.y) / 2 + labelOffset.y);
+    const labelWidth = Math.max(88, label.length * 7 + 24);
+    return `<path class="umlLine" d="${d}"/>
+      <rect class="umlLabelBox" x="${lx - labelWidth / 2}" y="${ly - 13}" width="${labelWidth}" height="24" rx="2"/>
+      <text class="umlAssoc" x="${lx}" y="${ly + 5}">${escape(label)}</text>
+      <text class="umlCard" x="${a.x + (b.x > a.x ? 8 : -40)}" y="${a.y - 6}">${cardFrom}</text>
+      <text class="umlCard" x="${b.x + (a.x > b.x ? 8 : -24)}" y="${b.y - 6}">${cardTo}</text>`;
+  }
+
+  const linkSvg = links
+    .map((item) => association(...item))
+    .join("\n");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <defs>
+      <style>
+        .canvas { fill: #ffffff; }
+        .umlBox { fill: #ffffff; stroke: #111111; stroke-width: 1.5; }
+        .umlSep { stroke: #111111; stroke-width: 1.5; }
+        .umlLine { fill: none; stroke: #111111; stroke-width: 1.5; }
+        .umlLabelBox { fill: #ffffff; stroke: #111111; stroke-width: 1.2; }
+        .umlTitle { fill: #111111; font: 700 15px Arial, sans-serif; text-anchor: middle; }
+        .attr { fill: #111111; font: 13px Arial, sans-serif; }
+        .umlAssoc { fill: #111111; font: 13px Arial, sans-serif; text-anchor: middle; }
+        .umlCard { fill: #111111; font: 12px Arial, sans-serif; }
+        .caption { fill: #111111; font: 700 18px Arial, sans-serif; text-anchor: middle; }
+        .subtitle { fill: #374151; font: 13px Arial, sans-serif; text-anchor: middle; }
+      </style>
+    </defs>
+    <rect class="canvas" width="${width}" height="${height}"/>
+    <text class="caption" x="${width / 2}" y="32">${escape(caption)}</text>
+    <text class="subtitle" x="${width / 2}" y="52">${escape(subtitle)}</text>
+    ${linkSvg}
+    ${classes.map((cl) => umlClassBox(cl)).join("\n")}
+  </svg>`;
+}
+
+/**
+ * Diagramme de classes principal : structure en croix (modele de reference)
+ * + entites metier essentielles du projet DR-DOCSCOL.
+ */
+function generateClassesSoutenance() {
+  const width = 1380;
+  const height = 1060;
+
+  const classes = [
+    {
+      key: "type",
+      name: "Type de document",
+      x: 50,
+      y: 90,
+      w: 250,
+      attrs: [
+        "code : ORIGINAL",
+        "code : RELEVE_NOTES",
+        "code : DUPLICATA",
+        "diplome : BEPC / PROBATOIRE / BAC",
+      ],
+    },
+    {
+      key: "document",
+      name: "Document academique",
+      x: 380,
+      y: 200,
+      w: 330,
+      attrs: [
+        "id : String",
+        "typeDocument : enum",
+        "diplomeType : enum",
+        "statut : enum",
+        "demandeSoumiseAt : DateTime",
+        "centreExamen : String",
+        "regionComposition : String",
+        "eleveId : String",
+        "organismeId : String",
+        "antenneRegionaleId : String",
+      ],
+    },
+    {
+      key: "eleve",
+      name: "Eleve",
+      x: 1080,
+      y: 90,
+      w: 250,
+      attrs: [
+        "id : String",
+        "matricule : String",
+        "nom : String",
+        "prenom : String",
+        "email : String",
+        "role : ELEVE",
+      ],
+    },
+    {
+      key: "notification",
+      name: "Notification",
+      x: 1080,
+      y: 260,
+      w: 250,
+      attrs: [
+        "id : String",
+        "typeNotification : String",
+        "statut : enum",
+        "message : String",
+        "dateEnvoi : DateTime",
+        "userId : String",
+      ],
+    },
+    {
+      key: "duplicata",
+      name: "Duplicata",
+      x: 1080,
+      y: 430,
+      w: 250,
+      attrs: [
+        "id : String",
+        "typeDocument : enum",
+        "statut : enum",
+        "statutValidation : enum",
+        "eleveId : String",
+        "organismeId : String",
+        "antenneRegionaleId : String",
+      ],
+    },
+    {
+      key: "paiement",
+      name: "Paiement",
+      x: 1080,
+      y: 600,
+      w: 250,
+      attrs: ["id : String", "statut : enum", "modePaiement : enum", "duplicataId : String"],
+    },
+    {
+      key: "organisme",
+      name: "Organisme",
+      x: 700,
+      y: 530,
+      w: 250,
+      attrs: ["id : String", "nom : String", "type : OBC / DECC"],
+    },
+    {
+      key: "centre",
+      name: "Centre d'examen",
+      x: 50,
+      y: 750,
+      w: 250,
+      attrs: ["id : String", "nom : String", "region : String", "ville : String"],
+    },
+    {
+      key: "rdv",
+      name: "Rendez-vous",
+      x: 380,
+      y: 750,
+      w: 290,
+      attrs: [
+        "id : String",
+        "dateRdv : DateTime",
+        "heureRdv : String",
+        "lieu : String",
+        "statut : enum",
+        "eleveId : String",
+        "documentId : String",
+      ],
+    },
+    {
+      key: "antenne",
+      name: "Antenne regionale",
+      x: 700,
+      y: 750,
+      w: 250,
+      attrs: ["id : String", "nom : String", "region : String", "ville : String", "organismeId : String"],
+    },
+  ];
+
+  // Chemins orthogonaux fixes pour eviter les croisements de traits.
+  const links = [
+    [
+      "type",
+      "right",
+      "document",
+      "left",
+      "Contenir",
+      "1,1",
+      "*",
+      (a, b) => `M${a.x} ${a.y} H330 V${b.y} H${b.x}`,
+      { x: -20, y: -10 },
+    ],
+    [
+      "eleve",
+      "left",
+      "document",
+      "right",
+      "Demander",
+      "1,1",
+      "0,n",
+      (a, b) => `M${a.x} ${a.y} H${b.x}`,
+      { x: 40, y: -12 },
+    ],
+    [
+      "eleve",
+      "bottom",
+      "notification",
+      "top",
+      "Recevoir",
+      "1,1",
+      "0,n",
+      (a, b) => `M${a.x} ${a.y} V${b.y}`,
+      { x: 32, y: 0 },
+    ],
+    [
+      "eleve",
+      "bottom",
+      "duplicata",
+      "top",
+      "Demander",
+      "1,1",
+      "0,n",
+      (a, b) => `M${a.x} ${a.y} V${b.y}`,
+      { x: 36, y: 0 },
+    ],
+    [
+      "duplicata",
+      "bottom",
+      "paiement",
+      "top",
+      "Payer",
+      "1,1",
+      "1,1",
+      (a, b) => `M${a.x} ${a.y} V${b.y}`,
+      { x: 30, y: 0 },
+    ],
+    [
+      "document",
+      "left",
+      "centre",
+      "top",
+      "Concerner",
+      "0,n",
+      "1,1",
+      (a, b) => `M${a.x} ${a.y} H175 V${b.y}`,
+      { x: -55, y: 6 },
+    ],
+    [
+      "document",
+      "bottom",
+      "rdv",
+      "top",
+      "Planifier",
+      "1,1",
+      "0,1",
+      (a, b) => `M${a.x} ${a.y} V${b.y}`,
+      { x: -42, y: 0 },
+    ],
+    [
+      "document",
+      "right",
+      "organisme",
+      "left",
+      "Acquerir",
+      "0,n",
+      "1,1",
+      (a, b) => `M${a.x} ${a.y} H${b.x}`,
+      { x: 0, y: -10 },
+    ],
+    [
+      "duplicata",
+      "left",
+      "organisme",
+      "right",
+      "Acquerir",
+      "0,n",
+      "1,1",
+      (a, b) => `M${a.x} ${a.y} H${b.x}`,
+      { x: 0, y: 8 },
+    ],
+    [
+      "organisme",
+      "bottom",
+      "antenne",
+      "top",
+      "Posseder",
+      "1,1",
+      "1,n",
+      (a, b) => `M${a.x} ${a.y} V${b.y}`,
+      { x: 32, y: 0 },
+    ],
+    [
+      "rdv",
+      "left",
+      "centre",
+      "right",
+      "Au centre",
+      "0,n",
+      "1,1",
+      (a, b) => `M${a.x} ${a.y} H${b.x}`,
+      { x: -8, y: -12 },
+    ],
+    [
+      "rdv",
+      "right",
+      "antenne",
+      "left",
+      "A l'antenne",
+      "0,n",
+      "1,1",
+      (a, b) => `M${a.x} ${a.y} H${b.x}`,
+      { x: 8, y: -12 },
+    ],
+    [
+      "eleve",
+      "bottom",
+      "rdv",
+      "top",
+      "Prendre",
+      "1,1",
+      "0,n",
+      (a, b) => `M${a.x} ${a.y} V700 H525 V${b.y}`,
+      { x: 100, y: -8 },
+    ],
+  ];
+
+  return buildUmlClassDiagram({
+    width,
+    height,
+    caption: "Figure : Diagramme de classe - DR-DOCSCOL",
+    subtitle:
+      "Retrait au centre d'examen ou a l'antenne regionale OBC/DECC selon le type de document",
+    classes,
+    links,
+  });
+}
+
 async function writeSvgAndPng(path, svg) {
   writeFileSync(path, svg);
   await sharp(Buffer.from(svg)).png().toFile(path.replace(/\.svg$/, ".png"));
 }
 
-await writeSvgAndPng("docs/diagrammes-images/diagramme-mld-v2.svg", generateMld());
-await writeSvgAndPng("docs/diagrammes-images/diagramme-mcd-v2.svg", generateMcd());
-await writeSvgAndPng("docs/diagrammes-images/diagramme-classes-v2.svg", generateClasses());
-await writeSvgAndPng("docs/diagrammes-images/diagramme-mcd-mld-v2.svg", generateCombined());
+const onlySoutenance = process.argv.includes("--classes-soutenance");
+
+if (onlySoutenance) {
+  await writeSvgAndPng(
+    "docs/diagrammes-images/diagramme-classes-soutenance.svg",
+    generateClassesSoutenance(),
+  );
+} else {
+  await writeSvgAndPng("docs/diagrammes-images/diagramme-mld-v2.svg", generateMld());
+  await writeSvgAndPng("docs/diagrammes-images/diagramme-mcd-v2.svg", generateMcd());
+  await writeSvgAndPng("docs/diagrammes-images/diagramme-classes-v2.svg", generateClasses());
+  await writeSvgAndPng("docs/diagrammes-images/diagramme-mcd-mld-v2.svg", generateCombined());
+  await writeSvgAndPng(
+    "docs/diagrammes-images/diagramme-classes-soutenance.svg",
+    generateClassesSoutenance(),
+  );
+}

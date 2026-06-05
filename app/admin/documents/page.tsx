@@ -1,10 +1,17 @@
 import Link from "next/link";
 
-import { updateDocumentStatusAction } from "@/app/admin/actions";
+import {
+  rejectDuplicataRequestAction,
+  updateDocumentStatusAction,
+  updateDuplicataPieceReviewAction,
+  validateDuplicataRequestAction,
+} from "@/app/admin/actions";
 import type { StatutDocument } from "@/lib/generated/prisma/client";
 import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
 import { getAdminDocumentScope, getAdminScopeLabel } from "@/lib/document-routing";
+import { createDuplicataSignedUrl, DUPLICATA_REQUIRED_PIECES } from "@/lib/duplicata-storage";
+import { parseDuplicataInstruction } from "@/lib/duplicata-service";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBadge, documentTone } from "@/components/dashboard/status-badge";
@@ -36,6 +43,24 @@ function buildPageHref(page: number, status?: StatutDocument, q?: string) {
 
   const query = params.toString();
   return `/admin/documents${query ? `?${query}` : ""}`;
+}
+
+function duplicataKey(eleveId: string, diplomeType: string) {
+  return `${eleveId}:${diplomeType}`;
+}
+
+function duplicataValidationTone(status: string) {
+  if (status === "VALIDEE") {
+    return "green" as const;
+  }
+  if (status === "REJETEE") {
+    return "red" as const;
+  }
+  if (status === "EN_ANALYSE") {
+    return "amber" as const;
+  }
+
+  return "blue" as const;
 }
 
 export default async function AdminDocumentsPage({ searchParams }: AdminDocumentsPageProps) {
@@ -82,6 +107,44 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
     }),
     prisma.documentAcademique.count({ where }),
   ]);
+
+  const duplicataDocuments = documents.filter((document) => document.typeDocument === "DUPLICATA");
+  const duplicatas =
+    duplicataDocuments.length > 0
+      ? await prisma.duplicata.findMany({
+          where: {
+            ...{
+              ...(user.organismeId ? { organismeId: user.organismeId } : {}),
+              ...(user.antenneRegionaleId ? { antenneRegionaleId: user.antenneRegionaleId } : {}),
+            },
+            OR: duplicataDocuments.map((document) => ({
+              eleveId: document.eleveId,
+              intruction: { contains: `"diplomeType":"${document.diplomeType}"` },
+            })),
+          },
+          include: {
+            pieces: { orderBy: { createdAt: "asc" } },
+          },
+          orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+        })
+      : [];
+  const duplicataReviews = await Promise.all(
+    duplicatas.map(async (duplicata) => ({
+      ...duplicata,
+      pieces: await Promise.all(
+        duplicata.pieces.map(async (piece) => ({
+          ...piece,
+          signedUrl: await createDuplicataSignedUrl(piece.path).catch(() => null),
+        })),
+      ),
+    })),
+  );
+  const duplicataByDocument = new Map(
+    duplicataReviews.map((duplicata) => {
+      const meta = parseDuplicataInstruction(duplicata.intruction);
+      return [duplicataKey(duplicata.eleveId, meta.diplomeType ?? ""), duplicata];
+    }),
+  );
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -135,13 +198,11 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
           <span>Statut</span>
         </div>
         {documents.map((document) => (
-          <div key={document.id} className="space-y-3 border-b px-4 py-4 last:border-0">
+          <div key={document.id} className="space-y-4 border-b px-4 py-4 last:border-0">
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-lg font-semibold text-text-1">
-                    {getDocumentTitle(document)}
-                  </p>
+                  <p className="text-lg font-semibold text-text-1">{getDocumentTitle(document)}</p>
                   <StatusBadge tone={documentTone(document.statut)}>
                     {getStatusLabel(document.statut)}
                   </StatusBadge>
@@ -180,6 +241,152 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
                 </Button>
               </form>
             </div>
+            {document.typeDocument === "DUPLICATA" ? (
+              <div className="rounded-md border border-[var(--border-token)] bg-surface-1 p-4">
+                {(() => {
+                  const duplicata = duplicataByDocument.get(
+                    duplicataKey(document.eleveId, document.diplomeType),
+                  );
+
+                  if (!duplicata) {
+                    return (
+                      <p className="text-sm text-text-3">
+                        Aucun dossier de pièces justificatives rattaché à ce duplicata.
+                      </p>
+                    );
+                  }
+
+                  const piecesByType = new Map(
+                    duplicata.pieces.map((piece) => [piece.typePiece, piece]),
+                  );
+                  const allPiecesValidated = DUPLICATA_REQUIRED_PIECES.every(
+                    (piece) => piecesByType.get(piece.type)?.statut === "VALIDEE",
+                  );
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <h3 className="font-semibold text-text-1">Analyse du dossier OBC</h3>
+                          <p className="mt-1 text-sm text-text-3">
+                            Frais officiels : relevé 10.000 F CFA, diplôme 15.000 F CFA.
+                          </p>
+                        </div>
+                        <StatusBadge tone={duplicataValidationTone(duplicata.statutValidation)}>
+                          {duplicata.statutValidation}
+                        </StatusBadge>
+                      </div>
+
+                      <div className="grid gap-3 lg:grid-cols-2">
+                        {DUPLICATA_REQUIRED_PIECES.map((requiredPiece) => {
+                          const piece = piecesByType.get(requiredPiece.type);
+
+                          return (
+                            <div
+                              key={requiredPiece.type}
+                              className="rounded-md border border-[var(--border-token)] bg-surface-0 p-3"
+                            >
+                              <div className="flex flex-wrap items-start justify-between gap-2">
+                                <div>
+                                  <p className="font-medium text-text-1">{requiredPiece.label}</p>
+                                  <p className="mt-1 text-xs text-text-3">
+                                    {requiredPiece.description}
+                                  </p>
+                                </div>
+                                <StatusBadge
+                                  tone={
+                                    piece?.statut === "VALIDEE"
+                                      ? "green"
+                                      : piece?.statut === "REJETEE"
+                                        ? "red"
+                                        : "amber"
+                                  }
+                                >
+                                  {piece?.statut ?? "MANQUANTE"}
+                                </StatusBadge>
+                              </div>
+                              {piece ? (
+                                <>
+                                  <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                                    {piece.signedUrl ? (
+                                      <Button asChild size="sm" variant="outline">
+                                        <a href={piece.signedUrl} target="_blank" rel="noreferrer">
+                                          Ouvrir le fichier
+                                        </a>
+                                      </Button>
+                                    ) : (
+                                      <span className="text-red-700">
+                                        Lien fichier indisponible
+                                      </span>
+                                    )}
+                                    <span className="text-text-3">
+                                      {piece.fileName} · {(piece.size / 1024 / 1024).toFixed(2)} Mo
+                                    </span>
+                                  </div>
+                                  <form
+                                    action={updateDuplicataPieceReviewAction}
+                                    className="mt-3 space-y-2"
+                                  >
+                                    <input type="hidden" name="pieceId" value={piece.id} />
+                                    <div className="flex flex-wrap gap-2">
+                                      <select
+                                        name="statut"
+                                        defaultValue={piece.statut}
+                                        className="h-9 rounded-md border bg-background px-3 text-sm"
+                                      >
+                                        <option value="VALIDEE">Valider</option>
+                                        <option value="REJETEE">Rejeter</option>
+                                      </select>
+                                      <Input
+                                        name="commentaire"
+                                        defaultValue={piece.commentaire ?? ""}
+                                        placeholder="Commentaire d'analyse"
+                                      />
+                                      <Button type="submit" size="sm">
+                                        Enregistrer
+                                      </Button>
+                                    </div>
+                                  </form>
+                                </>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {duplicata.motifRejet ? (
+                        <p className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                          Motif de rejet : {duplicata.motifRejet}
+                        </p>
+                      ) : null}
+
+                      <div className="flex flex-col gap-3 border-t border-[var(--border-token)] pt-4 lg:flex-row">
+                        <form action={validateDuplicataRequestAction}>
+                          <input type="hidden" name="duplicataId" value={duplicata.id} />
+                          <Button type="submit" size="sm" disabled={!allPiecesValidated}>
+                            Valider le dossier
+                          </Button>
+                        </form>
+                        <form
+                          action={rejectDuplicataRequestAction}
+                          className="flex flex-1 flex-col gap-2 sm:flex-row"
+                        >
+                          <input type="hidden" name="duplicataId" value={duplicata.id} />
+                          <Input
+                            name="motifRejet"
+                            placeholder="Motif de rejet du dossier"
+                            className="flex-1"
+                          />
+                          <Button type="submit" size="sm" variant="outline">
+                            Rejeter le dossier
+                          </Button>
+                        </form>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : null}
           </div>
         ))}
       </div>

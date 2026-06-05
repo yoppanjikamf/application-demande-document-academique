@@ -3,7 +3,7 @@ import { z } from "zod";
 import { ApiError, handleApiError, json, parseJson, requireInternalRequest } from "@/lib/api-utils";
 import { notifyPaymentConfirmed } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
-import { parseDuplicataInstruction } from "@/lib/duplicata-service";
+import { getDuplicataFee, parseDuplicataInstruction } from "@/lib/duplicata-service";
 
 const paymentWebhookSchema = z.object({
   paymentId: z.string().trim().min(10),
@@ -29,18 +29,37 @@ export async function POST(request: Request) {
       throw new ApiError("Paiement introuvable.", 404);
     }
 
+    const duplicataMeta = payment.duplicata
+      ? parseDuplicataInstruction(payment.duplicata.intruction)
+      : null;
+    const expectedAmount = duplicataMeta?.cibleDocument
+      ? getDuplicataFee(duplicataMeta.cibleDocument)
+      : null;
+    const receiptAmount = input.montant ?? expectedAmount;
+
+    if (input.statut === "EFFECTUE" && !receiptAmount) {
+      throw new ApiError("Montant de paiement requis pour confirmer ce duplicata.", 400);
+    }
+
+    if (input.statut === "EFFECTUE" && expectedAmount && receiptAmount !== expectedAmount) {
+      throw new ApiError(
+        `Montant invalide pour ce duplicata. Montant attendu: ${expectedAmount} FCFA.`,
+        400,
+      );
+    }
+
     const updated = await prisma.paiement.update({
       where: { id: payment.id },
       data: { statut: input.statut },
     });
 
     const receipt =
-      input.statut === "EFFECTUE" && input.numeroRecu && input.montant
+      input.statut === "EFFECTUE" && input.numeroRecu && receiptAmount
         ? await prisma.recu.upsert({
             where: { numero: input.numeroRecu },
             update: {
               paiementId: payment.id,
-              montant: input.montant,
+              montant: receiptAmount,
               modePaiement: payment.modePaiment,
               commentaire: input.commentaire,
               userId: payment.duplicata.eleveId,
@@ -48,7 +67,7 @@ export async function POST(request: Request) {
             create: {
               numero: input.numeroRecu,
               paiementId: payment.id,
-              montant: input.montant,
+              montant: receiptAmount,
               modePaiement: payment.modePaiment,
               commentaire: input.commentaire,
               userId: payment.duplicata.eleveId,
@@ -57,9 +76,6 @@ export async function POST(request: Request) {
         : null;
 
     const eleve = payment.duplicata?.eleve ?? payment.documentAcademique?.eleve ?? null;
-    const duplicataMeta = payment.duplicata
-      ? parseDuplicataInstruction(payment.duplicata.intruction)
-      : null;
     if (input.statut === "EFFECTUE" && payment.statut !== "EFFECTUE" && eleve && receipt) {
       await notifyPaymentConfirmed({
         userId: eleve.id,

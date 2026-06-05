@@ -22,6 +22,7 @@ export default async function AccountPage() {
     <DashboardShell
       role={user.role}
       organismeId={user.organismeId}
+      userId={user.id}
       userName={`${user.prenom} ${user.nom}`}
       userMatricule={user.matricule}
       scopeLabel={scopeLabel}

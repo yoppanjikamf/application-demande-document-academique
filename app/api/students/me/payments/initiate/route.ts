@@ -1,15 +1,26 @@
 import { z } from "zod";
 
-import { getDocumentTitle } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
 import { resolveDocumentRoute } from "@/lib/document-routing";
+import {
+  getDuplicataFee,
+  parseDuplicataInstruction,
+  type DuplicataTarget,
+} from "@/lib/duplicata-service";
 import { prisma } from "@/lib/prisma";
 import { modePaiement } from "@/lib/generated/prisma/client";
 
 const initiatePaymentSchema = z.object({
   documentId: z.string().trim().min(10),
   modePaiement: z.nativeEnum(modePaiement),
+  cibleDocument: z.enum(["ORIGINAL", "RELEVE_NOTES"]).optional(),
 });
+
+function getDuplicataPaymentTitle(diplomeType: string, target: DuplicataTarget) {
+  return target === "ORIGINAL"
+    ? `Duplicata du diplôme original du ${diplomeType}`
+    : `Duplicata du relevé de notes du ${diplomeType}`;
+}
 
 export async function POST(request: Request) {
   try {
@@ -29,13 +40,23 @@ export async function POST(request: Request) {
 
     const existingPayment = await prisma.paiement.findFirst({
       where: { documentAcademiqueId: document.id },
+      include: { duplicata: true },
     });
 
     if (existingPayment) {
-      return json({ payment: existingPayment });
+      const meta = parseDuplicataInstruction(existingPayment.duplicata.intruction);
+      return json({
+        payment: existingPayment,
+        amount: meta.cibleDocument ? getDuplicataFee(meta.cibleDocument) : null,
+      });
+    }
+
+    if (!input.cibleDocument) {
+      throw new ApiError("Le document source du duplicata est requis.", 400);
     }
 
     const route = resolveDocumentRoute(document);
+    const amount = getDuplicataFee(input.cibleDocument);
     await prisma.documentAcademique.update({
       where: { id: document.id },
       data: {
@@ -48,15 +69,17 @@ export async function POST(request: Request) {
       data: {
         eleveId: user.id,
         typeDocument: "DUPLICATA",
-        nomDuplicata: getDocumentTitle(document),
+        nomDuplicata: getDuplicataPaymentTitle(document.diplomeType, input.cibleDocument),
         statut: document.statut,
         regionComposition: document.regionComposition,
         organismeId: route.organismeId,
         antenneRegionaleId: route.antenneRegionaleId,
         intruction: JSON.stringify({
           diplomeType: document.diplomeType,
+          cibleDocument: input.cibleDocument,
           centreExamen: document.centreExamen,
           justificatif: "Non fourni via API",
+          montant: amount,
           lieuRetrait: route.location,
         }),
       },
@@ -71,7 +94,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return json({ payment }, 201);
+    return json({ payment, amount }, 201);
   } catch (error) {
     return handleApiError(error);
   }

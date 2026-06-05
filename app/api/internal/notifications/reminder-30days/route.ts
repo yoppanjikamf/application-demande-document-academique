@@ -1,6 +1,8 @@
 import { getDocumentTitle, getPickupLocation } from "@/lib/appointment-service";
 import { handleApiError, json, requireInternalRequest } from "@/lib/api-utils";
+import { renderBrandedEmail } from "@/lib/email-template";
 import { sendTrackedMail } from "@/lib/mail-service";
+import { createNotification } from "@/lib/notification-service";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -55,11 +57,17 @@ export async function POST(request: Request) {
         const availableSince = document.updatedAt.toLocaleDateString("fr-FR");
 
         // Créer une notification en base de données
-        await prisma.notification.create({
-          data: {
-            userId: document.eleve.id,
-            typeNotification: "DOCUMENT_WITHDRAWAL_REMINDER_30DAYS",
-            message: `Rappel: votre ${documentTitle} est disponible depuis le ${availableSince}. Lieu de retrait: ${location}.`,
+        await createNotification({
+          userId: document.eleve.id,
+          typeNotification: "DOCUMENT_WITHDRAWAL_REMINDER_30DAYS",
+          title: "Rappel de retrait",
+          message: `Rappel: votre ${documentTitle} est disponible depuis le ${availableSince}. Lieu de retrait: ${location}.`,
+          actionUrl: "/dashboard/documents",
+          metadata: {
+            documentId: document.id,
+            reminderType: "30DAYS",
+            availableSince: document.updatedAt.toISOString(),
+            location,
           },
         });
 
@@ -69,6 +77,19 @@ export async function POST(request: Request) {
           to: document.eleve.email,
           subject: `Rappel: document disponible - ${documentTitle}`,
           text: `Bonjour ${document.eleve.prenom},\n\nVotre ${documentTitle} est disponible depuis le ${availableSince} et n'a pas encore été retiré.\n\nLieu de retrait : ${location}\n\nVeuillez vous présenter avec votre carte scolaire ou CNI et votre accusé de réception.\n\nCordialement,\nDR-DOCSCOL`,
+          html: renderBrandedEmail({
+            title: "Rappel de retrait",
+            eyebrow: "Document disponible",
+            intro: `Bonjour ${document.eleve.prenom}, votre ${documentTitle} est disponible depuis le ${availableSince}.`,
+            body: "Veuillez vous présenter avec votre carte scolaire ou CNI et votre accusé de réception.",
+            details: [
+              { label: "Document", value: documentTitle },
+              { label: "Disponible depuis", value: availableSince },
+              { label: "Lieu de retrait", value: location },
+            ],
+            cta: { label: "Voir mes documents", href: "/dashboard/documents" },
+            tone: "warning",
+          }),
         });
 
         // Créer un log d'audit

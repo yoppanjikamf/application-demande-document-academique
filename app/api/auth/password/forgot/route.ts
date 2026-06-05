@@ -1,4 +1,5 @@
 import { handleApiError, json, parseJson } from "@/lib/api-utils";
+import { renderBrandedEmail } from "@/lib/email-template";
 import { sendTrackedMail } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -58,6 +59,17 @@ export async function POST(request: Request) {
       to: user.email,
       subject: "Réinitialisation de votre mot de passe",
       text: `Bonjour ${user.prenom},\n\nVous avez demandé une réinitialisation de mot de passe. Si ce n'est pas vous, ignorez cet email.\n\nSuivez le lien Supabase reçu pour réinitialiser votre mot de passe.`,
+      html: renderBrandedEmail({
+        title: "Réinitialisation de mot de passe",
+        eyebrow: "Sécurité du compte",
+        intro: `Bonjour ${user.prenom}, nous avons reçu une demande de réinitialisation pour votre compte.`,
+        body: [
+          "Un email Supabase séparé contient le lien sécurisé permettant de définir un nouveau mot de passe.",
+          "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce message.",
+        ],
+        details: [{ label: "Compte concerné", value: user.email }],
+        tone: "warning",
+      }),
       userId: user.id,
     }).catch((err) => {
       console.error("Failed to send tracked mail:", err);

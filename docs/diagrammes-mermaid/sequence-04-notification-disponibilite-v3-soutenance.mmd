@@ -1,0 +1,19 @@
+%%{init: {"theme": "base", "themeVariables": {"darkMode": false, "background": "#ffffff", "mainBkg": "#ffffff", "secondaryBkg": "#ffffff", "tertiaryBkg": "#ffffff", "fontFamily": "Arial", "fontSize": "18px", "textColor": "#333333", "lineColor": "#333333", "signalColor": "#333333", "signalTextColor": "#333333"}}}%%
+sequenceDiagram
+    actor Admin as Administrateur OBC ou DECC
+    participant Sys as Systeme DR-DOCSCOL
+    participant DB as Base de donnees
+
+    Admin->>Sys: rendre un document disponible
+    Sys-->>Admin: Afficher le formulaire de mise a disposition(document, statut DISPONIBLE)
+    Admin->>Sys: saisir les details(document concerne, confirmation de disponibilite)
+
+    alt Donnees valides
+        Sys->>DB: enregistrer le statut DISPONIBLE et le lieu de retrait
+        DB-->>Sys: confirmer l enregistrement
+        Sys->>DB: creer la notification et l email eleve
+        DB-->>Sys: confirmer la notification
+        Sys-->>Admin: confirmer la mise a disposition du document
+    else Donnees invalides
+        Sys-->>Admin: afficher le message d erreur(document hors perimetre, duplicata non valide ou demande absente)
+    end

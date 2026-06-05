@@ -129,17 +129,21 @@
     </g>
     <g transform="translate(950 260) scale(0.48)">
       <g id="NOTIFICATIONS" transform="translate(720 1030)">
-    <rect class="table" width="390" height="252"/>
+    <rect class="table" width="390" height="348"/>
     <rect class="header" width="390" height="38"/>
     <text class="title" x="195" y="25">NOTIFICATIONS</text>
     <text class="field key" x="16" y="66">PK id</text>
 <text class="field" x="16" y="90">typeNotification</text>
-<text class="field" x="16" y="114">statut</text>
-<text class="field" x="16" y="138">message</text>
-<text class="field" x="16" y="162">dateEnvoi</text>
-<text class="field key" x="16" y="186">FK userId</text>
-<text class="field" x="16" y="210">createdAt</text>
-<text class="field" x="16" y="234">updatedAt</text>
+<text class="field" x="16" y="114">title</text>
+<text class="field" x="16" y="138">statut</text>
+<text class="field" x="16" y="162">message</text>
+<text class="field" x="16" y="186">actionUrl</text>
+<text class="field" x="16" y="210">metadata</text>
+<text class="field" x="16" y="234">deletedAt</text>
+<text class="field" x="16" y="258">dateEnvoi</text>
+<text class="field key" x="16" y="282">FK userId</text>
+<text class="field" x="16" y="306">createdAt</text>
+<text class="field" x="16" y="330">updatedAt</text>
   </g>
 <g id="MAIL_LOGS" transform="translate(720 1370)">
     <rect class="table" width="390" height="228"/>
@@ -167,40 +171,45 @@
 <text class="field" x="16" y="234">createdAt</text>
   </g>
 <g id="DOCUMENTS" transform="translate(1410 80)">
-    <rect class="table" width="430" height="420"/>
+    <rect class="table" width="430" height="444"/>
     <rect class="header" width="430" height="38"/>
     <text class="title" x="215" y="25">DOCUMENTS</text>
     <text class="field key" x="16" y="66">PK id</text>
 <text class="field" x="16" y="90">typeDocument</text>
 <text class="field" x="16" y="114">diplomeType</text>
 <text class="field" x="16" y="138">statut</text>
-<text class="field" x="16" y="162">centreExamen</text>
-<text class="field" x="16" y="186">regionComposition</text>
-<text class="field key" x="16" y="210">FK eleveId</text>
-<text class="field key" x="16" y="234">FK organismeId</text>
-<text class="field key" x="16" y="258">FK antenneRegionaleId</text>
-<text class="field key" x="16" y="282">FK paiementId</text>
-<text class="field key" x="16" y="306">FK releveId</text>
-<text class="field key" x="16" y="330">FK diplomeId</text>
-<text class="field" x="16" y="354">createdAt</text>
-<text class="field" x="16" y="378">updatedAt</text>
-<text class="field key" x="16" y="402">UNIQUE eleveId + diplomeType + typeDocument</text>
+<text class="field" x="16" y="162">demandeSoumiseAt</text>
+<text class="field" x="16" y="186">centreExamen</text>
+<text class="field" x="16" y="210">regionComposition</text>
+<text class="field key" x="16" y="234">FK eleveId</text>
+<text class="field key" x="16" y="258">FK organismeId</text>
+<text class="field key" x="16" y="282">FK antenneRegionaleId</text>
+<text class="field key" x="16" y="306">FK paiementId</text>
+<text class="field key" x="16" y="330">FK releveId</text>
+<text class="field key" x="16" y="354">FK diplomeId</text>
+<text class="field" x="16" y="378">createdAt</text>
+<text class="field" x="16" y="402">updatedAt</text>
+<text class="field key" x="16" y="426">UNIQUE eleveId + diplomeType + typeDocument</text>
   </g>
 <g id="DUPLICATAS" transform="translate(1410 610)">
-    <rect class="table" width="430" height="324"/>
+    <rect class="table" width="430" height="420"/>
     <rect class="header" width="430" height="38"/>
     <text class="title" x="215" y="25">DUPLICATAS</text>
     <text class="field key" x="16" y="66">PK id</text>
 <text class="field" x="16" y="90">typeDocument</text>
 <text class="field" x="16" y="114">nomDuplicata</text>
 <text class="field" x="16" y="138">statut</text>
-<text class="field" x="16" y="162">intruction</text>
-<text class="field" x="16" y="186">regionComposition</text>
-<text class="field key" x="16" y="210">FK eleveId</text>
-<text class="field key" x="16" y="234">FK organismeId</text>
-<text class="field key" x="16" y="258">FK antenneRegionaleId</text>
-<text class="field" x="16" y="282">createdAt</text>
-<text class="field" x="16" y="306">updatedAt</text>
+<text class="field" x="16" y="162">statutValidation</text>
+<text class="field" x="16" y="186">motifRejet</text>
+<text class="field" x="16" y="210">analysedAt</text>
+<text class="field key" x="16" y="234">FK analysedById</text>
+<text class="field" x="16" y="258">intruction</text>
+<text class="field" x="16" y="282">regionComposition</text>
+<text class="field key" x="16" y="306">FK eleveId</text>
+<text class="field key" x="16" y="330">FK organismeId</text>
+<text class="field key" x="16" y="354">FK antenneRegionaleId</text>
+<text class="field" x="16" y="378">createdAt</text>
+<text class="field" x="16" y="402">updatedAt</text>
   </g>
 <g id="RENDEZ_VOUS" transform="translate(1410 1040)">
     <rect class="table" width="430" height="396"/>

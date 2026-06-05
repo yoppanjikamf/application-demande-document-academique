@@ -108,6 +108,10 @@
     --ring: 224.3 76.3% 48%;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   * {
     @apply border-border;
   }
@@ -122,5 +126,84 @@
   .font-display {
     font-family: var(--font-display), Georgia, serif;
     letter-spacing: 0;
+  }
+}
+
+@layer components {
+  .Toastify__toast-container {
+    width: min(420px, calc(100vw - 24px));
+    z-index: 9999;
+  }
+
+  .Toastify__toast-container--top-right {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .dr-toast {
+    min-height: 64px;
+    border-radius: 10px;
+    border: 1px solid rgba(13, 43, 31, 0.12);
+    background: var(--surface-0);
+    color: var(--text-1);
+    box-shadow: var(--shadow-modal);
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-size: 0.925rem;
+    line-height: 1.35;
+  }
+
+  .dr-toast .Toastify__toast-body {
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.15rem 0;
+  }
+
+  .dr-toast-progress {
+    height: 3px;
+    opacity: 0.95;
+  }
+
+  .Toastify__toast--success .dr-toast-progress {
+    background: var(--status-available);
+  }
+
+  .Toastify__toast--error .dr-toast-progress {
+    background: var(--status-cancelled);
+  }
+
+  .Toastify__toast--warning .dr-toast-progress {
+    background: var(--status-pending);
+  }
+
+  .Toastify__toast--info .dr-toast-progress {
+    background: var(--status-scheduled);
+  }
+
+  .Toastify__toast-icon {
+    width: 1.35rem;
+  }
+
+  .Toastify__toast-icon svg {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .Toastify__close-button {
+    align-self: center;
+    color: var(--text-2);
+    opacity: 0.7;
+  }
+
+  .Toastify__close-button:hover {
+    opacity: 1;
+  }
+
+  @media (max-width: 640px) {
+    .Toastify__toast-container--top-right {
+      top: 0.75rem;
+      right: 0.75rem;
+      left: 0.75rem;
+      width: auto;
+    }
   }
 }

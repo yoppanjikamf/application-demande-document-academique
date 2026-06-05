@@ -1,0 +1,19 @@
+%%{init: {"theme": "base", "themeVariables": {"darkMode": false, "background": "#ffffff", "mainBkg": "#ffffff", "secondaryBkg": "#ffffff", "tertiaryBkg": "#ffffff", "fontFamily": "Arial", "fontSize": "18px", "textColor": "#333333", "lineColor": "#333333", "signalColor": "#333333", "signalTextColor": "#333333"}}}%%
+sequenceDiagram
+    actor Admin as Administrateur OBC ou DECC
+    participant Sys as Systeme DR-DOCSCOL
+    participant DB as Base de donnees
+
+    Admin->>Sys: mettre a jour le statut d un document
+    Sys-->>Admin: Afficher le formulaire de statut(document, statut cible)
+    Admin->>Sys: saisir les details(statut PAS_DISPONIBLE, DISPONIBLE ou RETIRE)
+
+    alt Donnees valides
+        Sys->>DB: verifier le perimetre admin et enregistrer le nouveau statut
+        DB-->>Sys: confirmer l enregistrement
+        Sys->>DB: creer la notification eleve liee au changement
+        DB-->>Sys: confirmer la notification
+        Sys-->>Admin: confirmer la mise a jour du statut
+    else Donnees invalides
+        Sys-->>Admin: afficher le message d erreur(document hors perimetre, duplicata non valide ou transition interdite)
+    end

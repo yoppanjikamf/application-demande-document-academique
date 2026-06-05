@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { isDocumentRequestAllowed, resolveDocumentRoute } from "@/lib/document-routing";
+import { resolveDocumentRoute } from "@/lib/document-routing";
 import { resolvePickupRouteForDocument } from "@/lib/duplicata-service";
 import type {
   DiplomePrincipal,
@@ -155,6 +155,24 @@ export function getStatusLabel(status: StatutDocument) {
   return "Retiré";
 }
 
+export const DOCUMENT_REQUEST_PENDING_LABEL = "Demande non effectuée";
+
+export function hasStudentDocumentRequest(
+  document: Pick<DocumentAcademique, "demandeSoumiseAt"> | null | undefined,
+) {
+  return Boolean(document?.demandeSoumiseAt);
+}
+
+export function getStudentDocumentStatusLabel(
+  document: Pick<DocumentAcademique, "demandeSoumiseAt" | "statut"> | null | undefined,
+) {
+  if (!hasStudentDocumentRequest(document)) {
+    return DOCUMENT_REQUEST_PENDING_LABEL;
+  }
+
+  return getStatusLabel(document!.statut);
+}
+
 export async function getPickupLocation(
   document: Pick<DocumentAcademique, "diplomeType" | "typeDocument" | "centreExamen" | "regionComposition"> & {
     eleveId?: string;
@@ -239,53 +257,3 @@ export async function findNextAvailableAppointmentDate(startDate: Date, maxDays 
   return null;
 }
 
-export async function ensureDocumentsForValidatedExams(eleveId: string) {
-  const exams = await prisma.examenValide.findMany({
-    where: { eleveId },
-    orderBy: { createdAt: "asc" },
-  });
-
-  if (exams.length === 0) {
-    return;
-  }
-
-  for (const exam of exams) {
-    for (const typeDocument of ["ORIGINAL", "RELEVE_NOTES", "DUPLICATA"] as const) {
-      if (!isDocumentRequestAllowed(exam.diplomeType, typeDocument)) {
-        continue;
-      }
-
-      const route = resolveDocumentRoute({
-        diplomeType: exam.diplomeType,
-        typeDocument,
-        centreExamen: exam.centreExamen,
-        regionComposition: exam.regionComposition,
-      });
-      await prisma.documentAcademique.upsert({
-        where: {
-          eleveId_diplomeType_typeDocument: {
-            eleveId,
-            diplomeType: exam.diplomeType,
-            typeDocument,
-          },
-        },
-        update: {
-          centreExamen: exam.centreExamen,
-          regionComposition: exam.regionComposition ?? undefined,
-          organismeId: route.organismeId,
-          antenneRegionaleId: route.antenneRegionaleId,
-        },
-        create: {
-          eleveId,
-          diplomeType: exam.diplomeType,
-          typeDocument,
-          centreExamen: exam.centreExamen,
-          regionComposition: exam.regionComposition,
-          organismeId: route.organismeId,
-          antenneRegionaleId: route.antenneRegionaleId,
-          statut: "PAS_DISPONIBLE",
-        },
-      });
-    }
-  }
-}

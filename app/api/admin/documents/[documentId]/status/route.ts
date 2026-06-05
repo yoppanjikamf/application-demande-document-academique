@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getDocumentTitle, getPickupLocation } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
 import { getAdminDocumentScope, isDocumentRequestAllowed } from "@/lib/document-routing";
-import { syncLatestDuplicataStatus } from "@/lib/duplicata-service";
+import { findLatestDuplicataForDocument, syncLatestDuplicataStatus } from "@/lib/duplicata-service";
 import { notifyDocumentAvailable, notifyDocumentRetired } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 
@@ -34,6 +34,17 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const previousStatus = document.statut;
+    if (document.typeDocument === "DUPLICATA" && input.statut === "DISPONIBLE") {
+      const latestDuplicata = await findLatestDuplicataForDocument(document);
+
+      if (!latestDuplicata || latestDuplicata.statutValidation !== "VALIDEE") {
+        throw new ApiError(
+          "Le dossier de duplicata doit être validé avant de marquer le document comme disponible.",
+          409,
+        );
+      }
+    }
+
     const updated = await prisma.documentAcademique.update({
       where: { id: document.id },
       data: { statut: input.statut },

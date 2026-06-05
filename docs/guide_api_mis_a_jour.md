@@ -1,6 +1,6 @@
 # Guide API Next.js mis a jour
 
-- Application : DR-DOCSCOL, gestion des demandes et retraits de documents academiques
+- Application : DR-DOCSCOL, gestion des demandes et retraits de documents scolaires
 - Date de mise a jour : 02/06/2026
 
 ## 1. Positionnement
@@ -114,10 +114,10 @@ Le projet expose 37 route handlers `route.ts`, dont 36 sous `/api` et 1 route ap
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
-| `/api/students/me/payments/initiate` | POST | Eleve | Partiel | Cree paiement duplicata applicatif |
+| `/api/students/me/payments/initiate` | POST | Eleve | Partiel | Cree paiement duplicata applicatif avec `cibleDocument` et montant attendu : 10 000 FCFA pour `RELEVE_NOTES`, 15 000 FCFA pour `ORIGINAL` |
 | `/api/students/me/payments/:paymentId` | GET | Eleve | Implemente | Detail paiement + recu |
 | `/api/students/me/payments/:paymentId/cancel` | PATCH | Eleve | Implemente | Annulation paiement EN_ATTENTE |
-| `/api/payments/webhook` | POST | Systeme interne | Partiel | Confirmation via secret interne |
+| `/api/payments/webhook` | POST | Systeme interne | Partiel | Confirmation via secret interne avec controle du montant attendu |
 | `/api/admin/payments` | GET | Admin | Implemente | Suivi admin paiements |
 
 ### 4.7 Administration

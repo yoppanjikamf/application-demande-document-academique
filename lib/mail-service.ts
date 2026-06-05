@@ -1,4 +1,6 @@
+import { renderBrandedEmail, renderTextEmailAsHtml } from "@/lib/email-template";
 import { sendMail } from "@/lib/mailer";
+import { createNotification } from "@/lib/notification-service";
 import { prisma } from "@/lib/prisma";
 import type { DiplomePrincipal, TypeDocument } from "@/lib/generated/prisma/client";
 
@@ -24,8 +26,10 @@ function getDocumentSenderName(diplomeType?: DiplomePrincipal) {
 }
 
 export async function sendTrackedMail(payload: MailPayload) {
+  const html = payload.html ?? renderTextEmailAsHtml(payload.subject, payload.text);
+
   try {
-    await sendMail(payload);
+    await sendMail({ ...payload, html });
     await prisma.mailLog.create({
       data: {
         to: payload.to,
@@ -76,11 +80,17 @@ export async function notifyDocumentAvailable({
       ? `Votre duplicata est prêt. Veuillez vous rendre dans votre établissement ou centre d'examen concerné pour le retirer : ${location}. Aucun rendez-vous n'est requis pour ce retrait.`
       : `Votre document scolaire ${documentTitle} est disponible. Cliquez sur cette notification dans votre espace Notifications pour programmer une date de rendez-vous avant le retrait. Lieu de retrait : ${location}.`;
 
-  await prisma.notification.create({
-    data: {
-      userId,
-      typeNotification: "DOCUMENT_DISPONIBLE",
-      message: text,
+  await createNotification({
+    userId,
+    typeNotification: "DOCUMENT_DISPONIBLE",
+    title: subject,
+    message: text,
+    actionUrl: "/dashboard/notifications",
+    metadata: {
+      documentTitle,
+      typeDocument,
+      diplomeType,
+      location,
     },
   });
 
@@ -89,6 +99,17 @@ export async function notifyDocumentAvailable({
     to,
     subject,
     text,
+    html: renderBrandedEmail({
+      title: subject,
+      eyebrow: isReleve ? "Relevé disponible" : isDuplicata ? "Duplicata prêt" : "Document prêt",
+      intro: text,
+      details: [
+        { label: "Document", value: documentTitle },
+        { label: "Lieu de retrait", value: location },
+      ],
+      cta: { label: "Voir mes notifications", href: "/dashboard/notifications" },
+      tone: "success",
+    }),
     fromName: getDocumentSenderName(diplomeType),
   });
 }
@@ -107,11 +128,15 @@ export async function notifyDuplicataRequestRegistered({
   const subject = "Demande de duplicata enregistrée";
   const text = `Votre demande de duplicata a été enregistrée avec succès et elle est en cours de traitement. Document scolaire : ${documentTitle}.`;
 
-  await prisma.notification.create({
-    data: {
-      userId,
-      typeNotification: "DEMANDE_DUPLICATA",
-      message: text,
+  await createNotification({
+    userId,
+    typeNotification: "DEMANDE_DUPLICATA",
+    title: subject,
+    message: text,
+    actionUrl: "/dashboard/documents",
+    metadata: {
+      documentTitle,
+      diplomeType,
     },
   });
 
@@ -120,6 +145,14 @@ export async function notifyDuplicataRequestRegistered({
     to,
     subject,
     text,
+    html: renderBrandedEmail({
+      title: subject,
+      eyebrow: "Demande reçue",
+      intro: "Votre demande a bien été enregistrée et sera traitée par le service compétent.",
+      details: [{ label: "Document scolaire", value: documentTitle }],
+      cta: { label: "Suivre mes documents", href: "/dashboard/documents" },
+      tone: "info",
+    }),
     fromName: getDocumentSenderName(diplomeType),
   });
 }
@@ -165,11 +198,18 @@ export async function notifyPaymentConfirmed({
     "DR-DOCSCOL",
   ].join("\n");
 
-  await prisma.notification.create({
-    data: {
-      userId,
-      typeNotification: "PAIEMENT_EFFECTUE",
-      message: `Votre paiement de ${formattedAmount} FCFA pour ${documentTitle} a bien été pris en compte. Reçu : ${receiptNumber}.`,
+  await createNotification({
+    userId,
+    typeNotification: "PAIEMENT_EFFECTUE",
+    title: subject,
+    message: `Votre paiement de ${formattedAmount} FCFA pour ${documentTitle} a bien été pris en compte. Reçu : ${receiptNumber}.`,
+    actionUrl: "/dashboard/payments",
+    metadata: {
+      documentTitle,
+      paymentMode,
+      receiptNumber,
+      amount,
+      paymentDate: paymentDate.toISOString(),
     },
   });
 
@@ -178,6 +218,20 @@ export async function notifyPaymentConfirmed({
     to,
     subject,
     text,
+    html: renderBrandedEmail({
+      title: subject,
+      eyebrow: "Paiement confirmé",
+      intro: `Bonjour ${recipientName}, votre paiement a bien été pris en compte.`,
+      details: [
+        { label: "Document", value: documentTitle },
+        { label: "Montant", value: `${formattedAmount} FCFA` },
+        { label: "Mode de paiement", value: paymentMode },
+        { label: "Numéro de reçu", value: receiptNumber },
+        { label: "Date du paiement", value: formattedDate },
+      ],
+      cta: { label: "Consulter mon reçu", href: "/dashboard/payments" },
+      tone: "success",
+    }),
     fromName: getDocumentSenderName(diplomeType),
   });
 }
@@ -196,11 +250,15 @@ export async function notifyDocumentRetired({
   const subject = "Accusé de réception du document";
   const text = `Nous confirmons que le document scolaire ${documentTitle} a bien été récupéré.`;
 
-  await prisma.notification.create({
-    data: {
-      userId,
-      typeNotification: "DOCUMENT_RETIRE",
-      message: text,
+  await createNotification({
+    userId,
+    typeNotification: "DOCUMENT_RETIRE",
+    title: subject,
+    message: text,
+    actionUrl: "/dashboard/documents",
+    metadata: {
+      documentTitle,
+      diplomeType,
     },
   });
 
@@ -209,6 +267,14 @@ export async function notifyDocumentRetired({
     to,
     subject,
     text,
+    html: renderBrandedEmail({
+      title: subject,
+      eyebrow: "Retrait confirmé",
+      intro: text,
+      details: [{ label: "Document", value: documentTitle }],
+      cta: { label: "Voir mes documents", href: "/dashboard/documents" },
+      tone: "success",
+    }),
     fromName: getDocumentSenderName(diplomeType),
   });
 }
@@ -251,11 +317,19 @@ export async function notifyAppointmentConfirmed({
     ...items.map((item) => `- ${item}`),
   ].join("\n");
 
-  await prisma.notification.create({
-    data: {
-      userId,
-      typeNotification: "RENDEZ_VOUS_PLANIFIE",
-      message: text,
+  await createNotification({
+    userId,
+    typeNotification: "RENDEZ_VOUS_PLANIFIE",
+    title: subject,
+    message: text,
+    actionUrl: "/dashboard/rendez-vous",
+    metadata: {
+      documentTitle,
+      diplomeType,
+      documentType,
+      date: date.toISOString(),
+      time,
+      location,
     },
   });
 
@@ -264,6 +338,20 @@ export async function notifyAppointmentConfirmed({
     to,
     subject,
     text,
+    html: renderBrandedEmail({
+      title: subject,
+      eyebrow: "Rendez-vous",
+      intro: `Bonjour ${recipientName}, votre rendez-vous de retrait est planifié.`,
+      details: [
+        { label: "Document", value: documentTitle },
+        { label: "Date", value: formattedDate },
+        { label: "Heure", value: time },
+        { label: "Lieu", value: location },
+        { label: "Pièces à présenter", value: items.join(", ") },
+      ],
+      cta: { label: "Voir mes rendez-vous", href: "/dashboard/rendez-vous" },
+      tone: "info",
+    }),
     fromName: getDocumentSenderName(diplomeType),
   });
 }

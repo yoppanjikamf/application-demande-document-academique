@@ -1,9 +1,9 @@
-import { importTestDataAction } from "@/app/admin/actions";
+import { importTestDataFromCsv } from "@/app/admin/actions";
 import { ApiError, handleApiError, json, requireApiUser } from "@/lib/api-utils";
 
 export async function POST(request: Request) {
   try {
-    await requireApiUser("ADMINISTRATEUR");
+    const user = await requireApiUser("ADMINISTRATEUR");
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -11,8 +11,12 @@ export async function POST(request: Request) {
       throw new ApiError("Fichier CSV manquant.", 400);
     }
 
-    await importTestDataAction(formData);
-    return json({ ok: true }, 201);
+    try {
+      const result = await importTestDataFromCsv(formData, user);
+      return json({ ok: true, ...result }, 201);
+    } catch (error) {
+      throw new ApiError(error instanceof Error ? error.message : "Import CSV impossible.", 400);
+    }
   } catch (error) {
     return handleApiError(error);
   }

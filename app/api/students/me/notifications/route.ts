@@ -7,12 +7,12 @@ export async function GET(request: Request) {
     const { page, limit, skip } = getPageParams(request);
     const [notifications, total] = await Promise.all([
       prisma.notification.findMany({
-        where: { userId: user.id },
+        where: { userId: user.id, deletedAt: null },
         orderBy: { dateEnvoi: "desc" },
         skip,
         take: limit,
       }),
-      prisma.notification.count({ where: { userId: user.id } }),
+      prisma.notification.count({ where: { userId: user.id, deletedAt: null } }),
     ]);
 
     return json({ notifications, pagination: { page, limit, total } });

@@ -1,9 +1,9 @@
 import {
   ACTIVE_RENDEZ_VOUS_STATUSES,
-  ensureDocumentsForValidatedExams,
   getDocumentTitle,
   getPickupLocation,
-  getStatusLabel,
+  getStudentDocumentStatusLabel,
+  hasStudentDocumentRequest,
 } from "@/lib/appointment-service";
 import { handleApiError, json, requireApiUser } from "@/lib/api-utils";
 import { prisma } from "@/lib/prisma";
@@ -11,7 +11,6 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const user = await requireApiUser("ELEVE");
-    await ensureDocumentsForValidatedExams(user.id);
 
     const documents = await prisma.documentAcademique.findMany({
       where: { eleveId: user.id },
@@ -29,7 +28,8 @@ export async function GET() {
       documents.map(async (document) => ({
         ...document,
         title: getDocumentTitle(document),
-        statusLabel: getStatusLabel(document.statut),
+        statusLabel: getStudentDocumentStatusLabel(document),
+        hasSubmittedRequest: hasStudentDocumentRequest(document),
         location: await getPickupLocation(document),
         activeAppointment: document.rendezVous[0] ?? null,
       })),

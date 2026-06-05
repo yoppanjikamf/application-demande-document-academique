@@ -40,7 +40,8 @@ L'application a besoin de Supabase Auth et de Postgres via Prisma.
 
 ## Regles duplicata de test
 
-- Frais unique de duplicata: 25 000 FCFA.
+- Frais duplicata relevé: 10 000 FCFA.
+- Frais duplicata original: 15 000 FCFA.
 - Justificatif obligatoire: CNI ou carte scolaire.
 - Les duplicatas BEPC sont retires exclusivement a l'antenne regionale DECC competente.
 - Les duplicatas ne sont pas traites par l'Agent Centre d'Examen.

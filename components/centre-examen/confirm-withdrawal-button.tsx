@@ -3,7 +3,7 @@
 import * as React from "react";
 import { CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export function ConfirmWithdrawalButton({ appointmentId }: { appointmentId: string }) {
+export function ConfirmWithdrawalButton({
+  appointmentId,
+  onConfirmed,
+}: {
+  appointmentId: string;
+  onConfirmed?: () => void;
+}) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
@@ -37,6 +43,7 @@ export function ConfirmWithdrawalButton({ appointmentId }: { appointmentId: stri
 
       toast.success("Retrait confirmé.");
       setOpen(false);
+      onConfirmed?.();
       router.refresh();
     });
   }

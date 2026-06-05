@@ -38,7 +38,7 @@ export async function PATCH(_request: Request, { params }: RouteContext) {
           throw new ApiError("Rendez-vous introuvable.", 404);
         }
 
-        if (!isCentreExamenDocumentEligible(current.document, centre.region)) {
+        if (!isCentreExamenDocumentEligible(current.document, centre)) {
           throw new ApiError("Ce rendez-vous n'appartient pas a votre centre d'examen.", 403);
         }
 

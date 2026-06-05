@@ -53,6 +53,26 @@ enum StatutPaiement {
   ANNULE
 }
 
+enum StatutValidationDuplicata {
+  SOUMISE
+  EN_ANALYSE
+  VALIDEE
+  REJETEE
+}
+
+enum TypePieceDuplicata {
+  DECLARATION_PERTE
+  CNI
+  DEMANDE_ADRESSEE_DG_OBC
+  DECHARGE_BORDEREAU_REUSSITE
+}
+
+enum StatutPieceDuplicata {
+  EN_ATTENTE
+  VALIDEE
+  REJETEE
+}
+
 enum TypeDocument {
   ORIGINAL
   RELEVE_NOTES
@@ -151,17 +171,19 @@ model User {
   centreExamen       CentreExamen?     @relation(fields: [centreExamenId], references: [id])
 
   // Relations
-  rendezVousCrees     RendezVous[]         @relation("AdminRendezVous")
-  eleveRendezVous     RendezVous[]         @relation("EleveRendezVous")
-  retraitsConfirmes   RendezVous[]         @relation("AgentCentreRetraits")
-  disponibilitesRdv   DisponibiliteRdv[]
-  documentsAcademique DocumentAcademique[] @relation("EleveDocuments") // <-- renommé
-  examensValides      ExamenValide[]
-  notifications       Notification[]
-  mailLogs            MailLog[]
-  duplicatas          Duplicata[]          @relation("EleveDuplicatas")
-  recu                Recu[]
-  auditLogs           AuditLog[]
+  rendezVousCrees         RendezVous[]         @relation("AdminRendezVous")
+  eleveRendezVous         RendezVous[]         @relation("EleveRendezVous")
+  retraitsConfirmes       RendezVous[]         @relation("AgentCentreRetraits")
+  disponibilitesRdv       DisponibiliteRdv[]
+  documentsAcademique     DocumentAcademique[] @relation("EleveDocuments") // <-- renommé
+  examensValides          ExamenValide[]
+  notifications           Notification[]
+  mailLogs                MailLog[]
+  duplicatas              Duplicata[]          @relation("EleveDuplicatas")
+  duplicatasAnalyses      Duplicata[]          @relation("AdminDuplicataAnalyses")
+  piecesDuplicataValidees PieceDuplicata[]     @relation("AdminPiecesDuplicata")
+  recu                    Recu[]
+  auditLogs               AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -228,16 +250,23 @@ model DisponibiliteRdv {
 model Notification {
   id               String             @id @default(uuid())
   typeNotification String
+  title            String?
   statut           StatutNotification @default(ENVOYEE)
   message          String
+  actionUrl        String?
+  metadata         Json?
+  deletedAt        DateTime?
   dateEnvoi        DateTime           @default(now())
 
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId, deletedAt, dateEnvoi])
+  @@index([userId, statut])
+  @@index([typeNotification])
   @@map("notifications")
 }
 
@@ -264,6 +293,7 @@ model DocumentAcademique {
   typeDocument      TypeDocument
   diplomeType       DiplomePrincipal @default(BACCALAUREAT)
   statut            StatutDocument   @default(PAS_DISPONIBLE)
+  demandeSoumiseAt  DateTime?
   centreExamen      String?
   regionComposition String?
 
@@ -301,10 +331,15 @@ model DocumentAcademique {
 
 // ==================== DUPLICATA ====================
 model Duplicata {
-  id                String         @id @default(uuid())
+  id                String                    @id @default(uuid())
   typeDocument      TypeDocument
   nomDuplicata      String
-  statut            StatutDocument @default(PAS_DISPONIBLE)
+  statut            StatutDocument            @default(PAS_DISPONIBLE)
+  statutValidation  StatutValidationDuplicata @default(SOUMISE)
+  motifRejet        String?
+  analysedAt        DateTime?
+  analysedById      String?
+  analysedBy        User?                     @relation("AdminDuplicataAnalyses", fields: [analysedById], references: [id], onDelete: SetNull)
   intruction        String
   regionComposition String?
 
@@ -320,15 +355,46 @@ model Duplicata {
 
   // Relations inverses (one-to-one, la FK est dans les modèles correspondants)
   paiement Paiement?
-  releve   Releve?   @relation("DuplicataReleve")
+  releve   Releve?          @relation("DuplicataReleve")
   diplome  Diplome?
+  pieces   PieceDuplicata[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([organismeId])
   @@index([antenneRegionaleId])
+  @@index([statutValidation])
+  @@index([analysedById])
   @@map("duplicatas")
+}
+
+model PieceDuplicata {
+  id            String               @id @default(uuid())
+  typePiece     TypePieceDuplicata
+  statut        StatutPieceDuplicata @default(EN_ATTENTE)
+  bucket        String
+  path          String
+  fileName      String
+  mimeType      String
+  size          Int
+  commentaire   String?
+  validatedAt   DateTime?
+  validatedById String?
+  validatedBy   User?                @relation("AdminPiecesDuplicata", fields: [validatedById], references: [id], onDelete: SetNull)
+
+  duplicataId String
+  duplicata   Duplicata @relation(fields: [duplicataId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([duplicataId, typePiece])
+  @@index([duplicataId])
+  @@index([typePiece])
+  @@index([statut])
+  @@index([validatedById])
+  @@map("pieces_duplicata")
 }
 
 // ==================== PAIEMENT ====================

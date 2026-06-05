@@ -15,6 +15,7 @@ import {
   startOfDay,
 } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
+import { syncDocumentPickupFromExam } from "@/lib/centre-examen-service";
 import { resolvePickupRouteForDocument } from "@/lib/duplicata-service";
 import { notifyAppointmentConfirmed } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
@@ -47,6 +48,10 @@ export async function POST(request: Request, { params }: RouteContext) {
 
     if (!document) {
       throw new ApiError("Document introuvable.", 404);
+    }
+
+    if (document.typeDocument !== "DUPLICATA" && !document.demandeSoumiseAt) {
+      throw new ApiError("Vous devez d'abord enregistrer une demande pour ce document.", 409);
     }
 
     if (document.statut !== "DISPONIBLE") {
@@ -98,7 +103,8 @@ export async function POST(request: Request, { params }: RouteContext) {
       throw new ApiError("Aucun administrateur disponible.", 409);
     }
 
-    const location = await getPickupLocation(document);
+    const syncedDocument = await syncDocumentPickupFromExam(document);
+    const location = await getPickupLocation(syncedDocument);
     const settings = await getAppointmentSettings();
     const activeSlots = await getActiveTimeSlots();
     const slotCapacity = Math.max(

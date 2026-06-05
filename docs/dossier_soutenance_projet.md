@@ -16,7 +16,7 @@ Il reste trois points a presenter comme limites de production :
 
 ## 1. Presentation rapide
 
-DR-DOCSCOL est une application web de gestion des demandes et retraits de documents academiques. Elle permet a un eleve d'activer son compte, de consulter ses documents, de demander un releve de notes ou un duplicata, de suivre ses paiements, de reserver un rendez-vous lorsque necessaire et de recevoir des notifications.
+DR-DOCSCOL est une application web de gestion des demandes et retraits de documents scolaires. Elle permet a un eleve d'activer son compte, de consulter ses documents, de demander un releve de notes ou un duplicata, de suivre ses paiements, de reserver un rendez-vous lorsque necessaire et de recevoir des notifications.
 
 L'application comporte aussi :
 
@@ -33,7 +33,7 @@ L'application comporte aussi :
 - Redirection automatique selon le role : `ELEVE`, `ADMINISTRATEUR`, `AGENT_CENTRE_EXAMEN`.
 - Connexions separees : eleve, admin OBC, admin DECC, agent centre.
 - Protection des pages privees par middleware et verification serveur.
-- Consultation des documents academiques par eleve.
+- Consultation des documents scolaires par eleve.
 - Creation automatique des documents attendus a partir des examens valides.
 - Demande de releve de notes.
 - Demande de duplicata avec paiement applicatif et generation de recu.

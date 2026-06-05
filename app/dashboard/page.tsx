@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Bell, CalendarDays, CreditCard, FileText, GraduationCap, RotateCcw } from "lucide-react";
 
-import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
+import { getDocumentTitle, getStudentDocumentStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { TypeDocument } from "@/lib/generated/prisma/client";
@@ -42,7 +42,7 @@ export default async function DashboardPage() {
       include: { document: true },
     }),
     prisma.notification.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, deletedAt: null },
       take: 3,
       orderBy: { dateEnvoi: "desc" },
     }),
@@ -53,9 +53,12 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const availableCount = documents.filter((document) => document.statut === "DISPONIBLE").length;
-  const pendingCount = documents.filter((document) => document.statut === "PAS_DISPONIBLE").length;
-  const retiredCount = documents.filter((document) => document.statut === "RETIRE").length;
+  const submittedDocuments = documents.filter((document) => document.demandeSoumiseAt);
+  const availableCount = submittedDocuments.filter((document) => document.statut === "DISPONIBLE").length;
+  const pendingCount = submittedDocuments.filter(
+    (document) => document.statut === "PAS_DISPONIBLE",
+  ).length;
+  const retiredCount = submittedDocuments.filter((document) => document.statut === "RETIRE").length;
   const globalStatus =
     availableCount > 0
       ? "Document disponible"
@@ -63,11 +66,14 @@ export default async function DashboardPage() {
         ? "Dossier en traitement"
         : retiredCount > 0
           ? "Documents retirés"
-          : "Aucun document actif";
+          : submittedDocuments.length > 0
+            ? "Suivi des demandes"
+            : "Aucune demande enregistrée";
 
   return (
     <DashboardShell
       role="ELEVE"
+      userId={user.id}
       userName={`${user.prenom} ${user.nom}`}
       userMatricule={user.matricule}
       activePath="/dashboard"
@@ -104,8 +110,12 @@ export default async function DashboardPage() {
                 <div className="flex h-11 w-11 items-center justify-center rounded-md bg-obc-100 text-obc-800">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
-                <StatusBadge tone={document ? documentTone(document.statut) : "slate"}>
-                  {document ? getStatusLabel(document.statut) : "Non disponible"}
+                <StatusBadge
+                  tone={
+                    document?.demandeSoumiseAt ? documentTone(document.statut) : "slate"
+                  }
+                >
+                  {getStudentDocumentStatusLabel(document)}
                 </StatusBadge>
               </div>
               <h3 className="mt-5 text-lg font-semibold text-text-1">{item.title}</h3>
@@ -130,7 +140,7 @@ export default async function DashboardPage() {
                   <p className="font-semibold text-text-1">
                     {nextRendezVous.document
                       ? getDocumentTitle(nextRendezVous.document)
-                      : "Document académique"}
+                      : "Document scolaire"}
                   </p>
                   <p className="mt-2 text-sm text-text-3">
                     {nextRendezVous.dateRdv.toLocaleDateString("fr-FR")} à {nextRendezVous.heureRdv}{" "}
@@ -164,9 +174,12 @@ export default async function DashboardPage() {
               <p className="py-3 text-sm text-text-3">Aucune notification récente.</p>
             ) : (
               notifications.map((notification) => (
-                <p key={notification.id} className="py-3 text-sm leading-6 text-text-2">
-                  {notification.message}
-                </p>
+                <div key={notification.id} className="py-3">
+                  {notification.title ? (
+                    <p className="text-sm font-semibold text-text-1">{notification.title}</p>
+                  ) : null}
+                  <p className="mt-1 text-sm leading-6 text-text-2">{notification.message}</p>
+                </div>
               ))
             )}
           </div>

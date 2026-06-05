@@ -25,7 +25,7 @@ export function AuthShell({
             <Fingerprint className="h-12 w-12 text-gold-300" aria-hidden="true" />
           </div>
           <h1 className="max-w-xl font-display text-5xl leading-tight">
-            Service numérique de gestion des documents académiques.
+            Service numérique de gestion des documents scolaires.
           </h1>
           <p className="mt-5 max-w-lg text-base leading-7 text-white/75">
             Un espace sécurisé pour les élèves, les administrations OBC/DECC et les agents des

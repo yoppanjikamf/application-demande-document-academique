@@ -11,11 +11,15 @@ function requiredEnv(name: string) {
 
 export function createMailerTransport() {
   const port = Number(requiredEnv("SMTP_PORT"));
+  const secure = process.env.SMTP_SECURE === "true" || (!process.env.SMTP_SECURE && port === 465);
 
   return nodemailer.createTransport({
     host: requiredEnv("SMTP_HOST"),
     port,
-    secure: process.env.SMTP_SECURE !== "false",
+    secure,
+    connectionTimeout: 15_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 30_000,
     auth: {
       user: requiredEnv("SMTP_USER"),
       pass: requiredEnv("SMTP_PASSWORD"),

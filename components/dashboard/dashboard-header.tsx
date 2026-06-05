@@ -1,9 +1,8 @@
 "use client";
 
-import type { FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { Role } from "@/lib/generated/prisma/client";
-import { Bell, ChevronRight, Menu, Search } from "lucide-react";
+import { Bell, ChevronRight, Menu } from "lucide-react";
 
 import { useSidebarContext } from "@/components/dashboard/sidebar-context";
 import { Button } from "@/components/ui/button";
@@ -38,6 +37,7 @@ export function DashboardHeader({
   subtitle,
   scopeLabel,
   activePath,
+  unreadNotificationCount = 0,
 }: {
   role: Role;
   userName?: string;
@@ -45,9 +45,9 @@ export function DashboardHeader({
   subtitle: string;
   scopeLabel?: string;
   activePath: string;
+  unreadNotificationCount?: number;
 }) {
   const { toggleSidebar } = useSidebarContext();
-  const router = useRouter();
   const breadcrumbItems = getBreadcrumbItems(activePath);
   const areaLabel =
     role === "ADMINISTRATEUR"
@@ -55,14 +55,6 @@ export function DashboardHeader({
       : role === "AGENT_CENTRE_EXAMEN"
         ? "Espace agent"
         : "Espace élève";
-
-  function handleAdminSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const query = String(formData.get("q") ?? "").trim();
-
-    router.push(query ? `/admin/students?q=${encodeURIComponent(query)}` : "/admin/students");
-  }
 
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md">
@@ -91,9 +83,7 @@ export function DashboardHeader({
               </span>
             ))}
           </nav>
-          <h1 className="font-display text-2xl leading-tight text-text-1 sm:text-3xl">
-            {title}
-          </h1>
+          <h1 className="font-display text-2xl leading-tight text-text-1 sm:text-3xl">{title}</h1>
           <p className="mt-1 text-sm text-text-3">{subtitle}</p>
           {scopeLabel ? (
             <p className="mt-2 inline-flex rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-obc-800 ring-1 ring-gold-300">
@@ -102,37 +92,22 @@ export function DashboardHeader({
           ) : null}
         </div>
 
-        {role === "ADMINISTRATEUR" ? (
-          <form
-            onSubmit={handleAdminSearch}
-            className="hidden min-w-[320px] items-center gap-2 rounded-full border border-[var(--border-token)] bg-surface-1 px-4 py-2 text-sm text-text-3 xl:flex"
-          >
-            <Search className="h-4 w-4" aria-hidden="true" />
-            <input
-              name="q"
-              type="search"
-              placeholder="Rechercher matricule, nom, prénom"
-              className="min-w-0 flex-1 bg-transparent text-text-1 outline-none placeholder:text-text-muted"
-            />
-            <button type="submit" className="text-xs font-bold text-obc-700">
-              Rechercher
-            </button>
-          </form>
+        {role === "ELEVE" ? (
+          <Button asChild variant="outline" size="icon" className="relative hidden sm:inline-flex">
+            <Link href="/dashboard/notifications">
+              <Bell className="h-4 w-4" />
+              {unreadNotificationCount > 0 ? (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--status-cancelled)] px-1 text-[10px] font-bold text-white">
+                  {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+                </span>
+              ) : null}
+              <span className="sr-only">Notifications</span>
+            </Link>
+          </Button>
         ) : null}
 
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="relative hidden sm:inline-flex"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--status-cancelled)]" />
-          <span className="sr-only">Notifications</span>
-        </Button>
-
         <div className="hidden items-center gap-3 md:flex">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-obc-800 text-sm font-bold text-white ring-2 ring-gold-300/70">
+          <div className="ring-gold-300/70 flex h-10 w-10 items-center justify-center rounded-full bg-obc-800 text-sm font-bold text-white ring-2">
             {(userName ?? "OBC/DECC")
               .split(" ")
               .filter(Boolean)

@@ -134,6 +134,18 @@ export function getAntenneById(id?: string | null) {
   return REGIONAL_ANTENNAS.find((antenne) => antenne.id === id) ?? null;
 }
 
+export function getCentreExamenForRegion(region?: string | null) {
+  const normalized = normalizeRegion(region);
+  return CENTRES_EXAMEN_REGIONAUX.find((centre) => centre.region === normalized) ?? null;
+}
+
+export function isCentreExamenPickupDocument(document: {
+  diplomeType: DiplomePrincipal;
+  typeDocument: TypeDocument;
+}) {
+  return resolveDocumentRoute(document).pickupType === "CENTRE_EXAMEN";
+}
+
 export function getAntenneByAccessKey(accessKey?: string | null) {
   const normalized = accessKey?.trim();
   if (!normalized) {
@@ -196,23 +208,27 @@ export function isDocumentRequestAllowed(
 export function resolveDocumentRoute(document: RoutableDocument): DocumentRoute {
   const organismeName = getOrganismeForDiplome(document.diplomeType);
   const organismeId = ORGANISME_IDS[organismeName];
-  const centreExamen = document.centreExamen?.trim() || "Centre d'examen";
+  const region = normalizeRegion(document.regionComposition);
+  const regionalCentre = getCentreExamenForRegion(region);
+  const centrePickupLocation =
+    regionalCentre?.nom ??
+    (document.centreExamen?.trim() || `Centre d'examen ${region}`);
   const isBacDiplome =
     document.diplomeType === "BACCALAUREAT" && document.typeDocument === "ORIGINAL";
   const isBepcDuplicata = document.diplomeType === "BEPC" && document.typeDocument === "DUPLICATA";
   const pickupType: PickupType =
     isBacDiplome || isBepcDuplicata ? "ANTENNE_REGIONALE" : "CENTRE_EXAMEN";
-  const antenne = getAntenneForRegion(document.regionComposition, organismeName);
+  const antenne = getAntenneForRegion(region, organismeName);
   const antennaLocation = antenne
     ? `${antenne.nom}${antenne.ville ? ` - ${antenne.ville}` : ""}`
-    : centreExamen;
+    : centrePickupLocation;
 
   return {
     organismeName,
     organismeId,
     antenneRegionaleId: antenne?.id ?? null,
     pickupType,
-    location: pickupType === "ANTENNE_REGIONALE" ? antennaLocation : centreExamen,
+    location: pickupType === "ANTENNE_REGIONALE" ? antennaLocation : centrePickupLocation,
     requiresAppointment: document.typeDocument !== "DUPLICATA",
   };
 }

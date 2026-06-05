@@ -6,6 +6,7 @@ import {
 import { getDocumentTitle } from "@/lib/appointment-service";
 import { handleApiError, json, requireApiUser } from "@/lib/api-utils";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/lib/generated/prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -14,8 +15,13 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const filter = normalizeAgentAppointmentFilter(url.searchParams.get("filter"));
 
+    const where: Prisma.RendezVousWhereInput = getCentreExamenAppointmentWhere(centre, filter);
+    if (filter === "today") {
+      where.statut = { in: ["PLANIFIE", "CONFIRME", "HONORE"] };
+    }
+
     const appointments = await prisma.rendezVous.findMany({
-      where: getCentreExamenAppointmentWhere(centre.region, filter),
+      where,
       orderBy: [{ dateRdv: filter === "processed" ? "desc" : "asc" }, { heureRdv: "asc" }],
       include: {
         eleve: {
@@ -54,7 +60,7 @@ export async function GET(request: Request) {
         dateRdv: appointment.dateRdv,
         heureRdv: appointment.heureRdv,
         lieu: appointment.lieu,
-        statut: appointment.statut === "HONORE" ? "RETIRE" : "EN_ATTENTE",
+        statut: appointment.statut,
         retraitConfirmeAt: appointment.retraitConfirmeAt,
         retraitConfirmePar: appointment.retraitConfirmePar,
         eleve: appointment.eleve,

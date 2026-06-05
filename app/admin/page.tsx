@@ -280,7 +280,7 @@ export default async function AdminPage() {
                   <p className="font-semibold text-obc-800">{rdv.heureRdv}</p>
                   <p className="mt-2 text-sm font-medium text-text-1">{rdv.eleve.matricule}</p>
                   <p className="mt-1 truncate text-xs text-text-3">
-                    {rdv.document ? getDocumentTitle(rdv.document) : "Document académique"}
+                    {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
                   </p>
                   <div className="mt-3">
                     <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>

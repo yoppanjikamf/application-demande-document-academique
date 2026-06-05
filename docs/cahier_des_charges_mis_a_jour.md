@@ -1,5 +1,5 @@
 # CAHIER DES CHARGES
-## Application Web de Gestion des Retraits de Documents Académiques
+## Application Web de Gestion des Retraits de Documents Scolaires
 ### (Diplômes, Relevés, Duplicatas) — CAS DE OBC / DECC
 
 **Cameroun — 2026 | Version 2.1**
@@ -23,15 +23,15 @@
 
 ### 1.1 — Contexte et origine du projet
 
-Au Cameroun, la délivrance et le retrait des documents académiques, notamment les diplômes, relevés de notes, attestations et duplicatas, demeurent encore fortement dépendants de procédures physiques et manuelles. Les élèves, anciens élèves et diplômés doivent souvent se déplacer plusieurs fois vers les centres d’examen, les antennes régionales ou les services administratifs pour vérifier la disponibilité d’un document, déposer une demande, obtenir des informations de retrait ou récupérer physiquement le document attendu.
+Au Cameroun, la délivrance et le retrait des documents scolaires, notamment les diplômes, relevés de notes, attestations et duplicatas, demeurent encore fortement dépendants de procédures physiques et manuelles. Les élèves, anciens élèves et diplômés doivent souvent se déplacer plusieurs fois vers les centres d’examen, les antennes régionales ou les services administratifs pour vérifier la disponibilité d’un document, déposer une demande, obtenir des informations de retrait ou récupérer physiquement le document attendu.
 
 Cette organisation entraîne des pertes de temps, des frais de transport, des files d’attente et un manque de visibilité sur l’état réel des demandes. Du côté de l’administration, la gestion manuelle des dossiers augmente la charge de travail, favorise les erreurs de saisie, complique la traçabilité et rend difficile le pilotage statistique des retraits. La transformation numérique offre donc une opportunité concrète de moderniser ce processus tout en sécurisant les données et en améliorant l’expérience des usagers.
 
-Le présent projet consiste à concevoir une application web de gestion des retraits de documents académiques pour le cas OBC / DECC. L’application permet aux élèves de consulter leurs documents, demander certains documents, suivre les statuts, recevoir des notifications, effectuer un paiement lorsque nécessaire et planifier un rendez-vous de retrait. Elle permet également aux administrateurs de gérer les élèves, les documents, les rendez-vous, les retraits, les notifications, les reçus, les imports CSV et les statistiques.
+Le présent projet consiste à concevoir une application web de gestion des retraits de documents scolaires pour le cas OBC / DECC. L’application permet aux élèves de consulter leurs documents, demander certains documents, suivre les statuts, recevoir des notifications, effectuer un paiement lorsque nécessaire et planifier un rendez-vous de retrait. Elle permet également aux administrateurs de gérer les élèves, les documents, les rendez-vous, les retraits, les notifications, les reçus, les imports CSV et les statistiques.
 
 ### 1.2 — Problématique
 
-> ❝ ***Comment concevoir et développer une application web permettant aux élèves camerounais de suivre et de retirer leurs documents académiques de manière sécurisée, tout en simplifiant la gestion administrative des services OBC / DECC ?*** ❞
+> ❝ ***Comment concevoir et développer une application web permettant aux élèves camerounais de suivre et de retirer leurs documents scolaires de manière sécurisée, tout en simplifiant la gestion administrative des services OBC / DECC ?*** ❞
 
 ### 1.3 — Problèmes identifiés
 
@@ -48,7 +48,7 @@ Le présent projet consiste à concevoir une application web de gestion des retr
 - Administrateurs DECC.
 - Agents centres d'examen.
 - Agents d'antennes regionales OBC / DECC.
-- Services de délivrance des documents académiques.
+- Services de délivrance des documents scolaires.
 - Encadreurs, tuteurs et responsables chargés de valider le projet.
 
 ---
@@ -57,13 +57,13 @@ Le présent projet consiste à concevoir une application web de gestion des retr
 
 ### 2.1 — Objectif général
 
-L’objectif général du projet est de concevoir et développer une application web sécurisée permettant la consultation, la demande, le suivi et le retrait physique des documents académiques, tout en offrant à l’administration OBC / DECC un back-office centralisé pour gérer les élèves, les documents, les statuts, les rendez-vous, les retraits, les paiements, les reçus et les notifications.
+L’objectif général du projet est de concevoir et développer une application web sécurisée permettant la consultation, la demande, le suivi et le retrait physique des documents scolaires, tout en offrant à l’administration OBC / DECC un back-office centralisé pour gérer les élèves, les documents, les statuts, les rendez-vous, les retraits, les paiements, les reçus et les notifications.
 
 ### 2.2 — Objectifs spécifiques
 
 | N° | Objectif |
 |----|----------|
-| OBJ-01 | Permettre aux élèves de consulter en temps réel la disponibilité de leurs documents académiques. |
+| OBJ-01 | Permettre aux élèves de consulter en temps réel la disponibilité de leurs documents scolaires. |
 | OBJ-02 | Permettre aux élèves de demander un relevé de notes ou un duplicata lorsque les règles métier l’autorisent. |
 | OBJ-03 | Gérer le paiement des demandes payantes, notamment les duplicatas, avec génération de reçu. |
 | OBJ-04 | Envoyer des notifications applicatives et des emails lors des événements importants. |
@@ -87,11 +87,12 @@ L’objectif général du projet est de concevoir et développer une application
 - Connexion par matricule, email et mot de passe.
 - Déconnexion sécurisée.
 - Modification du profil utilisateur.
-- Consultation des documents académiques de l’élève.
+- Consultation des documents scolaires de l’élève.
 - Consultation du détail d’un document et des instructions de retrait.
 - Demande de relevé de notes.
 - Demande de duplicata avec diplôme cible, session, centre d’examen, motif et mode de paiement.
-- Paiement applicatif simplifié pour les duplicatas.
+- Paiement applicatif simplifié pour les duplicatas avec barème différencié selon le document source.
+- Préparation d’une API de paiement réelle pour un futur branchement Mobile Money ou carte bancaire.
 - Génération et consultation de reçus.
 - Notifications applicatives en base de données.
 - Envoi d’emails via Nodemailer.
@@ -115,10 +116,10 @@ L’objectif général du projet est de concevoir et développer une application
 
 ### 3.2 — Hors périmètre (exclus)
 
-- Téléchargement numérique sécurisé des documents académiques au format PDF.
+- Téléchargement numérique sécurisé des documents scolaires au format PDF.
 - Vérification des documents par QR code pour les employeurs.
 - Intégration complète avec un ERP institutionnel existant.
-- Passerelle Mobile Money réelle avec OTP, signature fournisseur et callback certifié.
+- Passerelle Mobile Money réelle avec OTP, signature fournisseur et callback certifié, prévue pour une phase de production.
 - Notifications push natives navigateur ou mobile.
 - Paiement externe totalement certifie par un prestataire.
 - Stockage fichier complet des justificatifs de duplicata.
@@ -152,6 +153,8 @@ L’objectif général du projet est de concevoir et développer une application
 | Baccalauréat original | Le diplôme original du Baccalauréat est orienté vers une antenne régionale OBC et nécessite un rendez-vous. |
 | Baccalauréat relevé | Le relevé du Baccalauréat se retire au centre d’examen avec un rendez-vous `PLANIFIE`. |
 | Duplicata | Le duplicata nécessite un paiement et suit le lieu défini par la règle métier du document demandé. |
+| Duplicata de relevé | Le duplicata d’un relevé de notes coûte 10 000 FCFA. |
+| Duplicata d’original | Le duplicata d’un diplôme original coûte 15 000 FCFA. |
 | Rendez-vous centre d'examen | L'élève planifie le rendez-vous depuis l'organisme concerné ; le rendez-vous est immédiatement transmis à l'agent du centre d'examen. |
 | Agent centre d'examen | L'agent ne crée pas, ne planifie pas et n'annule pas les rendez-vous ; il confirme seulement le retrait physique effectué. |
 | Statut document | Les statuts sont `PAS_DISPONIBLE`, `DISPONIBLE` et `RETIRE`. |
@@ -176,11 +179,11 @@ L’objectif général du projet est de concevoir et développer une application
 | F-04 | Récupération du mot de passe | Prévoir un flux de réinitialisation par email sécurisé pour les comptes utilisateurs. | 🟡 |
 | F-05 | Profil utilisateur | Permettre à l’utilisateur de modifier ses informations personnelles : nom, prénom, date de naissance pour l’élève, service pour l’administrateur. | 🟡 |
 
-### 4.2 — Module Consultation des Documents académiques
+### 4.2 — Module Consultation des Documents scolaires
 
 | ID | Fonctionnalité | Description détaillée | Priorité |
 |----|----------------|----------------------|----------|
-| F-06 | Espace Mes Documents | Afficher la liste des documents académiques de l’élève connecté avec type, diplôme, statut, lieu de retrait et rendez-vous actif éventuel. | 🔴 |
+| F-06 | Espace Mes Documents | Afficher la liste des documents scolaires de l’élève connecté avec type, diplôme, statut, lieu de retrait et rendez-vous actif éventuel. | 🔴 |
 | F-07 | Statut de disponibilité | Afficher clairement si un document est non disponible, disponible ou retiré. | 🔴 |
 | F-08 | Instructions de retrait | Afficher l’adresse, le lieu, les pièces requises, les conditions de retrait et l’obligation éventuelle de rendez-vous. | 🔴 |
 | F-09 | Demande de relevé de notes | Permettre à l’élève de créer ou suivre une demande de relevé selon l’examen validé. | 🟡 |
@@ -220,17 +223,17 @@ L’objectif général du projet est de concevoir et développer une application
 | F-28 | Suivi administratif des rendez-vous | Permettre à l’administration de consulter les rendez-vous et d’enregistrer les retraits relevant de son antenne, sans remplacer la confirmation centre d’examen. | 🟡 |
 | F-29 | Enregistrement du retrait physique | Marquer un document comme retiré et passer le rendez-vous associé au statut `HONORE`. | 🔴 |
 | F-30 | Configuration du quota RDV | Définir le quota journalier global de rendez-vous et exploiter les créneaux horaires actifs. | 🟡 |
-| F-31 | Initiation de paiement | Créer un paiement pour une demande de duplicata. | 🔴 |
-| F-32 | Confirmation de paiement | Mettre à jour le statut du paiement via webhook interne ou action applicative. | 🔴 |
+| F-31 | Initiation de paiement | Créer un paiement pour une demande de duplicata avec montant automatique : 10 000 FCFA pour un relevé et 15 000 FCFA pour un original. | 🔴 |
+| F-32 | Confirmation de paiement | Mettre à jour le statut du paiement via webhook interne ou action applicative, avec contrôle du montant attendu. | 🔴 |
 | F-33 | Génération de reçu | Générer un reçu de paiement avec numéro, montant, mode de paiement et commentaire. | 🔴 |
-| F-34 | Intégration Mobile Money | Prévoir une intégration réelle Orange Money / MTN Money avec OTP, statut d’échec et confirmation fournisseur. | 🟡 |
+| F-34 | API réelle de paiement | Prévoir une intégration réelle Orange Money / MTN Money ou carte bancaire avec OTP, référence transactionnelle, statut d’échec, signature fournisseur et callback certifié. | 🟡 |
 
 ### 4.6 — Récapitulatif des fonctionnalités
 
 | Module | 🔴 Obligatoires | 🟡 Importants | 🟢 Optionnels |
 |--------|-----------------|----------------|----------------|
 | Authentification & Gestion des accès | 3 | 2 | 0 |
-| Consultation des Documents académiques | 4 | 2 | 0 |
+| Consultation des Documents scolaires | 4 | 2 | 0 |
 | Notifications | 2 | 3 | 1 |
 | Administration (Back-office) | 5 | 2 | 0 |
 | Rendez-vous & Paiements | 6 | 4 | 0 |
@@ -319,13 +322,13 @@ L’objectif général du projet est de concevoir et développer une application
 | `Organisme` | Organisme responsable, actuellement OBC ou DECC. |
 | `AntenneRegionale` | Antenne régionale OBC ou DECC selon l'organisme responsable et la région de composition. |
 | `ExamenValide` | Examen obtenu par un élève et servant de base aux documents demandables. |
-| `DocumentAcademique` | Document académique consultable ou demandable. |
+| `DocumentAcademique` | Document scolaire consultable ou demandable. |
 | `RendezVous` | Réservation de retrait ou trace d’un retrait physique honoré. |
 | `DisponibiliteRdv` | Ancien modèle de disponibilité dédiée encore présent dans le schéma. |
 | `Notification` | Notification applicative liée à un utilisateur. |
 | `MailLog` | Journal des emails envoyés ou échoués. |
 | `Duplicata` | Demande de duplicata. |
-| `Paiement` | Paiement associé à un duplicata et éventuellement à un document académique. |
+| `Paiement` | Paiement associé à un duplicata et éventuellement à un document scolaire. |
 | `Recu` | Reçu de paiement généré par l’application. |
 | `ParametreRendezVous` | Paramètres globaux de rendez-vous, notamment quota journalier et lieu OBC. |
 | `CreneauHoraire` | Plage horaire active pour les rendez-vous. |
@@ -346,7 +349,7 @@ L’objectif général du projet est de concevoir et développer une application
 | Technique | Les routes internes doivent être protégées par `INTERNAL_API_SECRET`. |
 | Sécurité | Les administrateurs doivent être limités à leur organisme et à leur antenne régionale. |
 | Sécurité | Les informations techniques sensibles ne doivent pas être exposées à l’utilisateur final. |
-| Paiement | Le paiement Mobile Money réel reste hors périmètre immédiat ; le MVP gère un paiement applicatif simplifié et des reçus. |
+| Paiement | Le paiement Mobile Money réel reste hors périmètre immédiat du MVP ; le cahier des charges prévoit toutefois une API de paiement réelle à brancher en phase de production. |
 | Documentation | Les anciens diagrammes image ont été retirés du dossier principal ; les images conformes détaillées dans `diagrammes-images/` font référence pour le MCD, le MLD et le diagramme de classes. |
 | Données | Le CSV d’import doit contenir les colonnes nécessaires : matricule, email, mot de passe, identité, diplôme, centre d’examen, région, document, statut et rendez-vous. |
 
@@ -412,6 +415,8 @@ Le coeur fonctionnel de l'application est implemente.
 
 - Stabiliser la connexion Prisma/Postgres Supabase.
 - Brancher un vrai prestataire de paiement.
+- Ajouter les demandes de traduction de diplôme.
+- Ajouter les demandes de rectification de diplôme.
 - Stocker les justificatifs de duplicata dans un stockage fichier.
 - Regenerer les documents Word et images UML si une version non-Markdown doit etre remise.
 

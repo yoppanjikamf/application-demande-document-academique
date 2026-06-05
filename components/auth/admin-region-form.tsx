@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 import { unlockAdminRegionAction } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";

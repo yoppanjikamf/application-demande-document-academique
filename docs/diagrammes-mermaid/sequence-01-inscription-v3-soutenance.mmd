@@ -1,0 +1,19 @@
+%%{init: {"theme": "base", "themeVariables": {"darkMode": false, "background": "#ffffff", "mainBkg": "#ffffff", "secondaryBkg": "#ffffff", "tertiaryBkg": "#ffffff", "fontFamily": "Arial", "fontSize": "18px", "textColor": "#333333", "lineColor": "#333333", "signalColor": "#333333", "signalTextColor": "#333333"}}}%%
+sequenceDiagram
+    actor Eleve
+    participant Sys as Systeme DR-DOCSCOL
+    participant DB as Base de donnees
+
+    Eleve->>Sys: activer mon compte eleve
+    Sys-->>Eleve: Afficher le formulaire d activation(matricule, email, mot de passe)
+    Eleve->>Sys: saisir les details du compte(matricule, email, mot de passe, confirmation)
+
+    alt Donnees valides
+        Sys->>DB: rechercher l eleve par matricule et verifier l email
+        DB-->>Sys: confirmer profil eleve et examens valides
+        Sys->>DB: lier le compte Supabase Auth au profil eleve
+        DB-->>Sys: confirmer l enregistrement
+        Sys-->>Eleve: confirmer l activation et ouvrir l espace eleve
+    else Donnees invalides
+        Sys-->>Eleve: afficher le message d erreur(matricule inconnu, email incorrect ou mot de passe invalide)
+    end

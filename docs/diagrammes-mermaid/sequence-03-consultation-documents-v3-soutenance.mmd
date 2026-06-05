@@ -1,0 +1,17 @@
+%%{init: {"theme": "base", "themeVariables": {"darkMode": false, "background": "#ffffff", "mainBkg": "#ffffff", "secondaryBkg": "#ffffff", "tertiaryBkg": "#ffffff", "fontFamily": "Arial", "fontSize": "18px", "textColor": "#333333", "lineColor": "#333333", "signalColor": "#333333", "signalTextColor": "#333333"}}}%%
+sequenceDiagram
+    actor Eleve
+    participant Sys as Systeme DR-DOCSCOL
+    participant DB as Base de donnees
+
+    Eleve->>Sys: consulter mes documents scolaires
+    Sys-->>Eleve: Afficher la page Mes documents(examens composes, types de documents)
+    Eleve->>Sys: selectionner un examen et un type de document
+
+    alt Donnees valides
+        Sys->>DB: charger examens valides, demandes, statuts et rendez-vous actifs
+        DB-->>Sys: confirmer les donnees de l eleve
+        Sys-->>Eleve: afficher statut, lieu de retrait et actions autorisees(demande, RDV, paiement)
+    else Donnees invalides
+        Sys-->>Eleve: afficher le message d erreur(aucun examen, demande non effectuee ou document introuvable)
+    end

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { DM_Sans, DM_Serif_Display } from "next/font/google";
+import "react-toastify/dist/ReactToastify.css";
 import "./../styles/globals.css";
 
 import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 
 const display = DM_Serif_Display({
   subsets: ["latin"],
@@ -24,7 +25,8 @@ export const metadata: Metadata = {
     default: "DR-DOCSCOL",
     template: "%s | DR-DOCSCOL",
   },
-  description: "Gestion des demandes et retraits de documents scolaires.",
+  description:
+    "Demandez, suivez et retirez vos documents scolaires en ligne — portail OBC/DECC pour élèves, administrations et centres d'examen.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

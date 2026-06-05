@@ -31,6 +31,7 @@ export default async function RendezVousPage({ searchParams }: RendezVousPagePro
   return (
     <DashboardShell
       role="ELEVE"
+      userId={user.id}
       userName={`${user.prenom} ${user.nom}`}
       userMatricule={user.matricule}
       activePath="/dashboard/rendez-vous"

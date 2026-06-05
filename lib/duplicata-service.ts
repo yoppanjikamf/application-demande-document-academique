@@ -4,6 +4,11 @@ import type { DiplomePrincipal, Duplicata, TypeDocument } from "@/lib/generated/
 
 export type DuplicataTarget = Extract<TypeDocument, "ORIGINAL" | "RELEVE_NOTES">;
 
+export const DUPLICATA_FEES: Record<DuplicataTarget, number> = {
+  RELEVE_NOTES: 10000,
+  ORIGINAL: 15000,
+};
+
 export type DuplicataInstruction = {
   diplomeType?: DiplomePrincipal;
   cibleDocument?: DuplicataTarget;
@@ -11,9 +16,14 @@ export type DuplicataInstruction = {
   centreExamen?: string;
   motif?: string;
   justificatif?: string;
+  pieces?: string[];
 };
 
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+
+export function getDuplicataFee(target: DuplicataTarget) {
+  return DUPLICATA_FEES[target];
+}
 
 function isDuplicataTarget(value: unknown): value is DuplicataTarget {
   return value === "ORIGINAL" || value === "RELEVE_NOTES";
@@ -33,6 +43,9 @@ export function parseDuplicataInstruction(value: string): DuplicataInstruction {
       centreExamen: typeof parsed.centreExamen === "string" ? parsed.centreExamen : undefined,
       motif: typeof parsed.motif === "string" ? parsed.motif : undefined,
       justificatif: typeof parsed.justificatif === "string" ? parsed.justificatif : undefined,
+      pieces: Array.isArray(parsed.pieces)
+        ? parsed.pieces.filter((piece): piece is string => typeof piece === "string")
+        : undefined,
     };
   } catch {
     return {};
@@ -88,7 +101,10 @@ export async function getDuplicataRequestState(
   const matching = duplicatas.filter((duplicata) =>
     isDuplicataForTarget(duplicata, diplomeType, target),
   );
-  const activeRequest = matching.find((duplicata) => duplicata.statut !== "RETIRE") ?? null;
+  const activeRequest =
+    matching.find(
+      (duplicata) => duplicata.statut !== "RETIRE" && duplicata.statutValidation !== "REJETEE",
+    ) ?? null;
   const lastRetired = matching.find((duplicata) => duplicata.statut === "RETIRE") ?? null;
   const availability = getDuplicataRequestAvailability(lastRetired?.updatedAt ?? null);
 
@@ -104,6 +120,7 @@ export async function getActiveDuplicataForDiplome(eleveId: string, diplomeType:
     where: {
       eleveId,
       statut: { not: "RETIRE" },
+      statutValidation: { not: "REJETEE" },
     },
     orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
   });
@@ -111,7 +128,7 @@ export async function getActiveDuplicataForDiplome(eleveId: string, diplomeType:
   return (
     duplicatas.find((duplicata) => {
       const meta = parseDuplicataInstruction(duplicata.intruction);
-      return meta.diplomeType === diplomeType;
+      return meta.diplomeType === diplomeType && duplicata.statutValidation !== "REJETEE";
     }) ?? null
   );
 }
@@ -126,7 +143,7 @@ export async function findLatestDuplicataForDocument(document: {
   }
 
   const duplicatas = await prisma.duplicata.findMany({
-    where: { eleveId: document.eleveId },
+    where: { eleveId: document.eleveId, statutValidation: { not: "REJETEE" } },
     orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
   });
 

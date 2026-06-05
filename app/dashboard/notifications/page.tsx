@@ -1,18 +1,25 @@
 import Link from "next/link";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Trash2 } from "lucide-react";
 
 import { requireRole } from "@/lib/auth";
 import { resolveDocumentRoute } from "@/lib/document-routing";
+import { markNotificationsAsRead } from "@/lib/notification-service";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
+import {
+  deleteAllNotificationsAction,
+  deleteNotificationAction,
+} from "@/app/dashboard/notifications/actions";
 
 export default async function NotificationsPage() {
   const user = await requireRole("ELEVE", "/dashboard/notifications");
+  await markNotificationsAsRead(user.id);
+
   const [notifications, appointmentDocuments] = await Promise.all([
     prisma.notification.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, deletedAt: null },
       orderBy: { dateEnvoi: "desc" },
       take: 100,
     }),
@@ -41,6 +48,7 @@ export default async function NotificationsPage() {
   return (
     <DashboardShell
       role="ELEVE"
+      userId={user.id}
       userName={`${user.prenom} ${user.nom}`}
       userMatricule={user.matricule}
       activePath="/dashboard/notifications"
@@ -48,6 +56,23 @@ export default async function NotificationsPage() {
       subtitle="Messages de disponibilité, confirmations et rappels liés à vos documents scolaires."
     >
       <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-token)] px-5 py-4">
+          <div>
+            <h2 className="font-semibold text-text-1">Boîte de notifications</h2>
+            <p className="mt-1 text-sm text-text-3">
+              {notifications.length} notification{notifications.length > 1 ? "s" : ""} visible
+              {notifications.length > 1 ? "s" : ""}.
+            </p>
+          </div>
+          {notifications.length > 0 ? (
+            <form action={deleteAllNotificationsAction}>
+              <Button type="submit" variant="outline" size="sm">
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                Tout supprimer
+              </Button>
+            </form>
+          ) : null}
+        </div>
         <div className="divide-y divide-[#E8EEF6]">
           {notifications.length === 0 ? (
             <p className="px-5 py-6 text-sm text-text-3">Aucune notification.</p>
@@ -61,9 +86,14 @@ export default async function NotificationsPage() {
               return (
                 <div key={notification.id} className="px-5 py-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <StatusBadge tone={notification.statut === "LUE" ? "blue" : "amber"}>
-                      {notification.typeNotification}
-                    </StatusBadge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusBadge tone={notification.statut === "LUE" ? "blue" : "amber"}>
+                        {notification.typeNotification}
+                      </StatusBadge>
+                      {notification.title ? (
+                        <h3 className="font-semibold text-text-1">{notification.title}</h3>
+                      ) : null}
+                    </div>
                     <span className="text-sm text-text-3">
                       {notification.dateEnvoi.toLocaleDateString("fr-FR")}
                     </span>
@@ -79,6 +109,18 @@ export default async function NotificationsPage() {
                       </Link>
                     </Button>
                   ) : null}
+                  {!canScheduleAppointment && notification.actionUrl ? (
+                    <Button asChild size="sm" variant="outline" className="mt-4">
+                      <Link href={notification.actionUrl}>Ouvrir</Link>
+                    </Button>
+                  ) : null}
+                  <form action={deleteNotificationAction} className="mt-4">
+                    <input type="hidden" name="notificationId" value={notification.id} />
+                    <Button type="submit" size="sm" variant="ghost">
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      Supprimer
+                    </Button>
+                  </form>
                 </div>
               );
             })

@@ -1,0 +1,19 @@
+%%{init: {"theme": "base", "themeVariables": {"darkMode": false, "background": "#ffffff", "mainBkg": "#ffffff", "secondaryBkg": "#ffffff", "tertiaryBkg": "#ffffff", "fontFamily": "Arial", "fontSize": "18px", "textColor": "#333333", "lineColor": "#333333", "signalColor": "#333333", "signalTextColor": "#333333"}}}%%
+sequenceDiagram
+    actor Agent as Agent centre d examen
+    participant Sys as Systeme DR-DOCSCOL
+    participant DB as Base de donnees
+
+    Agent->>Sys: consulter les retraits du jour
+    Sys-->>Agent: Afficher la liste des rendez-vous PLANIFIE ou CONFIRME du centre
+    Agent->>Sys: confirmer le retrait physique effectue(identifiant rendez-vous)
+
+    alt Donnees valides
+        Sys->>DB: verifier le rendez-vous, passer le document a RETIRE et le RDV a HONORE
+        DB-->>Sys: confirmer l enregistrement
+        Sys->>DB: notifier l eleve du retrait confirme
+        DB-->>Sys: confirmer la notification
+        Sys-->>Agent: confirmer le retrait physique
+    else Donnees invalides
+        Sys-->>Agent: afficher le message d erreur(rendez-vous introuvable, deja traite ou hors centre)
+    end

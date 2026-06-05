@@ -2,7 +2,8 @@ import {
   ACTIVE_RENDEZ_VOUS_STATUSES,
   getDocumentTitle,
   getPickupLocation,
-  getStatusLabel,
+  getStudentDocumentStatusLabel,
+  hasStudentDocumentRequest,
 } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, requireApiUser } from "@/lib/api-utils";
 import { prisma } from "@/lib/prisma";
@@ -34,7 +35,8 @@ export async function GET(_request: Request, { params }: RouteContext) {
       document: {
         ...document,
         title: getDocumentTitle(document),
-        statusLabel: getStatusLabel(document.statut),
+        statusLabel: getStudentDocumentStatusLabel(document),
+        hasSubmittedRequest: hasStudentDocumentRequest(document),
         location: await getPickupLocation(document),
         activeAppointment: document.rendezVous[0] ?? null,
       },
