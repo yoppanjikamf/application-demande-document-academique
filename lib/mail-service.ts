@@ -52,6 +52,63 @@ export async function sendTrackedMail(payload: MailPayload) {
   }
 }
 
+export async function notifyAccountActivated({
+  userId,
+  to,
+  recipientName,
+  matricule,
+}: {
+  userId: string;
+  to: string;
+  recipientName: string;
+  matricule: string;
+}) {
+  const subject = "Bienvenue dans votre espace élève";
+  const text = [
+    `Bonjour ${recipientName},`,
+    "",
+    "Votre compte élève DR-DOCSCOL a été activé avec succès.",
+    "",
+    `Matricule : ${matricule}`,
+    "",
+    "Vous pouvez maintenant consulter vos documents scolaires, suivre vos demandes, planifier vos rendez-vous de retrait et lire vos notifications depuis votre espace élève.",
+    "",
+    "Cordialement,",
+    "DR-DOCSCOL",
+  ].join("\n");
+
+  await createNotification({
+    userId,
+    typeNotification: "COMPTE_ACTIVE",
+    title: subject,
+    message:
+      "Votre compte élève a été activé avec succès. Bienvenue sur DR-DOCSCOL.",
+    actionUrl: "/dashboard",
+    metadata: {
+      matricule,
+    },
+  });
+
+  await sendTrackedMail({
+    userId,
+    to,
+    subject,
+    text,
+    html: renderBrandedEmail({
+      title: subject,
+      eyebrow: "Compte activé",
+      intro: `Bonjour ${recipientName}, votre compte élève est maintenant prêt.`,
+      body: [
+        "Vous pouvez consulter vos documents scolaires, suivre vos demandes, planifier vos rendez-vous de retrait et lire vos notifications depuis votre espace élève.",
+        "Gardez précieusement votre matricule : il vous servira pour vos prochaines connexions.",
+      ],
+      details: [{ label: "Matricule", value: matricule }],
+      cta: { label: "Accéder à mon espace", href: "/dashboard" },
+      tone: "success",
+    }),
+  });
+}
+
 export async function notifyDocumentAvailable({
   userId,
   to,

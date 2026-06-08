@@ -9,6 +9,7 @@ import {
   ORGANISME_IDS,
   type OrganismeName,
 } from "@/lib/document-routing";
+import { notifyAccountActivated } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -415,7 +416,15 @@ export async function signUpAction(input: z.infer<typeof signUpSchema>) {
   const dbUser = await withDatabaseRetry(() =>
     prisma.user.findUnique({
       where: { matricule },
-      select: { id: true, authUserId: true, email: true, role: true },
+      select: {
+        id: true,
+        authUserId: true,
+        email: true,
+        role: true,
+        matricule: true,
+        nom: true,
+        prenom: true,
+      },
     }),
   );
 
@@ -496,6 +505,15 @@ export async function signUpAction(input: z.infer<typeof signUpSchema>) {
       error: "Compte active, mais connexion automatique impossible. Connectez-vous manuellement.",
     };
   }
+
+  await notifyAccountActivated({
+    userId: dbUser.id,
+    to: parsed.data.email,
+    recipientName: `${dbUser.prenom} ${dbUser.nom}`.trim(),
+    matricule: dbUser.matricule,
+  }).catch((error) => {
+    console.error("Failed to send account activation welcome message:", error);
+  });
 
   return { ok: true as const, redirectTo: "/dashboard" };
 }
