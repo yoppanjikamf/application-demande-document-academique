@@ -56,40 +56,40 @@ export async function AdminStudentsList({ user, query }: AdminStudentsListProps)
           {students.length} résultat{students.length > 1 ? "s" : ""} pour “{query}”.
         </p>
       ) : null}
-    <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
-      <div className="hidden grid-cols-[1.2fr_1fr_auto] gap-4 border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3 md:grid">
-        <span>Élève</span>
-        <span>Contact</span>
-        <span>Dossier</span>
-      </div>
-      <div className="divide-y divide-[#E8EEF6]">
-        {students.length === 0 ? (
-          <p className="px-5 py-6 text-sm text-text-3">Aucun élève trouvé.</p>
-        ) : (
-          students.map((student) => (
-            <div
-              key={student.id}
-              className="grid gap-3 px-5 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center md:gap-4"
-            >
-              <div className="min-w-0">
-                <p className="font-medium text-text-1">
-                  {student.prenom} {student.nom}
+      <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
+        <div className="hidden grid-cols-[1.2fr_1fr_auto] gap-4 border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3 md:grid">
+          <span>Élève</span>
+          <span>Contact</span>
+          <span>Dossier</span>
+        </div>
+        <div className="divide-y divide-[#E8EEF6]">
+          {students.length === 0 ? (
+            <p className="px-5 py-6 text-sm text-text-3">Aucun élève trouvé.</p>
+          ) : (
+            students.map((student) => (
+              <div
+                key={student.id}
+                className="grid gap-3 px-5 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center md:gap-4"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-text-1">
+                    {student.prenom} {student.nom}
+                  </p>
+                  <p className="text-sm text-text-3">{student.matricule}</p>
+                </div>
+                <p className="flex min-w-0 items-center gap-2 text-sm text-text-3">
+                  <Mail className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{student.email}</span>
                 </p>
-                <p className="text-sm text-text-3">{student.matricule}</p>
+                <p className="text-sm text-text-3">
+                  {student._count.documentsAcademique} documents scolaires ·{" "}
+                  {student._count.eleveRendezVous} RDV
+                </p>
               </div>
-              <p className="flex min-w-0 items-center gap-2 text-sm text-text-3">
-                <Mail className="h-4 w-4 shrink-0" />
-                <span className="truncate">{student.email}</span>
-              </p>
-              <p className="text-sm text-text-3">
-                {student._count.documentsAcademique} documents scolaires ·{" "}
-                {student._count.eleveRendezVous} RDV
-              </p>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
-    </div>
     </div>
   );
 }

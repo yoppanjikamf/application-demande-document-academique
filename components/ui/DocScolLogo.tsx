@@ -32,12 +32,26 @@ export function DocScolLogo({
         aria-hidden="true"
       >
         <defs>
-          <linearGradient id="docscol-badge" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+          <linearGradient
+            id="docscol-badge"
+            x1="6"
+            y1="4"
+            x2="42"
+            y2="44"
+            gradientUnits="userSpaceOnUse"
+          >
             <stop offset="0" stopColor="var(--edu-500)" />
             <stop offset="0.55" stopColor="var(--obc-600)" />
             <stop offset="1" stopColor="var(--obc-800)" />
           </linearGradient>
-          <linearGradient id="docscol-cap" x1="11" y1="11" x2="37" y2="25" gradientUnits="userSpaceOnUse">
+          <linearGradient
+            id="docscol-cap"
+            x1="11"
+            y1="11"
+            x2="37"
+            y2="25"
+            gradientUnits="userSpaceOnUse"
+          >
             <stop offset="0" stopColor="#ffffff" />
             <stop offset="1" stopColor="#eaf3ee" />
           </linearGradient>
@@ -64,12 +78,7 @@ export function DocScolLogo({
           fillOpacity="0.9"
         />
         {/* Pampille or */}
-        <path
-          d="M37.4 18.4v7.2"
-          stroke="var(--gold-400)"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
+        <path d="M37.4 18.4v7.2" stroke="var(--gold-400)" strokeWidth="1.6" strokeLinecap="round" />
         <circle cx="37.4" cy="27" r="1.9" fill="var(--gold-400)" />
         <circle cx="24" cy="18" r="1.7" fill="var(--gold-300)" />
       </svg>

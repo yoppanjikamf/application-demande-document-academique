@@ -1,26 +1,18 @@
 import { z } from "zod";
 
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
-import { resolveDocumentRoute } from "@/lib/document-routing";
 import {
+  findLatestDuplicataForDocument,
   getDuplicataFee,
   parseDuplicataInstruction,
-  type DuplicataTarget,
 } from "@/lib/duplicata-service";
 import { prisma } from "@/lib/prisma";
 import { modePaiement } from "@/lib/generated/prisma/client";
 
 const initiatePaymentSchema = z.object({
   documentId: z.string().trim().min(10),
-  modePaiement: z.nativeEnum(modePaiement),
-  cibleDocument: z.enum(["ORIGINAL", "RELEVE_NOTES"]).optional(),
+  modePaiement: z.nativeEnum(modePaiement).optional(),
 });
-
-function getDuplicataPaymentTitle(diplomeType: string, target: DuplicataTarget) {
-  return target === "ORIGINAL"
-    ? `Duplicata du diplôme original du ${diplomeType}`
-    : `Duplicata du relevé de notes du ${diplomeType}`;
-}
 
 export async function POST(request: Request) {
   try {
@@ -38,63 +30,33 @@ export async function POST(request: Request) {
       throw new ApiError("Le paiement est uniquement requis pour un duplicata dans ce MVP.", 409);
     }
 
-    const existingPayment = await prisma.paiement.findFirst({
-      where: { documentAcademiqueId: document.id },
-      include: { duplicata: true },
-    });
+    const duplicata = await findLatestDuplicataForDocument(document);
 
-    if (existingPayment) {
-      const meta = parseDuplicataInstruction(existingPayment.duplicata.intruction);
-      return json({
-        payment: existingPayment,
-        amount: meta.cibleDocument ? getDuplicataFee(meta.cibleDocument) : null,
-      });
+    if (!duplicata) {
+      throw new ApiError(
+        "Créez d'abord la demande de duplicata complète avec les pièces justificatives.",
+        409,
+      );
     }
 
-    if (!input.cibleDocument) {
-      throw new ApiError("Le document source du duplicata est requis.", 400);
+    const payment = await prisma.paiement.findUnique({
+      where: { duplicataId: duplicata.id },
+      include: {
+        duplicata: true,
+        recu: true,
+      },
+    });
+
+    if (!payment) {
+      throw new ApiError("Aucun paiement n'est associé à cette demande de duplicata.", 404);
     }
 
-    const route = resolveDocumentRoute(document);
-    const amount = getDuplicataFee(input.cibleDocument);
-    await prisma.documentAcademique.update({
-      where: { id: document.id },
-      data: {
-        organismeId: route.organismeId,
-        antenneRegionaleId: route.antenneRegionaleId,
-      },
-    });
+    const meta = parseDuplicataInstruction(duplicata.intruction);
 
-    const duplicata = await prisma.duplicata.create({
-      data: {
-        eleveId: user.id,
-        typeDocument: "DUPLICATA",
-        nomDuplicata: getDuplicataPaymentTitle(document.diplomeType, input.cibleDocument),
-        statut: document.statut,
-        regionComposition: document.regionComposition,
-        organismeId: route.organismeId,
-        antenneRegionaleId: route.antenneRegionaleId,
-        intruction: JSON.stringify({
-          diplomeType: document.diplomeType,
-          cibleDocument: input.cibleDocument,
-          centreExamen: document.centreExamen,
-          justificatif: "Non fourni via API",
-          montant: amount,
-          lieuRetrait: route.location,
-        }),
-      },
+    return json({
+      payment,
+      amount: meta.cibleDocument ? getDuplicataFee(meta.cibleDocument) : null,
     });
-
-    const payment = await prisma.paiement.create({
-      data: {
-        duplicataId: duplicata.id,
-        documentAcademiqueId: document.id,
-        modePaiment: input.modePaiement,
-        statut: "EN_ATTENTE",
-      },
-    });
-
-    return json({ payment, amount }, 201);
   } catch (error) {
     return handleApiError(error);
   }

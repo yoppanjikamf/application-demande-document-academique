@@ -6,7 +6,6 @@ import { getDocumentTitle, getPickupLocation, OBC_SETTINGS_ID } from "@/lib/appo
 import { getCurrentUser } from "@/lib/auth";
 import {
   ORGANISME_IDS,
-  canAdminAccessDocument,
   getAdminDocumentScope,
   isDocumentRequestAllowed,
   resolveDocumentRoute,
@@ -23,13 +22,12 @@ import {
   upsertStudentImportRow,
   type StudentImportRow,
 } from "@/lib/admin-student-import";
-import { adminManualStudentSchema, adminQuotaSchema, documentStatusUpdateSchema } from "@/lib/validations";
 import {
-  DiplomePrincipal,
-  Role,
-  StatutDocument,
-  TypeDocument,
-} from "@/lib/generated/prisma/client";
+  adminManualStudentSchema,
+  adminQuotaSchema,
+  documentStatusUpdateSchema,
+} from "@/lib/validations";
+import { Role } from "@/lib/generated/prisma/client";
 
 const CSV_FIELDS = [
   "eleve_matricule",
@@ -117,38 +115,6 @@ const CSV_FIELD_ALIASES: Record<CsvField, readonly string[]> = {
   ],
 };
 
-const DOCUMENT_TYPE_ALIASES: Record<string, TypeDocument> = {
-  DIPLOME: TypeDocument.ORIGINAL,
-  DIPLOME_ORIGINAL: TypeDocument.ORIGINAL,
-  ORIGINAL: TypeDocument.ORIGINAL,
-  ORIG: TypeDocument.ORIGINAL,
-  RELEVE: TypeDocument.RELEVE_NOTES,
-  RELEVE_NOTES: TypeDocument.RELEVE_NOTES,
-  RELEVE_DE_NOTES: TypeDocument.RELEVE_NOTES,
-  DUPLICATA: TypeDocument.DUPLICATA,
-  DUPLICATE: TypeDocument.DUPLICATA,
-};
-
-const DOCUMENT_STATUS_ALIASES: Record<string, StatutDocument> = {
-  DISPONIBLE: StatutDocument.DISPONIBLE,
-  AVAILABLE: StatutDocument.DISPONIBLE,
-  PAS_DISPONIBLE: StatutDocument.PAS_DISPONIBLE,
-  NON_DISPONIBLE: StatutDocument.PAS_DISPONIBLE,
-  INDISPONIBLE: StatutDocument.PAS_DISPONIBLE,
-  EN_ATTENTE: StatutDocument.PAS_DISPONIBLE,
-  RETIRE: StatutDocument.RETIRE,
-  RETIREE: StatutDocument.RETIRE,
-};
-
-const DIPLOME_ALIASES: Record<string, DiplomePrincipal> = {
-  BEPC: DiplomePrincipal.BEPC,
-  PROBATOIRE: DiplomePrincipal.PROBATOIRE,
-  PROBA: DiplomePrincipal.PROBATOIRE,
-  BACCALAUREAT: DiplomePrincipal.BACCALAUREAT,
-  BAC: DiplomePrincipal.BACCALAUREAT,
-  BACC: DiplomePrincipal.BACCALAUREAT,
-};
-
 function normalizeKey(value: string) {
   return value
     .trim()
@@ -158,10 +124,6 @@ function normalizeKey(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
-}
-
-function normalizeEnumKey(value: string) {
-  return normalizeKey(value).toUpperCase();
 }
 
 function detectCsvDelimiter(text: string) {
@@ -419,18 +381,6 @@ function getManualStudentErrorUrl(message: string) {
   });
 
   return `/admin/students?${params.toString()}`;
-}
-
-function parseDocumentType(value: string) {
-  return DOCUMENT_TYPE_ALIASES[normalizeEnumKey(value)] ?? null;
-}
-
-function parseDocumentStatus(value: string) {
-  return DOCUMENT_STATUS_ALIASES[normalizeEnumKey(value)] ?? null;
-}
-
-function parseDiplomeType(value: string) {
-  return DIPLOME_ALIASES[normalizeEnumKey(value)] ?? null;
 }
 
 function assertObcAdmin(user: { role: Role; organismeId: string | null }) {
@@ -923,7 +873,7 @@ export async function importTestDataFromCsv(
         nom: normalize(getCsvValue(row, "eleve_nom")),
         prenom: normalize(getCsvValue(row, "eleve_prenom")),
         dateNaissance: parseDate(getCsvValue(row, "eleve_date_naissance")),
-        diplomeType: diplomeValue ? parseImportDiplomeType(diplomeValue) ?? undefined : undefined,
+        diplomeType: diplomeValue ? (parseImportDiplomeType(diplomeValue) ?? undefined) : undefined,
         anneeSession:
           parsedSession && !Number.isNaN(parsedSession) ? Math.trunc(parsedSession) : null,
         centreExamen: normalize(getCsvValue(row, "centre_examen")) || undefined,
@@ -998,9 +948,7 @@ export async function createManualStudentAction(formData: FormData) {
     redirect(getManualStudentErrorUrl("Formulaire invalide. Vérifiez les champs obligatoires."));
   }
 
-  const dateNaissance = parsed.data.dateNaissance
-    ? new Date(parsed.data.dateNaissance)
-    : null;
+  const dateNaissance = parsed.data.dateNaissance ? new Date(parsed.data.dateNaissance) : null;
 
   if (dateNaissance && Number.isNaN(dateNaissance.getTime())) {
     redirect(getManualStudentErrorUrl("Date de naissance invalide."));

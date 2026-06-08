@@ -95,9 +95,7 @@ const eleveSections: NavSection[] = [
 const agentCentreSections: NavSection[] = [
   {
     label: "Navigation",
-    items: [
-      { title: "Retraits du jour", url: "/centre-examen", icon: ClipboardCheck },
-    ],
+    items: [{ title: "Retraits du jour", url: "/centre-examen", icon: ClipboardCheck }],
   },
   {
     label: "Compte",

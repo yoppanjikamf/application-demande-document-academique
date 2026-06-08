@@ -47,7 +47,7 @@ export function Reveal({
       ref={ref}
       className={cn(
         "transition-all duration-700 ease-out",
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0",
+        isVisible ? "translate-y-0 opacity-100" : "opacity-0",
         className,
       )}
       style={{

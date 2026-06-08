@@ -4,8 +4,11 @@ sequenceDiagram
     participant Sys as Systeme DR-DOCSCOL
     participant DB as Base de donnees
 
-    Agent->>Sys: consulter les retraits du jour
-    Sys-->>Agent: Afficher la liste des rendez-vous PLANIFIE ou CONFIRME du centre
+    Agent->>Sys: consulter les rendez-vous transmis a son centre
+    Sys-->>Agent: Afficher uniquement les RDV de retrait au centre d examen(BEPC original, releves BEPC, Probatoire, Bac)
+
+    Note over Agent,Sys: L agent ne voit pas les duplicatas ni le diplome original du Baccalaureat(retirats en antenne regionale).
+
     Agent->>Sys: confirmer le retrait physique effectue(identifiant rendez-vous)
 
     alt Donnees valides

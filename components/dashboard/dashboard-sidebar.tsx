@@ -83,12 +83,7 @@ export function DashboardSidebar({
             ) : null}
           </div>
 
-          <div
-            className={cn(
-              "mt-4 border-y border-white/10 py-4",
-              isOpen ? "block" : "hidden",
-            )}
-          >
+          <div className={cn("mt-4 border-y border-white/10 py-4", isOpen ? "block" : "hidden")}>
             <div className="flex items-start gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white/10 text-gold-300 ring-1 ring-white/15">
                 {role === "ADMINISTRATEUR" ? (
@@ -136,8 +131,8 @@ export function DashboardSidebar({
                           "flex h-11 items-center gap-3 border-l-[3px] px-3 text-sm font-semibold transition-[var(--transition-base)]",
                           isOpen ? "justify-start" : "justify-center",
                           isActive
-                            ? "border-gold-400 bg-white/12 text-white"
-                            : "border-transparent text-white/70 hover:bg-white/7 hover:text-white",
+                            ? "bg-white/12 border-gold-400 text-white"
+                            : "hover:bg-white/7 border-transparent text-white/70 hover:text-white",
                         )}
                         aria-current={isActive ? "page" : undefined}
                         title={!isOpen ? item.title : undefined}
@@ -152,7 +147,11 @@ export function DashboardSidebar({
             ))}
           </div>
 
-          <form action="/logout" method="post" className={cn("mb-3 mt-4", isOpen ? "block" : "hidden")}>
+          <form
+            action="/logout"
+            method="post"
+            className={cn("mb-3 mt-4", isOpen ? "block" : "hidden")}
+          >
             <Button
               type="submit"
               variant="ghost"

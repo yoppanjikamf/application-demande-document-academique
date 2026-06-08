@@ -98,7 +98,13 @@ export async function reserverDisponibiliteAction(formData: FormData) {
   }
 
   const date = parseDateKey(parsed.data.dateRdv);
-  if (!date || isBeforeTomorrow(date) || isWeekend(date) || (await isHoliday(date))) {
+  const settings = await getAppointmentSettings();
+  if (
+    !date ||
+    isBeforeTomorrow(date) ||
+    (isWeekend(date) && !settings.allowWeekendBookings) ||
+    (await isHoliday(date))
+  ) {
     throw new Error(
       "Date invalide. Les rendez-vous de retrait doivent être programmés à partir du lendemain.",
     );
@@ -179,7 +185,6 @@ export async function reserverDisponibiliteAction(formData: FormData) {
   const syncedDocument = await syncDocumentPickupFromExam(document);
   const location = await getPickupLocation(syncedDocument);
   const commentaire = parsed.data.commentaire?.trim() || "Réservation élève";
-  const settings = await getAppointmentSettings();
   const activeSlots = await getActiveTimeSlots();
   const slotCapacity = Math.max(
     1,

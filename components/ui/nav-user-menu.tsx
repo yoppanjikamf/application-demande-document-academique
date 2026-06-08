@@ -44,7 +44,7 @@ export function NavUserMenu({ homePath }: { homePath: string }) {
         </SheetTrigger>
         <SheetContent side="right" className="w-[min(100%,300px)]">
           <SheetHeader>
-            <SheetTitle className="font-display text-left text-xl">Mon compte</SheetTitle>
+            <SheetTitle className="text-left font-display text-xl">Mon compte</SheetTitle>
           </SheetHeader>
           <nav className="mt-6 flex flex-col gap-3" aria-label="Navigation du compte (mobile)">
             <SheetClose asChild>

@@ -16,13 +16,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivationSteps, type ActivationStep } from "@/components/landing/activation-steps";
 import { DocScolLogo } from "@/components/ui/DocScolLogo";
 import { MarqueeCarousel } from "@/components/ui/marquee-carousel";
@@ -32,10 +26,7 @@ import { cn } from "@/lib/utils";
 
 type PortalAccent = "eleve" | "admin" | "agent";
 
-const portalAccentClasses: Record<
-  PortalAccent,
-  { icon: string; ring: string }
-> = {
+const portalAccentClasses: Record<PortalAccent, { icon: string; ring: string }> = {
   eleve: { icon: "bg-edu-600 text-white", ring: "hover:border-edu-300" },
   admin: { icon: "bg-obc-800 text-white", ring: "hover:border-obc-300" },
   agent: { icon: "bg-gold-500 text-white", ring: "hover:border-gold-300" },
@@ -211,8 +202,8 @@ function SectionHeading({
 function ProductMockup() {
   return (
     <div className="relative mx-auto max-w-lg">
-      <div className="absolute -inset-4 rounded-[28px] bg-gradient-to-br from-obc-200/80 via-gold-100/60 to-obc-100/40 blur-2xl" />
-      <Card className="relative overflow-hidden border-obc-200/80 shadow-hover">
+      <div className="from-obc-200/80 via-gold-100/60 to-obc-100/40 absolute -inset-4 rounded-[28px] bg-gradient-to-br blur-2xl" />
+      <Card className="border-obc-200/80 relative overflow-hidden shadow-hover">
         <div className="border-b border-[var(--border-token)] bg-obc-800 px-4 py-3">
           <div className="flex items-center justify-between">
             <DocScolLogo variant="mark" theme="gold" className="scale-90" />
@@ -223,7 +214,7 @@ function ProductMockup() {
         </div>
         <CardContent className="space-y-3 p-4">
           <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-edu-800 via-edu-700 to-edu-600 p-3 text-white">
-            <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-edu-400/25 blur-2xl" />
+            <div className="bg-edu-400/25 pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl" />
             <div className="relative flex items-center gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-white/20 bg-white/10">
                 <GraduationCap className="h-4 w-4" aria-hidden="true" />
@@ -258,7 +249,7 @@ function ProductMockup() {
             </div>
             <p className="mt-1 text-xs text-text-3">Paiement requis avant traitement</p>
           </div>
-          <div className="flex items-start gap-2 rounded-lg bg-gold-100/70 p-3">
+          <div className="bg-gold-100/70 flex items-start gap-2 rounded-lg p-3">
             <Bell className="mt-0.5 h-4 w-4 shrink-0 text-obc-800" aria-hidden="true" />
             <p className="text-xs leading-5 text-obc-900">
               Votre document est disponible. Réservez un créneau pour le retirer.
@@ -273,10 +264,7 @@ function ProductMockup() {
 export function LandingPage() {
   return (
     <>
-      <section
-        id="accueil"
-        className="relative overflow-hidden bg-obc-900 text-white"
-      >
+      <section id="accueil" className="relative overflow-hidden bg-obc-900 text-white">
         <Image
           src="/images/landing/hero-graduation.png"
           alt="Diplômés célébrant l'obtention de leurs documents scolaires"
@@ -286,7 +274,7 @@ export function LandingPage() {
           className="absolute inset-0 h-full w-full object-cover object-right"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-r from-obc-900 via-obc-900/90 to-obc-900/45"
+          className="via-obc-900/90 to-obc-900/45 absolute inset-0 bg-gradient-to-r from-obc-900"
           aria-hidden="true"
         />
         <div
@@ -314,11 +302,10 @@ export function LandingPage() {
                   Vos documents scolaires,{" "}
                   <span className="text-gold-400">enfin simples à obtenir</span>
                 </h1>
-                <p className="mt-6 max-w-xl text-lg leading-8 text-white/82">
-                  DR-DOCSCOL réunit les élèves, les équipes OBC/DECC et les centres
-                  d&apos;examen sur un même portail : demande en ligne, suivi en temps réel,
-                  rendez-vous de retrait et notifications — sans paperasse ni allers-retours
-                  inutiles.
+                <p className="text-white/82 mt-6 max-w-xl text-lg leading-8">
+                  DR-DOCSCOL réunit les élèves, les équipes OBC/DECC et les centres d&apos;examen
+                  sur un même portail : demande en ligne, suivi en temps réel, rendez-vous de
+                  retrait et notifications — sans paperasse ni allers-retours inutiles.
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <Button asChild size="lg" variant="secondary">
@@ -363,7 +350,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="probleme" className="border-b border-[var(--border-token)] bg-surface-0 py-20 lg:py-24">
+      <section
+        id="probleme"
+        className="border-b border-[var(--border-token)] bg-surface-0 py-20 lg:py-24"
+      >
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <Reveal>
             <SectionHeading
@@ -403,7 +393,7 @@ export function LandingPage() {
               </Card>
             </Reveal>
             <Reveal delay={160}>
-              <Card className="overflow-hidden border-obc-200 bg-obc-50/50">
+              <Card className="bg-obc-50/50 overflow-hidden border-obc-200">
                 <div className="relative aspect-[16/9] w-full overflow-hidden">
                   <Image
                     src="/images/landing/solution-portail.png"
@@ -413,7 +403,7 @@ export function LandingPage() {
                     className="object-cover"
                   />
                   <div
-                    className="absolute inset-0 bg-gradient-to-t from-obc-900/40 to-transparent"
+                    className="from-obc-900/40 absolute inset-0 bg-gradient-to-t to-transparent"
                     aria-hidden="true"
                   />
                 </div>
@@ -423,7 +413,7 @@ export function LandingPage() {
                     Une trajectoire lisible, de la demande au retrait
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3 text-sm leading-6 text-obc-900/90">
+                <CardContent className="text-obc-900/90 space-y-3 text-sm leading-6">
                   <p>• Chaque demande a un statut visible par l&apos;élève</p>
                   <p>• Créneaux de retrait au bon lieu (centre ou antenne)</p>
                   <p>• Paiement et reçu pour les duplicatas concernés</p>
@@ -506,7 +496,7 @@ export function LandingPage() {
                   className="absolute inset-0 h-full w-full object-cover"
                 />
                 <div
-                  className="absolute inset-0 bg-gradient-to-t from-obc-900/92 via-obc-900/55 to-obc-900/20"
+                  className="from-obc-900/92 via-obc-900/55 to-obc-900/20 absolute inset-0 bg-gradient-to-t"
                   aria-hidden="true"
                 />
                 <div className="relative flex h-full flex-col justify-end p-8 sm:p-10">
@@ -514,8 +504,8 @@ export function LandingPage() {
                     Clarté, confiance et gain de temps
                   </p>
                   <p className="mt-4 max-w-md text-sm leading-7 text-white/85 sm:text-base">
-                    Que vous soyez élève, administrateur ou agent de centre, vous travaillez
-                    sur les mêmes données à jour — sans double saisie ni confusion.
+                    Que vous soyez élève, administrateur ou agent de centre, vous travaillez sur les
+                    mêmes données à jour — sans double saisie ni confusion.
                   </p>
                   <div className="mt-8 grid grid-cols-2 gap-4">
                     <div className="rounded-lg border border-white/20 bg-white/15 p-4 backdrop-blur-sm">
@@ -592,7 +582,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="acces" className="border-y border-[var(--border-token)] bg-obc-50/60 py-20 lg:py-24">
+      <section
+        id="acces"
+        className="bg-obc-50/60 border-y border-[var(--border-token)] py-20 lg:py-24"
+      >
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <Reveal>
             <SectionHeading
@@ -656,7 +649,7 @@ export function LandingPage() {
           className="absolute inset-0 h-full w-full object-cover"
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-obc-900/90" aria-hidden="true" />
+        <div className="bg-obc-900/90 absolute inset-0" aria-hidden="true" />
         <div
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(245,158,11,0.16),_transparent_55%)]"
           aria-hidden="true"
@@ -688,7 +681,7 @@ export function LandingPage() {
                 className={cn(
                   "h-full bg-surface-0",
                   item.isPlaceholder
-                    ? "border-dashed border-obc-200/80"
+                    ? "border-obc-200/80 border-dashed"
                     : "border-obc-200 shadow-card",
                 )}
               >
@@ -748,18 +741,15 @@ export function LandingPage() {
           className="absolute inset-0 h-full w-full object-cover"
           aria-hidden="true"
         />
-        <div
-          className="absolute inset-0 bg-obc-900/88"
-          aria-hidden="true"
-        />
+        <div className="bg-obc-900/88 absolute inset-0" aria-hidden="true" />
         <div className="relative mx-auto max-w-4xl px-4 text-center lg:px-8">
           <Reveal>
             <h2 className="font-display text-3xl sm:text-4xl">
               Prêt à obtenir vos documents sans détour ?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-white/80">
-              Activez votre compte élève ou connectez-vous à votre espace professionnel en
-              quelques clics — et suivez chaque démarche jusqu&apos;au retrait.
+              Activez votre compte élève ou connectez-vous à votre espace professionnel en quelques
+              clics — et suivez chaque démarche jusqu&apos;au retrait.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg" variant="secondary">
@@ -784,8 +774,8 @@ export function LandingPage() {
             <div>
               <DocScolLogo variant="full" theme="light" />
               <p className="mt-4 max-w-sm text-sm leading-6 text-text-3">
-                DR-DOCSCOL — gestion des demandes et retraits de documents scolaires pour
-                l&apos;OBC et la DECC.
+                DR-DOCSCOL — gestion des demandes et retraits de documents scolaires pour l&apos;OBC
+                et la DECC.
               </p>
             </div>
             <nav

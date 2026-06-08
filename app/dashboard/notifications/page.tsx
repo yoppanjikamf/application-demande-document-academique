@@ -75,7 +75,9 @@ export default async function NotificationsPage() {
         </div>
         <div className="divide-y divide-[#E8EEF6]">
           {notifications.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-text-3">Vous êtes à jour : aucune notification pour le moment.</p>
+            <p className="px-5 py-6 text-sm text-text-3">
+              Vous êtes à jour : aucune notification pour le moment.
+            </p>
           ) : (
             notifications.map((notification) => {
               const canScheduleAppointment =

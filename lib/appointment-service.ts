@@ -110,7 +110,12 @@ export async function getAppointmentSettings() {
   }
 
   return prisma.parametreRendezVous.create({
-    data: { id: OBC_SETTINGS_ID, quotaJournalier: 200, lieuObc: "Centre de retrait", allowWeekendBookings: false },
+    data: {
+      id: OBC_SETTINGS_ID,
+      quotaJournalier: 200,
+      lieuObc: "Centre de retrait",
+      allowWeekendBookings: false,
+    },
   });
 }
 
@@ -174,19 +179,24 @@ export function getStudentDocumentStatusLabel(
 }
 
 export async function getPickupLocation(
-  document: Pick<DocumentAcademique, "diplomeType" | "typeDocument" | "centreExamen" | "regionComposition"> & {
+  document: Pick<
+    DocumentAcademique,
+    "diplomeType" | "typeDocument" | "centreExamen" | "regionComposition"
+  > & {
     eleveId?: string;
     antenneRegionale?: { nom: string; ville: string | null; region: string } | null;
   },
 ) {
   if (document.eleveId && document.typeDocument === "DUPLICATA") {
-    return (await resolvePickupRouteForDocument({
-      eleveId: document.eleveId,
-      diplomeType: document.diplomeType,
-      typeDocument: document.typeDocument,
-      centreExamen: document.centreExamen,
-      regionComposition: document.regionComposition,
-    })).location;
+    return (
+      await resolvePickupRouteForDocument({
+        eleveId: document.eleveId,
+        diplomeType: document.diplomeType,
+        typeDocument: document.typeDocument,
+        centreExamen: document.centreExamen,
+        regionComposition: document.regionComposition,
+      })
+    ).location;
   }
 
   return resolveDocumentRoute(document).location;
@@ -256,4 +266,3 @@ export async function findNextAvailableAppointmentDate(startDate: Date, maxDays 
 
   return null;
 }
-

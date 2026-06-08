@@ -49,8 +49,8 @@ export function AdminStudentsImportForm({
         <h3 className="font-semibold text-text-1">Import CSV en lot</h3>
         <p className="mt-1 text-sm text-text-3">
           Importez un tableau complet : une ligne par élève (ou par combinaison élève + document).
-          Plusieurs lignes avec le même matricule permettent d&apos;ajouter plusieurs documents.
-          Les rendez-vous de retrait sont réservés par l&apos;élève depuis son espace.
+          Plusieurs lignes avec le même matricule permettent d&apos;ajouter plusieurs documents. Les
+          rendez-vous de retrait sont réservés par l&apos;élève depuis son espace.
         </p>
         <ul className="mt-3 list-inside list-disc space-y-1 text-xs text-text-muted">
           {CSV_COLUMNS.map((line) => (
@@ -66,7 +66,9 @@ export function AdminStudentsImportForm({
       </Button>
       <details className="rounded-md border border-[var(--border-token)] bg-surface-1 p-3 text-xs text-text-3">
         <summary className="cursor-pointer font-medium text-text-2">En-tête attendu</summary>
-        <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all">{STUDENT_IMPORT_CSV_HEADER}</pre>
+        <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all">
+          {STUDENT_IMPORT_CSV_HEADER}
+        </pre>
       </details>
       <Input type="file" name="file" accept=".csv,text/csv" required />
       <PendingSubmitButton pendingLabel="Import en cours...">

@@ -74,7 +74,10 @@ export function CentreAppointmentsPanel({
   }, [view, initialAppointments, initialUpcomingAppointments]);
 
   const refreshAppointments = React.useCallback(
-    async ({ silent = true, filter = view }: { silent?: boolean; filter?: AppointmentView } = {}) => {
+    async ({
+      silent = true,
+      filter = view,
+    }: { silent?: boolean; filter?: AppointmentView } = {}) => {
       try {
         if (!silent) {
           setIsRefreshing(true);

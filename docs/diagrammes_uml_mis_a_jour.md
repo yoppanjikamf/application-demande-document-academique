@@ -13,7 +13,7 @@
 
 ---
 
-## Note de synchronisation du 02/06/2026
+## Note de synchronisation du 05/06/2026
 
 Le code actuel contient trois roles applicatifs:
 
@@ -21,7 +21,7 @@ Le code actuel contient trois roles applicatifs:
 - `ADMINISTRATEUR`
 - `AGENT_CENTRE_EXAMEN`
 
-Les diagrammes ci-dessous sont alignes avec le code et les regles metier validees le 02/06/2026. Les images PNG/SVG correspondantes sont dans `diagrammes-images/` et les sources Mermaid separees sont dans `diagrammes-mermaid/`.
+Les diagrammes ci-dessous sont alignes avec le code et les regles metier validees le 05/06/2026. Les images PNG/SVG correspondantes sont dans `diagrammes-images/` et les sources Mermaid separees sont dans `diagrammes-mermaid/`.
 
 Mise a jour de conformité: les versions finales conformes a la notation de reference fournie sont des diagrammes personnalises et detailles, generes dans `docs/diagrammes-images/`:
 
@@ -34,7 +34,7 @@ Important: pour les livrables Word/PDF, utiliser les images finales ci-dessus pl
 
 Le document de reference final est `ETAT_FINAL_PROJET.md`.
 
-Mise a jour du 04/06/2026 — diagrammes de sequence **v3 soutenance** :
+Mise a jour du 05/06/2026 — diagrammes de sequence **v3 soutenance** :
 
 - Sources : `docs/diagrammes-mermaid/sequence-*-v3-soutenance.mmd`
 - Images PNG/SVG : `docs/diagrammes-images/sequence-*-v3-soutenance.{png,svg}`
@@ -213,6 +213,8 @@ Ce diagramme présente la structure statique du système, les entités métier, 
 Version detaillee: `docs/diagrammes-images/diagramme-classes-v2.png`.
 
 Version principale pour la soutenance (structure en croix du modele de reference + 9 classes metier : Eleve, Document, Duplicata, ExamenValide, CentreExamen, RendezVous, Organisme, Paiement, types de documents) : `docs/diagrammes-images/diagramme-classes-soutenance.png`. Regeneration : `npm run diagrams:classes-soutenance`.
+
+Version simplifiee pour la soutenance (heritage Utilisateur / DocumentScolaire, relations essentielles uniquement) : `docs/diagrammes-images/diagramme-classes-simplifie.png`. Source Graphviz : `docs/diagrammes-graphviz/diagramme-classes-simplifie.dot`.
 
 Version technique exhaustive (20 tables Prisma) : `diagramme-classes-v2.png` via `npm run diagrams:conform`.
 
@@ -414,10 +416,10 @@ classDiagram
 | SEQ-02 | `diagrammes-images/sequence-02-connexion-v3-soutenance.png` | Connexion multi-role |
 | SEQ-03 | `diagrammes-images/sequence-03-consultation-documents-v3-soutenance.png` | Consultation Mes documents |
 | SEQ-04 | `diagrammes-images/sequence-04-notification-disponibilite-v3-soutenance.png` | Admin : disponibilite + notification |
-| SEQ-05 | `diagrammes-images/sequence-05-duplicata-paiement-v3-soutenance.png` | Duplicata et paiement |
+| SEQ-05 | `diagrammes-images/sequence-05-duplicata-paiement-v3-soutenance.png` | Duplicata : paiement, validation admin, disponibilite et RDV antenne |
 | SEQ-06 | `diagrammes-images/sequence-06-rendez-vous-v3-soutenance.png` | RDV planifie par l eleve |
-| SEQ-07 | `diagrammes-images/sequence-07-statut-document-v3-soutenance.png` | Admin : changement de statut |
-| SEQ-08 | `diagrammes-images/sequence-08-retrait-physique-v3-soutenance.png` | Agent : confirmation retrait |
+| SEQ-07 | `diagrammes-images/sequence-07-statut-document-v3-soutenance.png` | Admin : disponibilite ; RETIRE reserve a l'antenne |
+| SEQ-08 | `diagrammes-images/sequence-08-retrait-physique-v3-soutenance.png` | Agent : confirmation retrait centre d'examen uniquement |
 | SEQ-09 | `diagrammes-images/sequence-09-ajout-eleve-admin-v3-soutenance.png` | Admin : ajout manuel ou import CSV |
 | SEQ-10 | `diagrammes-images/sequence-10-demande-document-v3-soutenance.png` | Eleve : demande releve ou diplome |
 
@@ -577,7 +579,7 @@ sequenceDiagram
 
 ### SEQ-05 — Demande de duplicata et paiement
 
-Ce diagramme décrit la demande de duplicata et le paiement associé. Le MVP gère un paiement applicatif simplifié avec reçu, tandis que l’intégration Mobile Money réelle reste à finaliser.
+Ce diagramme décrit le parcours complet du duplicata : soumission avec justificatifs et paiement, validation administrative du dossier, passage à `DISPONIBLE`, notification à l’élève et prise de rendez-vous en antenne régionale. Le MVP gère un paiement applicatif simplifié avec reçu, tandis que l’intégration Mobile Money réelle reste à finaliser.
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "20px"}}}%%
@@ -611,7 +613,8 @@ sequenceDiagram
 | 3 | Le duplicata est enregistré. | `DocumentAcademique` et `Duplicata` sont créés ou mis à jour. |
 | 4 | Le paiement est confirmé. | Le MVP crée un paiement `EFFECTUE`. |
 | 5 | Un reçu est généré. | L’élève dispose d’une trace de paiement. |
-| 6 | L’administration traite la demande. | Le document pourra passer à `DISPONIBLE`. |
+| 6 | L’administration valide le dossier. | Le duplicata peut passer à `DISPONIBLE`. |
+| 7 | L’élève prend un rendez-vous. | Retrait planifié en antenne régionale. |
 
 ### SEQ-06 — Réservation et annulation de rendez-vous
 
@@ -663,7 +666,7 @@ sequenceDiagram
 
 ### SEQ-07 — Mise à jour du statut d’un document
 
-Ce diagramme complète le scénario de notification en montrant les contrôles administratifs et les effets métier. Lorsqu’un document est marqué `RETIRE`, les rendez-vous actifs liés sont passés à `HONORE`.
+Ce diagramme complète le scénario de notification en montrant les contrôles administratifs et les effets métier. L’administrateur gère `PAS_DISPONIBLE` et `DISPONIBLE` pour tous les documents de son périmètre. Le passage à `RETIRE` est réservé aux retraits en antenne régionale ; pour les retraits au centre d’examen, seul l’agent confirme le `RETIRE`.
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "20px"}}}%%
@@ -705,7 +708,7 @@ sequenceDiagram
 
 ### SEQ-08 — Retrait physique d’un document
 
-Ce diagramme décrit l’enregistrement d’un retrait physique par l’administration. Le retrait est tracé par le statut `RETIRE` sur le document et par un rendez-vous `HONORE`, existant ou créé à cet effet.
+Ce diagramme décrit la confirmation du retrait physique par l’agent centre d’examen. L’agent ne voit que les rendez-vous de retrait au centre (BEPC original, relevés). Le retrait est tracé par le statut `RETIRE` sur le document et par un rendez-vous `HONORE`.
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "20px"}}}%%

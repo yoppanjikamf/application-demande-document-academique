@@ -98,7 +98,10 @@ export default async function AdminDisponibilitesPage() {
         ) : (
           <div className="space-y-3">
             {[...countByDay.entries()].map(([date, count]) => (
-              <div key={date} className="rounded-md border border-[var(--border-token)] bg-surface-0 p-4 shadow-card">
+              <div
+                key={date}
+                className="rounded-md border border-[var(--border-token)] bg-surface-0 p-4 shadow-card"
+              >
                 <div className="text-sm text-text-3">{date}</div>
                 <div className="text-sm">
                   Réservations : {count} / {quota}

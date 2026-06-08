@@ -10,7 +10,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-obc-800 text-white shadow-card hover:bg-obc-900 hover:shadow-hover",
-        destructive: "bg-destructive text-destructive-foreground shadow-card hover:bg-destructive/90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-card hover:bg-destructive/90",
         outline:
           "border border-[var(--border-token)] bg-surface-0 text-obc-800 shadow-card hover:border-obc-200 hover:bg-obc-50",
         secondary: "bg-gold-100 text-obc-900 shadow-card hover:bg-gold-300",

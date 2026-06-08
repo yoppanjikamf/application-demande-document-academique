@@ -6,21 +6,28 @@ export async function GET() {
   try {
     const admin = await requireApiUser("ADMINISTRATEUR");
     const documentScope = getAdminDocumentScope(admin);
-    const [students, documents, pendingDocuments, availableDocuments, retiredDocuments, appointments] =
-      await Promise.all([
-        prisma.user.count({ where: { role: "ELEVE", documentsAcademique: { some: documentScope } } }),
-        prisma.documentAcademique.count({ where: documentScope }),
-        prisma.documentAcademique.count({ where: { ...documentScope, statut: "PAS_DISPONIBLE" } }),
-        prisma.documentAcademique.count({ where: { ...documentScope, statut: "DISPONIBLE" } }),
-        prisma.documentAcademique.count({ where: { ...documentScope, statut: "RETIRE" } }),
-        prisma.rendezVous.findMany({
-          where: { statut: "HONORE", document: { is: documentScope } },
-          select: { createdAt: true, updatedAt: true },
-        }),
-      ]);
+    const [
+      students,
+      documents,
+      pendingDocuments,
+      availableDocuments,
+      retiredDocuments,
+      appointments,
+    ] = await Promise.all([
+      prisma.user.count({ where: { role: "ELEVE", documentsAcademique: { some: documentScope } } }),
+      prisma.documentAcademique.count({ where: documentScope }),
+      prisma.documentAcademique.count({ where: { ...documentScope, statut: "PAS_DISPONIBLE" } }),
+      prisma.documentAcademique.count({ where: { ...documentScope, statut: "DISPONIBLE" } }),
+      prisma.documentAcademique.count({ where: { ...documentScope, statut: "RETIRE" } }),
+      prisma.rendezVous.findMany({
+        where: { statut: "HONORE", document: { is: documentScope } },
+        select: { createdAt: true, updatedAt: true },
+      }),
+    ]);
 
     const totalDelayMs = appointments.reduce(
-      (sum, appointment) => sum + (appointment.updatedAt.getTime() - appointment.createdAt.getTime()),
+      (sum, appointment) =>
+        sum + (appointment.updatedAt.getTime() - appointment.createdAt.getTime()),
       0,
     );
     const averageWithdrawalDelayDays =

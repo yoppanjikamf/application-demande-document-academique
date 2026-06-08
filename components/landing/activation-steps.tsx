@@ -60,10 +60,7 @@ export function ActivationSteps({
   const current = steps[active];
 
   return (
-    <div
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
+    <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-[var(--border-token)] shadow-card sm:aspect-[16/9]">
         {steps.map((step, index) => (
           <div
@@ -83,7 +80,7 @@ export function ActivationSteps({
               className="object-cover"
             />
             <div
-              className="absolute inset-0 bg-gradient-to-t from-obc-900/95 via-obc-900/78 to-obc-900/55"
+              className="from-obc-900/95 via-obc-900/78 to-obc-900/55 absolute inset-0 bg-gradient-to-t"
               aria-hidden="true"
             />
           </div>
@@ -97,7 +94,9 @@ export function ActivationSteps({
             Étape {active + 1} sur {steps.length}
           </p>
           <h3 className="mt-1 font-display text-2xl text-white sm:text-3xl">{current.title}</h3>
-          <p className="mt-2 max-w-xl text-sm leading-7 text-white/85 sm:text-base">{current.text}</p>
+          <p className="mt-2 max-w-xl text-sm leading-7 text-white/85 sm:text-base">
+            {current.text}
+          </p>
         </div>
       </div>
 

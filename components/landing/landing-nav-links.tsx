@@ -62,7 +62,7 @@ export function LandingNavLinks() {
         </SheetTrigger>
         <SheetContent side="right" className="w-[min(100%,280px)]">
           <SheetHeader>
-            <SheetTitle className="font-display text-left text-xl">Navigation</SheetTitle>
+            <SheetTitle className="text-left font-display text-xl">Navigation</SheetTitle>
           </SheetHeader>
           <nav className="mt-6 flex flex-col gap-4" aria-label="Sections mobile">
             {landingNavItems.map((item) => (

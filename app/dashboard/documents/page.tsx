@@ -550,7 +550,8 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                                       />
                                     ) : (
                                       <div className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
-                                        Votre relevé de notes est disponible : {relevePickupLocation}.
+                                        Votre relevé de notes est disponible :{" "}
+                                        {relevePickupLocation}.
                                       </div>
                                     )}
                                   </div>

@@ -1,0 +1,157 @@
+// Diagramme de classes simplifie - DR-DOCSCOL (soutenance)
+// Cas flagrants uniquement. Ne remplace pas diagramme-classes-soutenance.dot
+digraph DiagrammeClassesSimplifie {
+  graph [
+    rankdir=TB
+    splines=ortho
+    bgcolor=white
+    nodesep=0.7
+    ranksep=1.1
+    fontname="Arial"
+    fontsize=12
+    labelloc=t
+    label="Diagramme de classes simplifie - DR-DOCSCOL"
+  ];
+  node [shape=plaintext, fontname="Arial", fontsize=12, fontcolor=black, color=black];
+  edge [fontname="Arial", fontsize=11, color=black, fontcolor=black, arrowsize=0.75];
+
+  // ===================== ACTEURS =====================
+  Utilisateur [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>Utilisateur</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ id : String<BR ALIGN="LEFT"/>+ email : String<BR ALIGN="LEFT"/>+ matricule : String<BR ALIGN="LEFT"/>+ nom : String<BR ALIGN="LEFT"/>+ prenom : String</TD></TR>
+    </TABLE>>];
+
+  Eleve [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>Eleve</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ dateNaissance : DateTime</TD></TR>
+    </TABLE>>];
+
+  Administrateur [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>Administrateur</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ nomService : String</TD></TR>
+    </TABLE>>];
+
+  AgentCentreExamen [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>AgentCentreExamen</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ centreExamenId : String</TD></TR>
+    </TABLE>>];
+
+  // ===================== ORGANISATION =====================
+  Organisme [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>Organisme</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ nom : String</TD></TR>
+    </TABLE>>];
+
+  AntenneRegionale [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>AntenneRegionale</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ region : String<BR ALIGN="LEFT"/>+ ville : String</TD></TR>
+    </TABLE>>];
+
+  CentreExamen [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>CentreExamen</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ region : String<BR ALIGN="LEFT"/>+ ville : String</TD></TR>
+    </TABLE>>];
+
+  // ===================== DOCUMENTS =====================
+  DocumentScolaire [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>DocumentScolaire</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ diplomeType : DiplomePrincipal<BR ALIGN="LEFT"/>+ statut : StatutDocument</TD></TR>
+    </TABLE>>];
+
+  Diplome [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>Diplome</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ nomDiplome : String</TD></TR>
+    </TABLE>>];
+
+  Releve [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>Releve</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ nomReleve : String</TD></TR>
+    </TABLE>>];
+
+  Duplicata [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>Duplicata</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ statut : StatutDocument<BR ALIGN="LEFT"/>+ statutValidation : StatutValidationDuplicata</TD></TR>
+    </TABLE>>];
+
+  // ===================== PARCOURS =====================
+  RendezVous [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>RendezVous</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ dateRdv : DateTime<BR ALIGN="LEFT"/>+ heureRdv : String<BR ALIGN="LEFT"/>+ statut : StatutRendezVous</TD></TR>
+    </TABLE>>];
+
+  Paiement [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>Paiement</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ statut : StatutPaiement<BR ALIGN="LEFT"/>+ modePaiement : String</TD></TR>
+    </TABLE>>];
+
+  Recu [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>Recu</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ numero : String<BR ALIGN="LEFT"/>+ montant : Float</TD></TR>
+    </TABLE>>];
+
+  Notification [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD ALIGN="CENTER"><B>Notification</B></TD></TR><HR/>
+      <TR><TD ALIGN="LEFT">+ typeNotification : String<BR ALIGN="LEFT"/>+ message : String<BR ALIGN="LEFT"/>+ statut : StatutNotification</TD></TR>
+    </TABLE>>];
+
+  // ===================== HERITAGE =====================
+  edge [dir=back, arrowtail=empty, arrowhead=none];
+  Utilisateur -> Eleve;
+  Utilisateur -> Administrateur;
+  Utilisateur -> AgentCentreExamen;
+  DocumentScolaire -> Diplome;
+  DocumentScolaire -> Releve;
+
+  // ===================== ASSOCIATIONS =====================
+  edge [dir=forward, arrowtail=none, arrowhead=vee];
+
+  // Organisation
+  Organisme -> AntenneRegionale [label="possede", taillabel="1", headlabel="0..*"];
+  CentreExamen -> AgentCentreExamen [label="accueille", taillabel="1", headlabel="0..*"];
+  Organisme -> Administrateur [label="emploie", taillabel="1", headlabel="0..*"];
+
+  // Documents et duplicatas
+  Eleve -> DocumentScolaire [label="demande", taillabel="1", headlabel="0..*"];
+  DocumentScolaire -> Duplicata [label="a pour", taillabel="1", headlabel="0..*"];
+  Eleve -> Duplicata [label="demande", taillabel="1", headlabel="0..*"];
+  Administrateur -> Duplicata [label="valide", taillabel="1", headlabel="0..*"];
+
+  // Paiement duplicata
+  Duplicata -> Paiement [label="exige", taillabel="1", headlabel="1"];
+  Paiement -> Recu [label="genere", taillabel="1", headlabel="0..*"];
+  Eleve -> Recu [label="possede", taillabel="1", headlabel="0..*"];
+
+  // Rendez-vous de retrait
+  Eleve -> RendezVous [label="prend", taillabel="1", headlabel="0..*"];
+  DocumentScolaire -> RendezVous [label="fait l'objet de", taillabel="1", headlabel="0..*"];
+  Administrateur -> RendezVous [label="planifie", taillabel="1", headlabel="0..*"];
+  AgentCentreExamen -> RendezVous [label="confirme le retrait", taillabel="1", headlabel="0..*"];
+
+  // Notification a l'eleve
+  Eleve -> Notification [label="recoit", taillabel="1", headlabel="0..*"];
+
+  // ===================== DISPOSITION (moins de croisements) =====================
+  { rank=same; Utilisateur }
+  { rank=same; Eleve; Administrateur; AgentCentreExamen }
+  { rank=same; Organisme; CentreExamen }
+  { rank=same; AntenneRegionale }
+  { rank=same; DocumentScolaire }
+  { rank=same; Diplome; Releve; Duplicata }
+  { rank=same; RendezVous; Notification }
+  { rank=same; Paiement; Recu }
+}

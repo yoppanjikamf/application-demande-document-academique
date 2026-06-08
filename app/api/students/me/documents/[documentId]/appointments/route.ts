@@ -8,7 +8,7 @@ import {
   getAppointmentSettings,
   getDocumentTitle,
   getPickupLocation,
-  isBeforeToday,
+  isBeforeTomorrow,
   isHoliday,
   isWeekend,
   parseDateKey,
@@ -16,7 +16,10 @@ import {
 } from "@/lib/appointment-service";
 import { ApiError, handleApiError, json, parseJson, requireApiUser } from "@/lib/api-utils";
 import { syncDocumentPickupFromExam } from "@/lib/centre-examen-service";
-import { findLatestDuplicataForDocument, resolvePickupRouteForDocument } from "@/lib/duplicata-service";
+import {
+  findLatestDuplicataForDocument,
+  resolvePickupRouteForDocument,
+} from "@/lib/duplicata-service";
 import { notifyAppointmentConfirmed } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
@@ -37,8 +40,14 @@ export async function POST(request: Request, { params }: RouteContext) {
     const { documentId } = await params;
     const input = await parseJson(request, appointmentSchema);
     const date = parseDateKey(input.dateRdv);
+    const settings = await getAppointmentSettings();
 
-    if (!date || isBeforeToday(date) || isWeekend(date) || (await isHoliday(date))) {
+    if (
+      !date ||
+      isBeforeTomorrow(date) ||
+      (isWeekend(date) && !settings.allowWeekendBookings) ||
+      (await isHoliday(date))
+    ) {
       throw new ApiError("Date invalide.", 400);
     }
 
@@ -108,7 +117,6 @@ export async function POST(request: Request, { params }: RouteContext) {
 
     const syncedDocument = await syncDocumentPickupFromExam(document);
     const location = await getPickupLocation(syncedDocument);
-    const settings = await getAppointmentSettings();
     const activeSlots = await getActiveTimeSlots();
     const slotCapacity = Math.max(
       1,

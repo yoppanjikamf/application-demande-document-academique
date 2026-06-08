@@ -45,7 +45,9 @@ type CentreExamenScope = {
   region: string;
 };
 
-export function getCentreDocumentWhere(centre: CentreExamenScope): Prisma.DocumentAcademiqueWhereInput {
+export function getCentreDocumentWhere(
+  centre: CentreExamenScope,
+): Prisma.DocumentAcademiqueWhereInput {
   const centreName = centre.nom.trim();
   const centreRegion = normalizeRegion(centre.region);
 

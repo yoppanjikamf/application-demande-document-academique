@@ -45,14 +45,19 @@ export function LoginForm({
 
   const onSubmit = (values: Values) => {
     startTransition(async () => {
-      const res = await signInAction({ ...values, next, loginOrganisme, loginRole });
-      if (!res.ok) {
-        toast.error(res.error);
-        return;
+      try {
+        const res = await signInAction({ ...values, next, loginOrganisme, loginRole });
+        if (!res.ok) {
+          toast.error(res.error);
+          return;
+        }
+        toast.success("Connexion reussie !");
+        router.push(res.redirectTo);
+        router.refresh();
+      } catch (error) {
+        console.error("Sign-in failed:", error);
+        toast.error("Connexion impossible pour le moment. Verifiez la configuration serveur.");
       }
-      toast.success("Connexion reussie !");
-      router.push(res.redirectTo);
-      router.refresh();
     });
   };
 

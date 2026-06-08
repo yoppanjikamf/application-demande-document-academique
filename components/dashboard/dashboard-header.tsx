@@ -95,7 +95,12 @@ export function DashboardHeader({
         </div>
 
         {role === "ELEVE" ? (
-          <Button asChild variant="outline" size="icon" className="relative ml-auto inline-flex sm:ml-0">
+          <Button
+            asChild
+            variant="outline"
+            size="icon"
+            className="relative ml-auto inline-flex sm:ml-0"
+          >
             <Link href="/dashboard/notifications">
               <Bell className="h-4 w-4" />
               {unreadNotificationCount > 0 ? (

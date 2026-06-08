@@ -57,7 +57,15 @@ const tables = [
     x: 80,
     y: 1280,
     w: 360,
-    fields: ["PK id", "heureDebut", "heureFin", "actif", "createdAt", "updatedAt", "UNIQUE heureDebut + heureFin"],
+    fields: [
+      "PK id",
+      "heureDebut",
+      "heureFin",
+      "actif",
+      "createdAt",
+      "updatedAt",
+      "UNIQUE heureDebut + heureFin",
+    ],
   },
   {
     name: "JOURS_FERIES",
@@ -140,7 +148,16 @@ const tables = [
     x: 720,
     y: 1670,
     w: 390,
-    fields: ["PK id", "action", "resource", "resourceId", "details", "ipAddress", "FK userId", "createdAt"],
+    fields: [
+      "PK id",
+      "action",
+      "resource",
+      "resourceId",
+      "details",
+      "ipAddress",
+      "FK userId",
+      "createdAt",
+    ],
   },
   {
     name: "DOCUMENTS",
@@ -216,35 +233,81 @@ const tables = [
     x: 1410,
     y: 1550,
     w: 430,
-    fields: ["PK id", "dateRdv", "heureRdv", "lieu", "statut", "FK adminId", "createdAt", "updatedAt"],
+    fields: [
+      "PK id",
+      "dateRdv",
+      "heureRdv",
+      "lieu",
+      "statut",
+      "FK adminId",
+      "createdAt",
+      "updatedAt",
+    ],
   },
   {
     name: "PAIEMENTS",
     x: 2180,
     y: 120,
     w: 390,
-    fields: ["PK id", "statut", "modePaiment", "FK duplicataId UNIQUE", "FK documentAcademiqueId UNIQUE", "createdAt", "updatedAt"],
+    fields: [
+      "PK id",
+      "statut",
+      "modePaiment",
+      "FK duplicataId UNIQUE",
+      "FK documentAcademiqueId UNIQUE",
+      "createdAt",
+      "updatedAt",
+    ],
   },
   {
     name: "RELEVES",
     x: 2180,
     y: 460,
     w: 390,
-    fields: ["PK id", "nomReleve", "statut", "instruction", "FK duplicataId UNIQUE", "FK documentAcademiqueId UNIQUE", "createdAt", "updatedAt"],
+    fields: [
+      "PK id",
+      "nomReleve",
+      "statut",
+      "instruction",
+      "FK duplicataId UNIQUE",
+      "FK documentAcademiqueId UNIQUE",
+      "createdAt",
+      "updatedAt",
+    ],
   },
   {
     name: "DIPLOMES",
     x: 2180,
     y: 810,
     w: 390,
-    fields: ["PK id", "nomDiplome", "statut", "instruction", "FK duplicataId UNIQUE", "FK documentAcademiqueId UNIQUE", "createdAt", "updatedAt"],
+    fields: [
+      "PK id",
+      "nomDiplome",
+      "statut",
+      "instruction",
+      "FK duplicataId UNIQUE",
+      "FK documentAcademiqueId UNIQUE",
+      "createdAt",
+      "updatedAt",
+    ],
   },
   {
     name: "RECUS",
     x: 2180,
     y: 1160,
     w: 390,
-    fields: ["PK id", "numero UNIQUE", "montant", "dateEmission", "modePaiement", "commentaire", "FK userId", "FK paiementId", "createdAt", "updatedAt"],
+    fields: [
+      "PK id",
+      "numero UNIQUE",
+      "montant",
+      "dateEmission",
+      "modePaiement",
+      "commentaire",
+      "FK userId",
+      "FK paiementId",
+      "createdAt",
+      "updatedAt",
+    ],
   },
   {
     name: "PIECES_DUPLICATA",
@@ -460,10 +523,16 @@ function generateCombined() {
     <text class="field key" x="120" y="175">MLD : docs/diagrammes-images/diagramme-mld-v2.svg</text>
     <text class="field key" x="120" y="205">Classes : docs/diagrammes-images/diagramme-classes-v2.svg</text>
     <g transform="translate(130 260) scale(0.48)">
-      ${tables.slice(0, 8).map((table) => tableSvg(table, "entity")).join("\n")}
+      ${tables
+        .slice(0, 8)
+        .map((table) => tableSvg(table, "entity"))
+        .join("\n")}
     </g>
     <g transform="translate(950 260) scale(0.48)">
-      ${tables.slice(8, 16).map((table) => tableSvg(table, "table")).join("\n")}
+      ${tables
+        .slice(8, 16)
+        .map((table) => tableSvg(table, "table"))
+        .join("\n")}
     </g>
   </svg>`;
 }
@@ -503,7 +572,17 @@ function buildUmlClassDiagram({ width, height, caption, subtitle, classes, links
     return { x: cl.x + cl.w / 2, y: cl.y + h };
   }
 
-  function association(from, fromSide, to, toSide, label, cardFrom, cardTo, route, labelOffset = { x: 0, y: 0 }) {
+  function association(
+    from,
+    fromSide,
+    to,
+    toSide,
+    label,
+    cardFrom,
+    cardTo,
+    route,
+    labelOffset = { x: 0, y: 0 },
+  ) {
     const a = point(from, fromSide);
     const b = point(to, toSide);
     const d = route(a, b);
@@ -517,9 +596,7 @@ function buildUmlClassDiagram({ width, height, caption, subtitle, classes, links
       <text class="umlCard" x="${b.x + (a.x > b.x ? 8 : -24)}" y="${b.y - 6}">${cardTo}</text>`;
   }
 
-  const linkSvg = links
-    .map((item) => association(...item))
-    .join("\n");
+  const linkSvg = links.map((item) => association(...item)).join("\n");
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
     <defs>
@@ -678,7 +755,13 @@ function generateClassesSoutenance() {
       x: 700,
       y: 750,
       w: 250,
-      attrs: ["id : String", "nom : String", "region : String", "ville : String", "organismeId : String"],
+      attrs: [
+        "id : String",
+        "nom : String",
+        "region : String",
+        "ville : String",
+        "organismeId : String",
+      ],
     },
   ];
 
@@ -842,7 +925,9 @@ function generateClassesSoutenance() {
 
 async function writeSvgAndPng(path, svg) {
   writeFileSync(path, svg);
-  await sharp(Buffer.from(svg)).png().toFile(path.replace(/\.svg$/, ".png"));
+  await sharp(Buffer.from(svg))
+    .png()
+    .toFile(path.replace(/\.svg$/, ".png"));
 }
 
 // NOTE: le diagramme de classes de soutenance (complet) est desormais genere a

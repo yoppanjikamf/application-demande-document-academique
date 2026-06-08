@@ -99,7 +99,9 @@ export default async function DashboardPage() {
   ]);
 
   const submittedDocuments = documents.filter((document) => document.demandeSoumiseAt);
-  const availableCount = submittedDocuments.filter((document) => document.statut === "DISPONIBLE").length;
+  const availableCount = submittedDocuments.filter(
+    (document) => document.statut === "DISPONIBLE",
+  ).length;
   const pendingCount = submittedDocuments.filter(
     (document) => document.statut === "PAS_DISPONIBLE",
   ).length;
@@ -154,9 +156,7 @@ export default async function DashboardPage() {
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <StatusBadge
-                  tone={
-                    document?.demandeSoumiseAt ? documentTone(document.statut) : "slate"
-                  }
+                  tone={document?.demandeSoumiseAt ? documentTone(document.statut) : "slate"}
                 >
                   {getStudentDocumentStatusLabel(document)}
                 </StatusBadge>

@@ -122,7 +122,7 @@ L’objectif général du projet est de concevoir et développer une application
 - Passerelle Mobile Money réelle avec OTP, signature fournisseur et callback certifié, prévue pour une phase de production.
 - Notifications push natives navigateur ou mobile.
 - Paiement externe totalement certifie par un prestataire.
-- Stockage fichier complet des justificatifs de duplicata.
+- Stockage objet durable des justificatifs de duplicata dans un bucket dédié (le MVP enregistre le nom du fichier dans les instructions du document).
 - Mode hors ligne.
 - Rôle séparé `SERVICE_DELIVRANCE`, actuellement intégré au rôle `ADMINISTRATEUR`.
 
@@ -130,11 +130,11 @@ L’objectif général du projet est de concevoir et développer une application
 
 | Acteur / Rôle | Type | Responsabilités |
 |----------------|------|-----------------|
-| Administrateur | Interne | Gérer les utilisateurs, importer les données, consulter les statistiques, modifier les statuts, gérer les rendez-vous et enregistrer les retraits. |
+| Administrateur | Interne | Gérer les utilisateurs, importer les données, consulter les statistiques, modifier les disponibilités (`PAS_DISPONIBLE` / `DISPONIBLE`), valider les dossiers de duplicata et enregistrer les retraits en antenne régionale. |
 | Service OBC | Interne | Gérer les documents relevant de l’OBC, notamment les diplômes et relevés du Baccalauréat et du Probatoire selon les règles métier. |
 | Service DECC | Interne | Gérer les documents relevant de la DECC, notamment les documents liés au BEPC. |
 | Antenne régionale OBC / DECC | Interne | Gérer les documents orientés vers une antenne régionale selon l'organisme, le diplôme et la région de composition de l'élève. |
-| Agent centre d'examen | Interne | Consulter les rendez-vous transmis à son centre et confirmer uniquement que le retrait physique a été effectué. |
+| Agent centre d'examen | Interne | Consulter uniquement les rendez-vous de retrait au centre d'examen (BEPC original, relevés BEPC, Probatoire, Baccalauréat) et confirmer le retrait physique effectué. |
 | Élève / Diplômé | Utilisateur final | Consulter ses documents, demander un relevé ou un duplicata, effectuer un paiement, réserver ou annuler un rendez-vous et consulter ses notifications. |
 | Système interne | Technique | Déclencher les notifications, confirmer certains paiements via webhook interne et journaliser les emails. |
 | Développeur / Stagiaire | Réalisateur | Développer, tester, maintenir et documenter l’application. |
@@ -148,16 +148,18 @@ L’objectif général du projet est de concevoir et développer une application
 | Probatoire | Le Probatoire est géré par l’OBC, mais ne donne pas lieu à un diplôme original. |
 | BEPC original | L'original du BEPC se retire au centre d'examen avec un rendez-vous `PLANIFIE`. |
 | BEPC relevé | Le relevé du BEPC se retire au centre d'examen avec un rendez-vous `PLANIFIE`. |
-| BEPC duplicata | Le duplicata du BEPC se retire à l'antenne régionale DECC compétente après paiement. |
+| BEPC duplicata | Le duplicata du BEPC se retire à l'antenne régionale DECC compétente après paiement, validation administrative et rendez-vous `PLANIFIE`. |
+| Probatoire duplicata | Le duplicata du relevé Probatoire se retire à l'antenne régionale OBC compétente après paiement, validation administrative et rendez-vous `PLANIFIE`. |
 | Probatoire | Le Probatoire est géré par l’OBC, ne donne pas lieu à un diplôme original et produit uniquement un relevé retiré au centre d'examen avec rendez-vous `PLANIFIE`. |
-| Baccalauréat original | Le diplôme original du Baccalauréat est orienté vers une antenne régionale OBC et nécessite un rendez-vous. |
+| Baccalauréat original | Le diplôme original du Baccalauréat est orienté vers une antenne régionale OBC et nécessite un rendez-vous. L'agent centre d'examen ne le voit pas. |
 | Baccalauréat relevé | Le relevé du Baccalauréat se retire au centre d’examen avec un rendez-vous `PLANIFIE`. |
-| Duplicata | Le duplicata nécessite un paiement et suit le lieu défini par la règle métier du document demandé. |
+| Baccalauréat duplicata | Le duplicata du Baccalauréat se retire à l'antenne régionale OBC compétente après paiement, validation administrative et rendez-vous `PLANIFIE`. |
+| Duplicata | Tous les duplicatas (BEPC, Probatoire, Baccalauréat) se retirent en antenne régionale. Le parcours est : formulaire + justificatifs + paiement → validation admin → `DISPONIBLE` → notification → rendez-vous → retrait confirmé par l'administrateur d'antenne. |
 | Duplicata de relevé | Le duplicata d’un relevé de notes coûte 10 000 FCFA. |
 | Duplicata d’original | Le duplicata d’un diplôme original coûte 15 000 FCFA. |
 | Rendez-vous centre d'examen | L'élève planifie le rendez-vous depuis l'organisme concerné ; le rendez-vous est immédiatement transmis à l'agent du centre d'examen. |
-| Agent centre d'examen | L'agent ne crée pas, ne planifie pas et n'annule pas les rendez-vous ; il confirme seulement le retrait physique effectué. |
-| Statut document | Les statuts sont `PAS_DISPONIBLE`, `DISPONIBLE` et `RETIRE`. |
+| Agent centre d'examen | L'agent ne crée pas, ne planifie pas et n'annule pas les rendez-vous ; il confirme seulement le retrait physique effectué au centre d'examen. Il ne voit ni les duplicatas ni le diplôme original du Baccalauréat. |
+| Statut document | Les statuts sont `PAS_DISPONIBLE`, `DISPONIBLE` et `RETIRE`. L'administrateur gère `PAS_DISPONIBLE` et `DISPONIBLE` pour tous les documents de son périmètre. Le passage à `RETIRE` est réservé aux retraits en antenne régionale ; pour les retraits au centre d'examen, seul l'agent confirme le `RETIRE`. |
 | Statut rendez-vous | Les statuts sont `PLANIFIE`, `CONFIRME`, `ANNULE` et `HONORE`. |
 | Statut paiement | Les statuts sont `EN_ATTENTE` et `EFFECTUE`. |
 | Statut notification | Les statuts sont `ENVOYEE`, `RECUE` et `LUE`. |
@@ -175,7 +177,7 @@ L’objectif général du projet est de concevoir et développer une application
 |----|----------------|----------------------|----------|
 | F-01 | Inscription / activation | Activer un compte élève à partir d’un matricule et d’un email déjà présents dans la base Prisma, puis créer ou mettre à jour le compte Supabase Auth. | 🔴 |
 | F-02 | Connexion / Déconnexion | Authentifier l’utilisateur avec matricule, email et mot de passe, ouvrir une session Supabase Auth et permettre la déconnexion. | 🔴 |
-| F-03 | Gestion des rôles | Différencier les droits des rôles `ELEVE` et `ADMINISTRATEUR`, avec redirection vers `/dashboard` ou `/admin`. | 🔴 |
+| F-03 | Gestion des rôles | Différencier les droits des rôles `ELEVE`, `ADMINISTRATEUR` et `AGENT_CENTRE_EXAMEN`, avec redirection vers `/dashboard`, `/admin` ou `/centre-examen`. | 🔴 |
 | F-04 | Récupération du mot de passe | Prévoir un flux de réinitialisation par email sécurisé pour les comptes utilisateurs. | 🟡 |
 | F-05 | Profil utilisateur | Permettre à l’utilisateur de modifier ses informations personnelles : nom, prénom, date de naissance pour l’élève, service pour l’administrateur. | 🟡 |
 
@@ -209,7 +211,7 @@ L’objectif général du projet est de concevoir et développer une application
 | F-19 | Import CSV | Importer en masse des élèves, examens validés, documents et rendez-vous depuis un fichier CSV. | 🔴 |
 | F-20 | Gestion des élèves | Lister, rechercher et consulter les élèves dans le back-office. | 🔴 |
 | F-21 | Gestion des documents | Lister, filtrer et consulter les documents relevant du périmètre de l’administrateur. | 🔴 |
-| F-22 | Mise à jour des statuts | Modifier le statut d’un document et déclencher les notifications associées. | 🔴 |
+| F-22 | Mise à jour des statuts | Modifier la disponibilité d’un document (`PAS_DISPONIBLE` / `DISPONIBLE`) et déclencher les notifications associées. Marquer `RETIRE` uniquement pour les retraits en antenne régionale. | 🔴 |
 | F-23 | Historique des retraits | Consulter les retraits déjà honorés avec l’élève, l’administrateur, le document, le lieu et la date. | 🔴 |
 | F-24 | Gestion des rôles | Modifier le rôle d’un utilisateur depuis une route administrative dédiée. | 🟡 |
 
@@ -221,7 +223,7 @@ L’objectif général du projet est de concevoir et développer une application
 | F-26 | Réservation de rendez-vous | Créer un rendez-vous pour un document disponible lorsque le routage impose un retrait en centre d’examen ou en antenne régionale. | 🔴 |
 | F-27 | Annulation de rendez-vous élève | Permettre à l’élève d’annuler un rendez-vous actif. | 🟡 |
 | F-28 | Suivi administratif des rendez-vous | Permettre à l’administration de consulter les rendez-vous et d’enregistrer les retraits relevant de son antenne, sans remplacer la confirmation centre d’examen. | 🟡 |
-| F-29 | Enregistrement du retrait physique | Marquer un document comme retiré et passer le rendez-vous associé au statut `HONORE`. | 🔴 |
+| F-29 | Enregistrement du retrait physique | Marquer un document comme `RETIRE` et passer le rendez-vous associé au statut `HONORE`. En antenne régionale : action administrateur. Au centre d'examen : confirmation par l'agent centre d'examen uniquement. | 🔴 |
 | F-30 | Configuration du quota RDV | Définir le quota journalier global de rendez-vous et exploiter les créneaux horaires actifs. | 🟡 |
 | F-31 | Initiation de paiement | Créer un paiement pour une demande de duplicata avec montant automatique : 10 000 FCFA pour un relevé et 15 000 FCFA pour un original. | 🔴 |
 | F-32 | Confirmation de paiement | Mettre à jour le statut du paiement via webhook interne ou action applicative, avec contrôle du montant attendu. | 🔴 |

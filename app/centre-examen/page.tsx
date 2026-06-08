@@ -31,40 +31,40 @@ export default async function CentreExamenPage({ searchParams }: CentreExamenPag
 
   const [todayAppointments, upcomingAppointments, listedAppointments, confirmedToday] =
     await Promise.all([
-    prisma.rendezVous.findMany({
-      where: todayWhere,
-      orderBy: [{ heureRdv: "asc" }],
-      include: {
-        eleve: { select: { nom: true, prenom: true, matricule: true } },
-        document: { select: { diplomeType: true, typeDocument: true, centreExamen: true } },
-      },
-    }),
-    prisma.rendezVous.findMany({
-      where: upcomingWhere,
-      orderBy: [{ dateRdv: "asc" }, { heureRdv: "asc" }],
-      include: {
-        eleve: { select: { nom: true, prenom: true, matricule: true } },
-        document: { select: { diplomeType: true, typeDocument: true, centreExamen: true } },
-      },
-    }),
-    prisma.rendezVous.findMany({
-      where: {
-        ...upcomingWhere,
-        ...(slot ? { heureRdv: slot } : {}),
-      },
-      orderBy: [{ heureRdv: "asc" }],
-      include: {
-        eleve: { select: { nom: true, prenom: true, matricule: true } },
-        document: { select: { diplomeType: true, typeDocument: true, centreExamen: true } },
-      },
-    }),
-    prisma.rendezVous.count({
-      where: {
-        ...todayWhere,
-        statut: "HONORE",
-      },
-    }),
-  ]);
+      prisma.rendezVous.findMany({
+        where: todayWhere,
+        orderBy: [{ heureRdv: "asc" }],
+        include: {
+          eleve: { select: { nom: true, prenom: true, matricule: true } },
+          document: { select: { diplomeType: true, typeDocument: true, centreExamen: true } },
+        },
+      }),
+      prisma.rendezVous.findMany({
+        where: upcomingWhere,
+        orderBy: [{ dateRdv: "asc" }, { heureRdv: "asc" }],
+        include: {
+          eleve: { select: { nom: true, prenom: true, matricule: true } },
+          document: { select: { diplomeType: true, typeDocument: true, centreExamen: true } },
+        },
+      }),
+      prisma.rendezVous.findMany({
+        where: {
+          ...upcomingWhere,
+          ...(slot ? { heureRdv: slot } : {}),
+        },
+        orderBy: [{ heureRdv: "asc" }],
+        include: {
+          eleve: { select: { nom: true, prenom: true, matricule: true } },
+          document: { select: { diplomeType: true, typeDocument: true, centreExamen: true } },
+        },
+      }),
+      prisma.rendezVous.count({
+        where: {
+          ...todayWhere,
+          statut: "HONORE",
+        },
+      }),
+    ]);
 
   const mapAppointment = (appointment: (typeof listedAppointments)[number]): CentreAppointment => ({
     id: appointment.id,

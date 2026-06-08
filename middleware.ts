@@ -8,7 +8,9 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isProtected =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/admin") || pathname.startsWith("/account");
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/account");
 
   if (!isProtected) return response;
 

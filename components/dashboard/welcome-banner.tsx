@@ -55,9 +55,7 @@ export function WelcomeBanner({
               {eyebrow}
             </p>
             <h2 className="mt-1 text-2xl font-bold leading-tight">{title}</h2>
-            {subtitle ? (
-              <p className="mt-2 text-sm leading-6 text-white/80">{subtitle}</p>
-            ) : null}
+            {subtitle ? <p className="mt-2 text-sm leading-6 text-white/80">{subtitle}</p> : null}
           </div>
         </div>
         {trailing ? <div className="lg:justify-self-end">{trailing}</div> : null}

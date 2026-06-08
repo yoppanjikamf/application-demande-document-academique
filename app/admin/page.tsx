@@ -275,7 +275,12 @@ export default async function AdminPage() {
                   <StatusBadge tone={documentTone(document.statut)}>
                     {getStatusLabel(document.statut)}
                   </StatusBadge>
-                  <Button asChild size="sm" variant="outline" className="justify-self-start md:justify-self-end">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="justify-self-start md:justify-self-end"
+                  >
                     <Link href={`/admin/documents?q=${document.eleve.matricule}`}>Ouvrir</Link>
                   </Button>
                 </div>
@@ -288,9 +293,7 @@ export default async function AdminPage() {
           <h2 className="font-semibold text-text-1">Rendez-vous du jour</h2>
           <div className="mt-5 flex gap-3 overflow-x-auto pb-2">
             {todayAppointments.length === 0 ? (
-              <p className="text-sm text-text-3">
-                Aucun rendez-vous programmé aujourd&apos;hui.
-              </p>
+              <p className="text-sm text-text-3">Aucun rendez-vous programmé aujourd&apos;hui.</p>
             ) : (
               todayAppointments.map((rdv) => (
                 <div

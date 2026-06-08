@@ -35,10 +35,26 @@ async function main() {
 
   // Jours fériés par défaut (annuel flag pour certains)
   const holidays = [
-    { date: toDateAtMidnight(`${new Date().getFullYear()}-01-01`), nom: "Jour de l'an", annuel: true },
-    { date: toDateAtMidnight(`${new Date().getFullYear()}-05-01`), nom: "Fête du Travail", annuel: true },
-    { date: toDateAtMidnight(`${new Date().getFullYear()}-05-20`), nom: "Fête Nationale", annuel: true },
-    { date: toDateAtMidnight(`${new Date().getFullYear()}-08-15`), nom: "Assomption", annuel: true },
+    {
+      date: toDateAtMidnight(`${new Date().getFullYear()}-01-01`),
+      nom: "Jour de l'an",
+      annuel: true,
+    },
+    {
+      date: toDateAtMidnight(`${new Date().getFullYear()}-05-01`),
+      nom: "Fête du Travail",
+      annuel: true,
+    },
+    {
+      date: toDateAtMidnight(`${new Date().getFullYear()}-05-20`),
+      nom: "Fête Nationale",
+      annuel: true,
+    },
+    {
+      date: toDateAtMidnight(`${new Date().getFullYear()}-08-15`),
+      nom: "Assomption",
+      annuel: true,
+    },
     { date: toDateAtMidnight(`${new Date().getFullYear()}-12-25`), nom: "Noël", annuel: true },
   ];
 

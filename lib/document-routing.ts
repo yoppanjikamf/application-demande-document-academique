@@ -211,8 +211,7 @@ export function resolveDocumentRoute(document: RoutableDocument): DocumentRoute 
   const region = normalizeRegion(document.regionComposition);
   const regionalCentre = getCentreExamenForRegion(region);
   const centrePickupLocation =
-    regionalCentre?.nom ??
-    (document.centreExamen?.trim() || `Centre d'examen ${region}`);
+    regionalCentre?.nom ?? (document.centreExamen?.trim() || `Centre d'examen ${region}`);
   const isAntennePickup =
     document.typeDocument === "DUPLICATA" ||
     (document.diplomeType === "BACCALAUREAT" && document.typeDocument === "ORIGINAL");

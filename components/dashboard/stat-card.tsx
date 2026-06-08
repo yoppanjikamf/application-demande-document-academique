@@ -50,13 +50,9 @@ export function StatCard({
           {icon}
         </div>
         <div className="min-w-0">
-          <p className="font-display text-3xl leading-none text-text-1">
-            {value}
-          </p>
+          <p className="font-display text-3xl leading-none text-text-1">{value}</p>
           <p className="mt-2 text-sm font-semibold text-text-2">{label}</p>
-          {description ? (
-            <p className="mt-2 text-xs leading-5 text-text-3">{description}</p>
-          ) : null}
+          {description ? <p className="mt-2 text-xs leading-5 text-text-3">{description}</p> : null}
         </div>
       </div>
     </article>
