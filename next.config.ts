@@ -1,4 +1,6 @@
 import type { NextConfig } from "next";
+import { copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseOrigin =
@@ -26,11 +28,37 @@ const shouldEnforceHttpsHeaders =
   typeof publicSiteUrl === "string" &&
   publicSiteUrl.startsWith("https://");
 
+function copyPrismaEnginesForServerless() {
+  const sourceDir = join(process.cwd(), "lib", "generated", "prisma");
+  const targetDir = join(process.cwd(), ".next", "server", "chunks");
+
+  if (!existsSync(sourceDir)) {
+    return;
+  }
+
+  const engineFiles = readdirSync(sourceDir).filter(
+    (file) => file.startsWith("libquery_engine-") && file.endsWith(".so.node"),
+  );
+
+  if (engineFiles.length === 0) {
+    return;
+  }
+
+  mkdirSync(targetDir, { recursive: true });
+
+  for (const file of engineFiles) {
+    copyFileSync(join(sourceDir, file), join(targetDir, file));
+  }
+}
+
 const nextConfig: NextConfig = {
   /* config options here */
   // Keep standalone only for Docker/VPS self-hosting. Vercel handles output internally.
   output: isVercel ? undefined : "standalone",
   outputFileTracingRoot: process.cwd(),
+  outputFileTracingIncludes: {
+    "/*": ["lib/generated/prisma/**/*", ".next/server/chunks/libquery_engine-*.so.node"],
+  },
   compress: true,
   poweredByHeader: false,
   async headers() {
@@ -130,6 +158,17 @@ const nextConfig: NextConfig = {
       },
       ...(supabaseRemotePattern ? [supabaseRemotePattern] : []),
     ],
+  },
+  webpack(config, { isServer }) {
+    if (isServer) {
+      config.plugins.push({
+        apply(compiler: { hooks: { afterEmit: { tap: (name: string, callback: () => void) => void } } }) {
+          compiler.hooks.afterEmit.tap("CopyPrismaEnginesPlugin", copyPrismaEnginesForServerless);
+        },
+      });
+    }
+
+    return config;
   },
 
   experimental: {
