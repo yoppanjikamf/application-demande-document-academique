@@ -33,8 +33,8 @@ export async function DashboardShell({
     role === "ELEVE" && userId ? await getUnreadNotificationCount(userId) : 0;
 
   return (
-    <div className="min-h-screen bg-surface-1 text-text-1 lg:h-screen lg:overflow-hidden">
-      <div className="flex min-h-screen lg:h-full">
+    <div className="h-dvh overflow-hidden bg-surface-1 text-text-1 lg:h-screen">
+      <div className="flex h-full min-h-0">
         <DashboardSidebar
           role={role}
           organismeId={organismeId}
@@ -44,7 +44,7 @@ export async function DashboardShell({
           activePath={activePath}
         />
 
-        <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:overflow-hidden">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <DashboardHeader
             role={role}
             userName={userName}
@@ -54,7 +54,7 @@ export async function DashboardShell({
             activePath={activePath}
             unreadNotificationCount={unreadNotificationCount}
           />
-          <main className="flex-1 overflow-y-auto bg-surface-1 px-4 py-5 sm:px-6 lg:px-8">
+          <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 py-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8">
             <div className="mx-auto max-w-7xl space-y-6">{children}</div>
           </main>
         </div>

@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivationSteps, type ActivationStep } from "@/components/landing/activation-steps";
+import { ConsultationAccessSection } from "@/components/landing/consultation-access";
 import { DocScolLogo } from "@/components/ui/DocScolLogo";
 import { MarqueeCarousel } from "@/components/ui/marquee-carousel";
 import { Reveal } from "@/components/ui/reveal";
@@ -61,7 +62,7 @@ const features: Array<{ image: string; title: string; description: string }> = [
     image: "/images/photos/graduation.jpg",
     title: "L'OBC et la DECC réunis",
     description:
-      "Un seul portail pour les deux organismes officiels : dossiers, disponibilités et retraits gérés dans les règles.",
+      "Un seul portail pour l'Office du Baccalauréat du Cameroun et la Direction des Examens, des Concours et de la Certification : dossiers, disponibilités et retraits gérés dans les règles.",
   },
   {
     image: "/images/photos/retrait.png",
@@ -75,7 +76,7 @@ const whyChoose = [
   "Moins de déplacements inutiles : vous savez exactement quand et où retirer votre document.",
   "Plus aucune incertitude : le statut de votre demande reste visible à tout moment.",
   "Moins d'attente au guichet : les créneaux organisent l'accueil tout au long de la journée.",
-  "Un parcours conforme aux règles officielles du BEPC, du Probatoire et du Baccalauréat.",
+  "Un parcours conforme aux règles officielles du BEPC, du Probatoire, du Baccalauréat et de l'ESG.",
 ];
 
 const steps: ActivationStep[] = [
@@ -121,7 +122,7 @@ const portals: Array<{
   },
   {
     title: "Administration OBC",
-    text: "Baccalauréat, Probatoire et relevés, gérés selon votre antenne régionale.",
+    text: "Office du Baccalauréat du Cameroun — Baccalauréat, Probatoire et relevés, gérés selon votre antenne régionale.",
     href: "/auth/login/obc",
     cta: "Connexion OBC",
     icon: ShieldCheck,
@@ -130,7 +131,7 @@ const portals: Array<{
   },
   {
     title: "Administration DECC",
-    text: "BEPC et dossiers d'État, gérés selon votre antenne régionale.",
+    text: "Direction des Examens, des Concours et de la Certification — BEPC et dossiers d'État, gérés selon votre antenne régionale.",
     href: "/auth/login/decc",
     cta: "Connexion DECC",
     icon: Building2,
@@ -159,7 +160,7 @@ const faqItems = [
   },
   {
     q: "Je suis administrateur : quelle page de connexion utiliser ?",
-    a: "Utilisez « Connexion OBC » pour l'Office du Baccalauréat et « Connexion DECC » pour les diplômes d'État (BEPC). La page de connexion élève ne donne pas accès à l'espace administrateur.",
+    a: "Utilisez « Connexion OBC » pour l'Office du Baccalauréat du Cameroun et « Connexion DECC » pour la Direction des Examens, des Concours et de la Certification (BEPC). La page de connexion élève ne donne pas accès à l'espace administrateur.",
   },
   {
     q: "Quels documents puis-je demander ?",
@@ -261,7 +262,7 @@ function ProductMockup() {
   );
 }
 
-export function LandingPage() {
+export function LandingPage({ consultationUrl }: { consultationUrl: string }) {
   return (
     <>
       <section id="accueil" className="relative overflow-hidden bg-obc-900 text-white">
@@ -300,7 +301,7 @@ export function LandingPage() {
                 </p>
                 <h1 className="mt-6 font-display text-4xl leading-[1.08] sm:text-5xl lg:text-6xl">
                   Vos documents scolaires,{" "}
-                  <span className="text-gold-400">enfin simples à obtenir</span>
+                  <span className="text-gold-400">enfin simples à retirer</span>
                 </h1>
                 <p className="text-white/82 mt-6 max-w-xl text-lg leading-8">
                   DR-DOCSCOL réunit les élèves, les équipes OBC/DECC et les centres d&apos;examen
@@ -326,7 +327,7 @@ export function LandingPage() {
                 <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/75">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-gold-400" aria-hidden="true" />
-                    BEPC, Probatoire, Baccalauréat
+                    BEPC, Probatoire, Baccalauréat, ESG
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-gold-400" aria-hidden="true" />
@@ -358,8 +359,8 @@ export function LandingPage() {
           <Reveal>
             <SectionHeading
               eyebrow="Problème & solution"
-              title="Fini les démarches floues et les allers-retours"
-              description="Hier, impossible de savoir si un document était prêt, où le retirer ou quand se présenter. DR-DOCSCOL réunit toute l'information au même endroit, pour tout le monde."
+              title="Fini les longues files d'attente et les aller-retours inutiles"
+              description="Hier, impossible d'obtenir des informations claires sur la disponibilité de son diplôme. DR-DOCSCOL réunit toutes les informations nécessaires sur la disponibilité, la prise de rendez-vous et le retrait de vos documents scolaires."
             />
           </Reveal>
           <div className="mt-14 grid gap-8 lg:grid-cols-2">
@@ -385,10 +386,11 @@ export function LandingPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm leading-6 text-red-900/90">
-                  <p>• Statut du dossier inconnu ou dispersé</p>
-                  <p>• Rendez-vous non coordonnés aux centres</p>
-                  <p>• Duplicatas sans suivi de paiement clair</p>
-                  <p>• Administrations submergées de questions répétitives</p>
+                  <p>• Longues files d&apos;attente et nombreux aller-retours pour les élèves et les équipes administratives</p>
+                  <p>• Absence de visibilité sur l&apos;état d&apos;avancement et la disponibilité réelle des documents</p>
+                  <p>• Charge de travail accrue côté administration : gestion manuelle, erreurs de saisie, traçabilité difficile</p>
+                  <p>• Frais de transport, délais de traitement et difficulté à obtenir les instructions exactes de retrait</p>
+                  <p>• Duplicatas et paiements sans suivi clair pour l&apos;usager</p>
                 </CardContent>
               </Card>
             </Reveal>
@@ -471,8 +473,8 @@ export function LandingPage() {
               <SectionHeading
                 align="left"
                 eyebrow="Pourquoi DR-DOCSCOL ?"
-                title="Une expérience pensée pour le terrain camerounais"
-                description="Le portail respecte les règles OBC et DECC tout en offrant une interface moderne aux élèves et aux équipes."
+                title="Solution pensée pour résoudre le problème du retrait des documents scolaires (BEPC, Probatoire, Baccalauréat, ESG) au Cameroun"
+                description="Plus de déplacements inutiles, plus de longues files d'attente : disponibilité en ligne, rendez-vous au bon lieu et retrait encadré selon les règles de l'OBC et de la DECC."
               />
               <ul className="mt-8 space-y-4">
                 {whyChoose.map((item) => (
@@ -564,6 +566,8 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <ConsultationAccessSection consultationUrl={consultationUrl} />
 
       <section id="etapes" className="bg-surface-0 py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
@@ -826,8 +830,8 @@ export function LandingPage() {
                   Organismes
                 </p>
                 <ul className="mt-3 space-y-2 text-sm text-text-3">
-                  <li>OBC — Office du Baccalauréat</li>
-                  <li>DECC — Diplômes d&apos;État</li>
+                  <li>OBC — Office du Baccalauréat du Cameroun</li>
+                  <li>DECC — Direction des Examens, des Concours et de la Certification</li>
                 </ul>
               </div>
             </nav>

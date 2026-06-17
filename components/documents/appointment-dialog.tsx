@@ -167,7 +167,7 @@ export function AppointmentDialog({
           Rendez-vous
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-md sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Rendez-vous de retrait</DialogTitle>
           <DialogDescription>{documentTitle}</DialogDescription>
@@ -178,15 +178,15 @@ export function AppointmentDialog({
           <input type="hidden" name="dateRdv" value={date} />
           <input type="hidden" name="heureRdv" value={selectedSlot} />
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
+          <div className="space-y-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-sm font-medium">Date</p>
                 <p className="text-xs text-muted-foreground">
                   Les rendez-vous sont disponibles à partir du lendemain.
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2 sm:justify-end">
                 <Button
                   type="button"
                   variant="outline"
@@ -197,7 +197,7 @@ export function AppointmentDialog({
                 >
                   <ChevronLeft />
                 </Button>
-                <p className="min-w-32 text-center text-sm font-medium capitalize">
+                <p className="min-w-28 flex-1 text-center text-sm font-medium capitalize sm:min-w-32">
                   {formatMonthLabel(monthCursor)}
                 </p>
                 <Button
@@ -211,7 +211,8 @@ export function AppointmentDialog({
                 </Button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+            <div className="max-h-52 overflow-y-auto overscroll-y-contain pr-1">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
               {weekdayDates.map((weekdayDate) => {
                 const key = formatDateKey(weekdayDate);
                 const isSelected = key === date;
@@ -237,6 +238,7 @@ export function AppointmentDialog({
                   </button>
                 );
               })}
+              </div>
             </div>
             {weekdayDates.length === 0 ? (
               <p className="text-sm text-muted-foreground">
@@ -249,7 +251,7 @@ export function AppointmentDialog({
             <p className="text-sm font-medium">Créneau horaire</p>
             {loading ? <p className="text-sm text-muted-foreground">Chargement...</p> : null}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {slots.map((slot) => (
                 <button
                   key={slot.value}
@@ -273,9 +275,9 @@ export function AppointmentDialog({
             defaultValue={defaultComment}
           />
 
-          <DialogFooter>
-            <Button type="submit" disabled={!selectedSlot || loading}>
-              OK
+          <DialogFooter className="sticky bottom-0 -mx-4 border-t border-[var(--border-token)] bg-surface-0 px-4 pb-1 pt-3 sm:-mx-6 sm:px-6">
+            <Button type="submit" disabled={!selectedSlot || loading} className="w-full sm:w-auto">
+              Confirmer le rendez-vous
             </Button>
           </DialogFooter>
         </form>

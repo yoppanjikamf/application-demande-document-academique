@@ -185,7 +185,7 @@ export default async function DashboardPage() {
                       ? getDocumentTitle(nextRendezVous.document)
                       : "Document scolaire"}
                   </p>
-                  <p className="mt-2 text-sm text-text-3">
+                  <p className="mt-2 break-words text-sm text-text-3">
                     {nextRendezVous.dateRdv.toLocaleDateString("fr-FR")} à {nextRendezVous.heureRdv}{" "}
                     · {nextRendezVous.lieu}
                   </p>

@@ -2,22 +2,20 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getDocumentTitle, getPickupLocation, OBC_SETTINGS_ID } from "@/lib/appointment-service";
+import { OBC_SETTINGS_ID } from "@/lib/appointment-service";
 import { getCurrentUser } from "@/lib/auth";
 import {
   ORGANISME_IDS,
   getAdminDocumentScope,
   isDocumentRequestAllowed,
-  resolveDocumentRoute,
 } from "@/lib/document-routing";
-import { findLatestDuplicataForDocument, syncLatestDuplicataStatus } from "@/lib/duplicata-service";
 import { DUPLICATA_REQUIRED_PIECES } from "@/lib/duplicata-storage";
-import { notifyDocumentAvailable, notifyDocumentRetired } from "@/lib/mail-service";
+import { importDocumentAvailabilityFromCsv } from "@/lib/document-availability-import";
+import { applyDocumentStatusTransition } from "@/lib/document-status-transition";
 import { createNotification } from "@/lib/notification-service";
 import { prisma } from "@/lib/prisma";
 import {
   parseImportDiplomeType,
-  parseImportDocumentStatus,
   parseImportDocumentType,
   upsertStudentImportRow,
   type StudentImportRow,
@@ -27,7 +25,7 @@ import {
   adminQuotaSchema,
   documentStatusUpdateSchema,
 } from "@/lib/validations";
-import { Role } from "@/lib/generated/prisma/client";
+import { Role, StatutDocument } from "@/lib/generated/prisma/client";
 
 const CSV_FIELDS = [
   "eleve_matricule",
@@ -359,7 +357,7 @@ function requireImportErrorUrl(message: string) {
 function getImportSuccessUrl(rowsCount: number, documentsCount: number) {
   const params = new URLSearchParams({
     importStatus: "success",
-    importMessage: `${rowsCount} élève(s) traité(s) et ${documentsCount} document(s) importé(s). Les rendez-vous sont réservés par les élèves.`,
+    importMessage: `${rowsCount} élève(s) traité(s) et ${documentsCount} document(s) enregistré(s) en attente. Utilisez l'import de disponibilisation pour passer les documents à Disponible.`,
   });
 
   return `/admin/students?${params.toString()}`;
@@ -544,92 +542,85 @@ export async function updateDocumentStatusAction(formData: FormData) {
     throw new Error("Le Probatoire ne donne pas lieu à la délivrance d'un diplôme.");
   }
 
-  const previousStatus = document.statut;
   const nextStatus = parsed.data.statut;
 
-  if (
-    nextStatus === "RETIRE" &&
-    previousStatus !== "RETIRE" &&
-    resolveDocumentRoute(document).pickupType === "CENTRE_EXAMEN"
-  ) {
-    throw new Error(
-      "Ce retrait est confirmé par l'agent du centre d'examen lors du rendez-vous. L'administrateur gère uniquement la disponibilité (Disponible / Pas disponible).",
-    );
-  }
-
-  if (document.typeDocument === "DUPLICATA" && nextStatus === "DISPONIBLE") {
-    const latestDuplicata = await findLatestDuplicataForDocument(document);
-
-    if (!latestDuplicata || latestDuplicata.statutValidation !== "VALIDEE") {
-      throw new Error(
-        "Le dossier de duplicata doit être validé avant de marquer le document comme disponible.",
-      );
-    }
-  }
-
-  await prisma.documentAcademique.update({
-    where: { id: document.id },
-    data: { statut: nextStatus },
-  });
-
-  if (document.typeDocument === "DUPLICATA") {
-    await syncLatestDuplicataStatus(document, nextStatus);
-  }
-
-  // Créer un log d'audit
-  await prisma.auditLog
-    .create({
-      data: {
-        action: "DOCUMENT_STATUS_CHANGED",
-        resource: "DOCUMENT",
-        resourceId: document.id,
-        userId: user.id,
-        details: JSON.stringify({
-          documentId: document.id,
-          eleveMatricule: document.eleve.matricule,
-          previousStatus: previousStatus,
-          newStatus: nextStatus,
-          documentType: document.typeDocument,
-          diplomeType: document.diplomeType,
-        }),
-      },
-    })
-    .catch((err) => {
-      console.error("Failed to create audit log:", err);
+  try {
+    await applyDocumentStatusTransition({
+      document,
+      nextStatus,
+      adminUserId: user.id,
     });
-
-  const documentTitle = getDocumentTitle(document);
-  if (previousStatus !== "DISPONIBLE" && nextStatus === "DISPONIBLE") {
-    const location = await getPickupLocation(document);
-    await notifyDocumentAvailable({
-      userId: document.eleve.id,
-      to: document.eleve.email,
-      documentTitle,
-      typeDocument: document.typeDocument,
-      diplomeType: document.diplomeType,
-      location,
-    });
-  }
-
-  if (previousStatus !== "RETIRE" && nextStatus === "RETIRE") {
-    await prisma.rendezVous.updateMany({
-      where: {
-        documentId: document.id,
-        statut: { in: ["PLANIFIE", "CONFIRME"] },
-      },
-      data: { statut: "HONORE" },
-    });
-
-    await notifyDocumentRetired({
-      userId: document.eleve.id,
-      to: document.eleve.email,
-      documentTitle,
-      diplomeType: document.diplomeType,
-    });
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("Mise à jour impossible.");
   }
 
   revalidatePath("/admin/documents");
   revalidatePath("/dashboard/documents");
+}
+
+export async function importDocumentAvailabilityAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMINISTRATEUR") {
+    throw new Error("Accès refusé.");
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    redirect(getAvailabilityImportErrorUrl("Fichier CSV manquant."));
+  }
+
+  let result;
+  try {
+    result = await importDocumentAvailabilityFromCsv(await file.text(), user);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Import impossible.";
+    redirect(getAvailabilityImportErrorUrl(message));
+  }
+
+  if (result.updated === 0 && result.errors.length > 0) {
+    redirect(
+      getAvailabilityImportErrorUrl(
+        `Aucune disponibilisation effectuée. ${result.errors.slice(0, 3).join(" ")}`,
+      ),
+    );
+  }
+
+  revalidatePath("/admin/documents");
+  revalidatePath("/admin/students");
+  revalidatePath("/dashboard/documents");
+
+  const errorSuffix =
+    result.errors.length > 0
+      ? ` ${result.errors.length} ligne(s) en erreur (voir détail ci-dessous).`
+      : "";
+
+  redirect(
+    getAvailabilityImportSuccessUrl(
+      `${result.updated} document(s) disponibilise(s), ${result.notified} notification(s) envoyee(s), ${result.alreadyAvailable} deja disponible(s).${errorSuffix}`,
+      result.errors,
+    ),
+  );
+}
+
+function getAvailabilityImportErrorUrl(message: string) {
+  const params = new URLSearchParams({
+    availStatus: "error",
+    availMessage: message,
+  });
+  return `/admin/students?${params.toString()}`;
+}
+
+function getAvailabilityImportSuccessUrl(message: string, errors: string[]) {
+  const params = new URLSearchParams({
+    availStatus: "success",
+    availMessage: message,
+  });
+
+  if (errors.length > 0) {
+    params.set("availErrors", errors.slice(0, 10).join(" | "));
+  }
+
+  return `/admin/students?${params.toString()}`;
 }
 
 export async function updateDuplicataPieceReviewAction(formData: FormData) {
@@ -863,7 +854,6 @@ export async function importTestDataFromCsv(
       const rowLabel = getRowLabel(row, matricule);
       const diplomeValue = getCsvValue(row, "diplome_type");
       const typeDocumentValue = getCsvValue(row, "document_type");
-      const statutDocumentValue = getCsvValue(row, "document_statut") || "PAS_DISPONIBLE";
       const sessionValue = getCsvValue(row, "annee_session");
       const parsedSession = sessionValue ? Number(sessionValue) : null;
 
@@ -886,13 +876,9 @@ export async function importTestDataFromCsv(
 
       if (typeDocumentValue) {
         const type = parseImportDocumentType(typeDocumentValue);
-        const statut = parseImportDocumentStatus(statutDocumentValue);
 
         if (!type) {
           throw new Error(`${rowLabel}: type de document invalide "${typeDocumentValue}".`);
-        }
-        if (!statut) {
-          throw new Error(`${rowLabel}: statut de document invalide "${statutDocumentValue}".`);
         }
         if (!importRow.diplomeType) {
           throw new Error(
@@ -901,7 +887,7 @@ export async function importTestDataFromCsv(
         }
 
         importRow.documentType = type;
-        importRow.documentStatut = statut;
+        importRow.documentStatut = StatutDocument.PAS_DISPONIBLE;
       }
 
       const result = await upsertStudentImportRow(user, importRow, rowLabel);

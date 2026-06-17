@@ -17,6 +17,11 @@ import {
 import { createDuplicataSignedUrl, DUPLICATA_REQUIRED_PIECES } from "@/lib/duplicata-storage";
 import { parseDuplicataInstruction } from "@/lib/duplicata-service";
 import { prisma } from "@/lib/prisma";
+import {
+  DashboardListPanel,
+  DashboardListPanelHeader,
+  DashboardPaginationBar,
+} from "@/components/dashboard/dashboard-list-panel";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBadge, documentTone } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
@@ -196,29 +201,26 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
-        <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-4 py-3 text-sm font-medium text-text-3">
-          <span>Demande</span>
-          <span>Statut</span>
-        </div>
+      <DashboardListPanel>
+        <DashboardListPanelHeader left="Demande" right="Statut" />
         {documents.map((document) => (
-          <div key={document.id} className="space-y-4 border-b px-4 py-4 last:border-0">
-            <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-              <div>
+          <div key={document.id} className="space-y-4 border-b px-4 py-4 last:border-0 sm:px-5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-lg font-semibold text-text-1">{getDocumentTitle(document)}</p>
                   <StatusBadge tone={documentTone(document.statut)}>
                     {getStatusLabel(document.statut)}
                   </StatusBadge>
                 </div>
-                <p className="text-sm text-text-3">
+                <p className="break-words text-sm text-text-3">
                   {document.eleve.prenom} {document.eleve.nom} · {document.eleve.matricule}
                 </p>
-                <p className="text-sm text-text-3">
+                <p className="break-words text-sm text-text-3">
                   {document.organisme?.nom ?? "Organisme non defini"}
                   {document.antenneRegionale ? ` · ${document.antenneRegionale.nom}` : ""}
                 </p>
-                <p className="text-sm text-text-3">
+                <p className="break-words text-sm text-text-3">
                   {document.rendezVous[0]
                     ? `RDV: ${document.rendezVous[0].dateRdv.toLocaleDateString("fr-FR")} ${document.rendezVous[0].heureRdv}`
                     : "Aucun rendez-vous actif"}
@@ -226,13 +228,13 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
               </div>
               <form
                 action={updateDocumentStatusAction}
-                className="flex flex-wrap items-center gap-2"
+                className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto"
               >
                 <input type="hidden" name="documentId" value={document.id} />
                 <select
                   name="statut"
                   defaultValue={document.statut}
-                  className="h-9 rounded-md border bg-background px-3 text-sm"
+                  className="h-9 w-full rounded-md border bg-background px-3 text-sm sm:w-auto"
                 >
                   {STATUSES.filter(
                     (item) =>
@@ -398,9 +400,9 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
             ) : null}
           </div>
         ))}
-      </div>
+      </DashboardListPanel>
 
-      <div className="flex items-center justify-between">
+      <DashboardPaginationBar>
         {page <= 1 ? (
           <Button variant="outline" disabled>
             Précédent
@@ -422,7 +424,7 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
             <Link href={buildPageHref(Math.min(totalPages, page + 1), status, q)}>Suivant</Link>
           </Button>
         )}
-      </div>
+      </DashboardPaginationBar>
     </DashboardShell>
   );
 }

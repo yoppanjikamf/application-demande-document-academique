@@ -241,7 +241,7 @@ export default async function AdminPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <section className="overflow-hidden rounded-lg border border-[var(--border-token)] bg-surface-0 shadow-card">
+        <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 shadow-card">
           <div className="border-b border-[var(--border-token)] bg-surface-1 px-5 py-4">
             <h2 className="font-semibold text-text-1">Documents récents</h2>
           </div>

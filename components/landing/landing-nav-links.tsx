@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 const landingNavItems = [
   { href: "/#fonctionnalites", label: "Fonctionnalités" },
+  { href: "/#consultation", label: "Consultation" },
   { href: "/#etapes", label: "Étapes" },
   { href: "/#acces", label: "Accès" },
   { href: "/#faq", label: "FAQ" },

@@ -34,7 +34,7 @@ export function WelcomeBanner({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-lg border border-white/10 bg-gradient-to-br p-6 text-white shadow-card",
+        "relative overflow-hidden rounded-lg border border-white/10 bg-gradient-to-br p-4 text-white shadow-card sm:p-6",
         accentGradient[accent],
       )}
     >
@@ -54,11 +54,13 @@ export function WelcomeBanner({
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/70">
               {eyebrow}
             </p>
-            <h2 className="mt-1 text-2xl font-bold leading-tight">{title}</h2>
-            {subtitle ? <p className="mt-2 text-sm leading-6 text-white/80">{subtitle}</p> : null}
+            <h2 className="mt-1 text-xl font-bold leading-tight sm:text-2xl">{title}</h2>
+            {subtitle ? (
+              <p className="mt-2 break-words text-sm leading-6 text-white/80">{subtitle}</p>
+            ) : null}
           </div>
         </div>
-        {trailing ? <div className="lg:justify-self-end">{trailing}</div> : null}
+        {trailing ? <div className="w-full lg:w-auto lg:justify-self-end">{trailing}</div> : null}
       </div>
     </section>
   );

@@ -6,6 +6,11 @@ import { getAdminDocumentScope, getAdminScopeLabel } from "@/lib/document-routin
 import { Prisma, type StatutPaiement } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import {
+  DashboardListPanel,
+  DashboardListPanelHeader,
+  DashboardPaginationBar,
+} from "@/components/dashboard/dashboard-list-panel";
 import { StatusBadge, paymentTone } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,11 +122,8 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
-        <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3">
-          <span>Paiement</span>
-          <span>Statut</span>
-        </div>
+      <DashboardListPanel>
+        <DashboardListPanelHeader left="Paiement" right="Statut" />
         <div className="divide-y divide-[#E8EEF6]">
           {payments.length === 0 ? (
             <div className="px-5 py-10 text-center">
@@ -134,31 +136,31 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
               const documentTitle = payment.duplicata.nomDuplicata;
 
               return (
-                <div
+                <article
                   key={payment.id}
-                  className="grid gap-4 px-5 py-4 md:grid-cols-[1fr_auto] md:items-center"
+                  className="flex flex-col gap-4 px-4 py-4 sm:px-5 md:flex-row md:items-start md:justify-between"
                 >
-                  <div>
-                    <p className="font-medium text-text-1">{documentTitle}</p>
-                    <p className="mt-1 text-sm text-text-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words font-medium text-text-1">{documentTitle}</p>
+                    <p className="mt-1 break-words text-sm text-text-3">
                       {eleve
                         ? `${eleve.prenom} ${eleve.nom} · ${eleve.matricule}`
                         : "Élève introuvable"}
                     </p>
-                    <p className="text-sm text-text-3">
+                    <p className="break-words text-sm text-text-3">
                       {payment.modePaiment} · {payment.createdAt.toLocaleDateString("fr-FR")}
                       {payment.recu[0] ? ` · Reçu ${payment.recu[0].numero}` : ""}
                     </p>
                   </div>
                   <StatusBadge tone={paymentTone(payment.statut)}>{payment.statut}</StatusBadge>
-                </div>
+                </article>
               );
             })
           )}
         </div>
-      </div>
+      </DashboardListPanel>
 
-      <div className="flex items-center justify-between">
+      <DashboardPaginationBar>
         {page <= 1 ? (
           <Button variant="outline" disabled>
             Précédent
@@ -180,7 +182,7 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
             <Link href={buildPageHref(Math.min(totalPages, page + 1), q, statut)}>Suivant</Link>
           </Button>
         )}
-      </div>
+      </DashboardPaginationBar>
     </DashboardShell>
   );
 }

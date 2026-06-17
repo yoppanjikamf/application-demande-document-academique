@@ -57,8 +57,8 @@ export function DashboardHeader({
         : "Espace élève";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md">
-      <div className="flex min-h-16 flex-wrap items-center gap-4 px-4 py-3 lg:px-8">
+    <header className="z-30 shrink-0 border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md lg:sticky lg:top-0">
+      <div className="flex min-h-16 flex-wrap items-start gap-3 px-4 py-3 sm:items-center sm:gap-4 lg:px-8">
         <Button
           type="button"
           variant="outline"
@@ -83,10 +83,10 @@ export function DashboardHeader({
               </span>
             ))}
           </nav>
-          <h1 className="font-display text-xl leading-tight text-text-1 sm:text-2xl lg:text-3xl">
+          <h1 className="font-display text-lg leading-tight text-text-1 sm:text-2xl lg:text-3xl">
             {title}
           </h1>
-          <p className="mt-1 text-sm text-text-3">{subtitle}</p>
+          <p className="mt-1 line-clamp-3 text-sm text-text-3 sm:line-clamp-none">{subtitle}</p>
           {scopeLabel ? (
             <p className="mt-2 inline-flex rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-obc-800 ring-1 ring-gold-300">
               Périmètre: {scopeLabel}

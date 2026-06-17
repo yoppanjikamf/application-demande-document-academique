@@ -5,6 +5,7 @@ import { CalendarDays, CheckCircle2, ClipboardList } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { ConfirmWithdrawalButton } from "@/components/centre-examen/confirm-withdrawal-button";
+import { DashboardListPanel, DashboardListPanelHeader } from "@/components/dashboard/dashboard-list-panel";
 import { StatusBadge, appointmentTone } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 
@@ -186,11 +187,12 @@ export function CentreAppointmentsPanel({
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-lg border border-[var(--border-token)] bg-surface-0 shadow-card">
-        <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3">
-          <span>{view === "today" ? "Retraits du jour" : "Rendez-vous à venir"}</span>
-          <span>Action</span>
-        </div>
+      <DashboardListPanel className="rounded-lg">
+        <DashboardListPanelHeader
+          left={view === "today" ? "Retraits du jour" : "Rendez-vous à venir"}
+          right="Action"
+          className="px-5"
+        />
         <div className="divide-y divide-[var(--border-token)]">
           {listedAppointments.length === 0 ? (
             <div className="px-5 py-10 text-center">
@@ -203,28 +205,28 @@ export function CentreAppointmentsPanel({
               const isRetired = appointment.statut === "HONORE";
 
               return (
-                <div
+                <article
                   key={appointment.id}
-                  className="grid gap-4 px-5 py-4 lg:grid-cols-[1fr_auto] lg:items-center"
+                  className="flex flex-col gap-4 px-4 py-4 sm:px-5 lg:flex-row lg:items-start lg:justify-between"
                 >
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-text-1">
+                      <p className="break-words font-semibold text-text-1">
                         {appointment.eleve.nom} {appointment.eleve.prenom}
                       </p>
-                      <span className="rounded-full bg-surface-1 px-2 py-1 font-mono text-xs text-text-3">
+                      <span className="max-w-full break-all rounded-full bg-surface-1 px-2 py-1 font-mono text-xs text-text-3">
                         {appointment.eleve.matricule}
                       </span>
                       <StatusBadge tone={appointmentTone(appointment.statut)}>
                         {appointment.statut}
                       </StatusBadge>
                     </div>
-                    <div className="mt-3 grid gap-2 text-sm text-text-3 sm:grid-cols-2 xl:grid-cols-4">
-                      <span className="inline-flex items-center gap-2">
-                        <ClipboardList className="h-4 w-4 text-obc-400" aria-hidden="true" />
+                    <div className="mt-3 grid gap-2 text-sm text-text-3">
+                      <span className="inline-flex min-w-0 items-start gap-2 break-words">
+                        <ClipboardList className="mt-0.5 h-4 w-4 shrink-0 text-obc-400" aria-hidden="true" />
                         {documentTitle}
                       </span>
-                      <span>{appointment.document?.centreExamen ?? centreName}</span>
+                      <span className="break-words">{appointment.document?.centreExamen ?? centreName}</span>
                       <span className="inline-flex items-center gap-2">
                         <CalendarDays className="h-4 w-4 text-obc-400" aria-hidden="true" />
                         {formatDate(appointment.dateRdv)}
@@ -238,7 +240,7 @@ export function CentreAppointmentsPanel({
                       </p>
                     ) : null}
                   </div>
-                  <div className="flex justify-start lg:justify-end">
+                  <div className="flex w-full sm:w-auto lg:justify-end">
                     {isRetired ? (
                       <StatusBadge status="RETIRE" />
                     ) : (
@@ -248,12 +250,12 @@ export function CentreAppointmentsPanel({
                       />
                     )}
                   </div>
-                </div>
+                </article>
               );
             })
           )}
         </div>
-      </section>
+      </DashboardListPanel>
     </>
   );
 }

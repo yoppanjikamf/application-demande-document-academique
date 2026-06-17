@@ -1,6 +1,7 @@
 import { Mail } from "lucide-react";
 
 import type { AuthenticatedUser } from "@/lib/auth";
+import { DashboardListPanel } from "@/components/dashboard/dashboard-list-panel";
 import { getAdminStudentsWhere } from "@/lib/admin-student-import";
 import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
@@ -56,7 +57,7 @@ export async function AdminStudentsList({ user, query }: AdminStudentsListProps)
           {students.length} résultat{students.length > 1 ? "s" : ""} pour “{query}”.
         </p>
       ) : null}
-      <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
+      <DashboardListPanel>
         <div className="hidden grid-cols-[1.2fr_1fr_auto] gap-4 border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3 md:grid">
           <span>Élève</span>
           <span>Contact</span>
@@ -69,7 +70,7 @@ export async function AdminStudentsList({ user, query }: AdminStudentsListProps)
             students.map((student) => (
               <div
                 key={student.id}
-                className="grid gap-3 px-5 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center md:gap-4"
+                className="grid gap-3 px-4 py-4 sm:px-5 md:grid-cols-[1.2fr_1fr_auto] md:items-center md:gap-4"
               >
                 <div className="min-w-0">
                   <p className="font-medium text-text-1">
@@ -89,7 +90,7 @@ export async function AdminStudentsList({ user, query }: AdminStudentsListProps)
             ))
           )}
         </div>
-      </div>
+      </DashboardListPanel>
     </div>
   );
 }

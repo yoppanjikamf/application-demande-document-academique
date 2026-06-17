@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { getAdminScopeLabel } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { AdminManualStudentForm } from "@/components/admin/admin-manual-student-form";
+import { AdminAvailabilityImportForm } from "@/components/admin/admin-availability-import-form";
 import { AdminStudentsImportForm } from "@/components/admin/admin-students-import-form";
 import { AdminStudentsList } from "@/components/admin/admin-students-list";
 import { AdminStudentsListSkeleton } from "@/components/admin/admin-students-list-skeleton";
@@ -18,6 +19,9 @@ type AdminStudentsPageProps = {
     importMessage?: string;
     manualStatus?: string;
     manualMessage?: string;
+    availStatus?: string;
+    availMessage?: string;
+    availErrors?: string;
   }>;
 };
 
@@ -29,6 +33,9 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
   const importMessage = params?.importMessage?.trim();
   const manualStatus = params?.manualStatus === "success" ? "success" : params?.manualStatus;
   const manualMessage = params?.manualMessage?.trim();
+  const availStatus = params?.availStatus;
+  const availMessage = params?.availMessage?.trim();
+  const availErrors = params?.availErrors?.trim();
   const scopeLabel = getAdminScopeLabel(user);
 
   const antenne = user.antenneRegionaleId
@@ -49,6 +56,15 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
       title="Élèves"
       subtitle="Ajoutez des élèves manuellement ou importez un tableau CSV, puis recherchez et suivez leurs dossiers."
     >
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-text-1">Disponibiliser des documents (liste OBC)</h2>
+        <AdminAvailabilityImportForm
+          availStatus={availStatus}
+          availMessage={availMessage}
+          availErrors={availErrors}
+        />
+      </section>
+
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <UserPlus className="h-5 w-5 text-obc-800" aria-hidden="true" />

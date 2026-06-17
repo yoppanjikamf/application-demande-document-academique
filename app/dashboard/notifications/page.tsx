@@ -6,6 +6,7 @@ import { resolveDocumentRoute } from "@/lib/document-routing";
 import { markNotificationsAsRead } from "@/lib/notification-service";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { DashboardListPanel } from "@/components/dashboard/dashboard-list-panel";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,8 +56,8 @@ export default async function NotificationsPage() {
       title="Notifications"
       subtitle="Disponibilités, confirmations et rappels concernant vos documents scolaires."
     >
-      <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-token)] px-5 py-4">
+      <DashboardListPanel>
+        <div className="flex flex-col gap-3 border-b border-[var(--border-token)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div>
             <h2 className="font-semibold text-text-1">Boîte de notifications</h2>
             <p className="mt-1 text-sm text-text-3">
@@ -86,8 +87,8 @@ export default async function NotificationsPage() {
                 notification.message.toLowerCase().includes("rendez-vous");
 
               return (
-                <div key={notification.id} className="px-5 py-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                <div key={notification.id} className="px-4 py-4 sm:px-5">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                     <div className="flex flex-wrap items-center gap-2">
                       <StatusBadge tone={notification.statut === "LUE" ? "blue" : "amber"}>
                         {notification.typeNotification}
@@ -100,7 +101,7 @@ export default async function NotificationsPage() {
                       {notification.dateEnvoi.toLocaleDateString("fr-FR")}
                     </span>
                   </div>
-                  <p className="mt-3 whitespace-pre-line text-sm leading-6 text-text-3">
+                  <p className="mt-3 break-words whitespace-pre-line text-sm leading-6 text-text-3">
                     {notification.message}
                   </p>
                   {canScheduleAppointment ? (
@@ -128,7 +129,7 @@ export default async function NotificationsPage() {
             })
           )}
         </div>
-      </div>
+      </DashboardListPanel>
     </DashboardShell>
   );
 }

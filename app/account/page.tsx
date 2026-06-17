@@ -30,7 +30,7 @@ export default async function AccountPage() {
       title="Compte"
       subtitle="Vos coordonnées et informations personnelles — à vérifier et tenir à jour."
     >
-      <div className="max-w-2xl rounded-md border border-slate-200 bg-surface-0 p-6 shadow-card">
+      <div className="max-w-2xl rounded-md border border-slate-200 bg-surface-0 p-4 shadow-card sm:p-6">
         <ProfileForm
           role={user.role}
           email={user.email}

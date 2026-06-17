@@ -17,7 +17,7 @@ type AdminStudentsImportFormProps = {
 const CSV_COLUMNS = [
   "eleve_matricule, eleve_email, eleve_nom, eleve_prenom (obligatoires)",
   "eleve_date_naissance, diplome_type, annee_session, centre_examen, region_composition",
-  "document_type, document_statut (optionnels ; les rendez-vous sont pris par l'élève)",
+  "document_type (optionnel ; statut initial toujours Pas disponible)",
 ];
 
 export function AdminStudentsImportForm({
@@ -31,7 +31,7 @@ export function AdminStudentsImportForm({
       action={importTestDataAction}
       className="space-y-4 rounded-md border border-[var(--border-token)] bg-surface-0 p-5 shadow-card"
       pendingTitle="Import CSV en cours"
-      pendingDescription="Traitement du tableau : élèves, examens et documents ligne par ligne."
+      pendingDescription="Création ou mise à jour des fiches élève et enregistrement des documents en attente."
       pendingHint="Un fichier volumineux peut prendre plusieurs secondes. Ne fermez pas la fenêtre."
     >
       {importMessage ? (
@@ -46,11 +46,11 @@ export function AdminStudentsImportForm({
         </div>
       ) : null}
       <div>
-        <h3 className="font-semibold text-text-1">Import CSV en lot</h3>
+        <h3 className="font-semibold text-text-1">Import nouveaux élèves (CSV)</h3>
         <p className="mt-1 text-sm text-text-3">
-          Importez un tableau complet : une ligne par élève (ou par combinaison élève + document).
-          Plusieurs lignes avec le même matricule permettent d&apos;ajouter plusieurs documents. Les
-          rendez-vous de retrait sont réservés par l&apos;élève depuis son espace.
+          Ajoutez des élèves pas encore présents en base (nouvelle promotion, entrée dans le cycle).
+          Les documents créés restent en <strong>Pas disponible</strong> jusqu&apos;à l&apos;import
+          de disponibilisation ou à une action admin manuelle.
         </p>
         <ul className="mt-3 list-inside list-disc space-y-1 text-xs text-text-muted">
           {CSV_COLUMNS.map((line) => (

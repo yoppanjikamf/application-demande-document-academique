@@ -6,6 +6,11 @@ import { getAdminDocumentScope, getAdminScopeLabel } from "@/lib/document-routin
 import { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import {
+  DashboardListPanel,
+  DashboardListPanelHeader,
+  DashboardPaginationBar,
+} from "@/components/dashboard/dashboard-list-panel";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,11 +128,8 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
         />
       </form>
 
-      <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
-        <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3">
-          <span>Action</span>
-          <span>Date</span>
-        </div>
+      <DashboardListPanel>
+        <DashboardListPanelHeader left="Action" right="Date" />
         <div className="divide-y divide-[#E8EEF6]">
           {logs.length === 0 ? (
             <div className="px-5 py-10 text-center">
@@ -139,13 +141,13 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
               const details = formatDetails(log.details);
 
               return (
-                <div key={log.id} className="grid gap-4 px-5 py-4 lg:grid-cols-[1fr_auto]">
-                  <div>
+                <div key={log.id} className="flex flex-col gap-3 px-4 py-4 sm:px-5 lg:flex-row lg:justify-between">
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-text-1">{log.action}</p>
+                      <p className="break-words font-medium text-text-1">{log.action}</p>
                       <StatusBadge>{log.resource}</StatusBadge>
                     </div>
-                    <p className="mt-1 text-sm text-text-3">
+                    <p className="mt-1 break-all text-sm text-text-3">
                       Ressource {log.resourceId}
                       {log.user
                         ? ` · ${log.user.prenom} ${log.user.nom} · ${log.user.matricule}`
@@ -156,21 +158,21 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
                         <summary className="cursor-pointer font-medium text-text-1">
                           Détails
                         </summary>
-                        <pre className="mt-2 max-h-64 overflow-auto rounded-md bg-obc-800 p-3 text-xs text-white/90">
+                        <pre className="mt-2 max-h-64 overflow-auto break-all rounded-md bg-obc-800 p-3 text-xs text-white/90">
                           {details}
                         </pre>
                       </details>
                     ) : null}
                   </div>
-                  <p className="text-sm text-text-3">{log.createdAt.toLocaleString("fr-FR")}</p>
+                  <p className="shrink-0 text-sm text-text-3">{log.createdAt.toLocaleString("fr-FR")}</p>
                 </div>
               );
             })
           )}
         </div>
-      </div>
+      </DashboardListPanel>
 
-      <div className="flex items-center justify-between">
+      <DashboardPaginationBar>
         {page <= 1 ? (
           <Button variant="outline" disabled>
             Précédent
@@ -192,7 +194,7 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
             <Link href={buildPageHref(Math.min(totalPages, page + 1), q)}>Suivant</Link>
           </Button>
         )}
-      </div>
+      </DashboardPaginationBar>
     </DashboardShell>
   );
 }

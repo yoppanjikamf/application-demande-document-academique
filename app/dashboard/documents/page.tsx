@@ -349,8 +349,8 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
               </p>
             ) : null}
 
-            <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
-              <Table>
+            <div className="overflow-x-auto rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
+              <Table className="min-w-[640px]">
                 <TableHeader className="bg-surface-1">
                   <TableRow>
                     <TableHead className="w-[34%] px-4">Document</TableHead>

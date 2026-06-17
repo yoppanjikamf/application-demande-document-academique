@@ -46,42 +46,48 @@ export default async function RendezVousPage({ searchParams }: RendezVousPagePro
           </Button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
-          <div className="grid grid-cols-[1fr_auto] border-b border-[var(--border-token)] bg-surface-1 px-4 py-3 text-sm font-medium text-text-3">
-            <span>Rendez-vous</span>
-            <span>Statut</span>
-          </div>
+        <div className="space-y-4">
           {rendezVous.map((rdv) => (
-            <div
+            <article
               key={rdv.id}
-              className="flex flex-col gap-3 border-b px-4 py-4 last:border-0 sm:flex-row sm:items-start sm:justify-between"
+              className="rounded-md border border-[var(--border-token)] bg-surface-0 p-4 shadow-card"
             >
-              <div className="min-w-0 space-y-1">
-                <p className="text-lg font-semibold text-text-1">
-                  {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
-                </p>
-                <p className="text-sm text-text-3">
-                  {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv} · {rdv.lieu}
-                </p>
-                <p className="text-sm text-text-3">
-                  Agent: {rdv.admin.prenom} {rdv.admin.nom}
-                </p>
-                {rdv.commentaire ? (
-                  <p className="text-sm text-text-3">Commentaire: {rdv.commentaire}</p>
-                ) : null}
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <p className="text-lg font-semibold leading-snug text-text-1">
+                    {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
+                  </p>
+                  <p className="break-words text-sm leading-6 text-text-3">
+                    <span className="font-medium text-text-2">Date :</span>{" "}
+                    {rdv.dateRdv.toLocaleDateString("fr-FR")} · {rdv.heureRdv}
+                  </p>
+                  <p className="break-words text-sm leading-6 text-text-3">
+                    <span className="font-medium text-text-2">Lieu :</span> {rdv.lieu}
+                  </p>
+                  <p className="break-words text-sm leading-6 text-text-3">
+                    <span className="font-medium text-text-2">Agent :</span> {rdv.admin.prenom}{" "}
+                    {rdv.admin.nom}
+                  </p>
+                  {rdv.commentaire ? (
+                    <p className="break-words text-sm leading-6 text-text-3">
+                      <span className="font-medium text-text-2">Commentaire :</span>{" "}
+                      {rdv.commentaire}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap items-center gap-3 sm:flex-col sm:items-end">
+                  <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>
+                  {rdv.statut === "PLANIFIE" || rdv.statut === "CONFIRME" ? (
+                    <form action={cancelRendezVousAction}>
+                      <input type="hidden" name="rendezVousId" value={rdv.id} />
+                      <Button type="submit" size="sm" variant="outline" className="w-full sm:w-auto">
+                        Annuler
+                      </Button>
+                    </form>
+                  ) : null}
+                </div>
               </div>
-              <div className="flex items-center gap-3 sm:flex-col sm:items-end">
-                <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>
-                {rdv.statut === "PLANIFIE" || rdv.statut === "CONFIRME" ? (
-                  <form action={cancelRendezVousAction}>
-                    <input type="hidden" name="rendezVousId" value={rdv.id} />
-                    <Button type="submit" size="sm" variant="outline">
-                      Annuler
-                    </Button>
-                  </form>
-                ) : null}
-              </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
