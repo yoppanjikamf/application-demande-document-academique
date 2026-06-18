@@ -1,6 +1,6 @@
 # Resume d'implementation DR-DOCSCOL
 
-Derniere mise a jour: 02/06/2026.
+Derniere mise a jour: 17/06/2026.
 
 ## Objectif atteint
 
@@ -27,10 +27,10 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 | Element | Quantite |
 | --- | --- |
 | Pages UI `page.tsx` | 25 |
-| Route handlers `route.ts` | 37 |
+| Route handlers `route.ts` | 38 |
 | Fichiers `actions.ts` | 4 |
 | Roles Prisma | 3 |
-| Migrations Prisma | 13 |
+| Migrations Prisma | 20 |
 
 ## Roles implementes
 
@@ -63,6 +63,7 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 ### Eleve
 
 - Consultation documents par examen compose.
+- Consultation publique par matricule (`/consultation`, QR landing).
 - Demande de releve.
 - Demande de duplicata.
 - Paiement applicatif duplicata.
@@ -78,7 +79,8 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 - Liste eleves.
 - Liste paiements.
 - Audit logs.
-- Import CSV.
+- Import CSV nouveaux eleves (Import B, statut initial Pas disponible).
+- Import CSV disponibilisation OBC (Import A, document par document).
 - Historique retraits.
 - Parametres RDV OBC.
 
@@ -95,7 +97,7 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 - `docs/admins-decc-regionaux-test.md`: admins DECC.
 - `docs/agents-centres-examen-test.md`: agents centres.
 - `docs/test-data-eleves.csv`: petit CSV d'import.
-- `docs/test-data-1000-eleves.csv`: dataset de 1000 eleves.
+- `docs/test-data-soutenance-eleves.csv`: 5 eleves demo soutenance.
 - `docs/connexions-tests-completes.md`: fichier central des identifiants.
 
 ## Verification realisee
@@ -114,7 +116,6 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 3. Stocker les justificatifs dans Supabase Storage ou equivalent.
 4. Ajouter les futures demandes de traduction et de rectification de diplome.
 5. Ajouter tests automatises E2E.
-6. Regenerer les `.docx` si necessaire.
 
 ### Pour soutenance
 

@@ -73,9 +73,8 @@ const features: Array<{ image: string; title: string; description: string }> = [
 ];
 
 const whyChoose = [
-  "Moins de déplacements inutiles : vous savez exactement quand et où retirer votre document.",
   "Plus aucune incertitude : le statut de votre demande reste visible à tout moment.",
-  "Moins d'attente au guichet : les créneaux organisent l'accueil tout au long de la journée.",
+  "Moins d'attente au guichet et moins de longues files d'attente : des créneaux de retrait organisés au bon lieu.",
   "Un parcours conforme aux règles officielles du BEPC, du Probatoire, du Baccalauréat et de l'ESG.",
 ];
 
@@ -474,7 +473,7 @@ export function LandingPage({ consultationUrl }: { consultationUrl: string }) {
                 align="left"
                 eyebrow="Pourquoi DR-DOCSCOL ?"
                 title="Solution pensée pour résoudre le problème du retrait des documents scolaires (BEPC, Probatoire, Baccalauréat, ESG) au Cameroun"
-                description="Plus de déplacements inutiles, plus de longues files d'attente : disponibilité en ligne, rendez-vous au bon lieu et retrait encadré selon les règles de l'OBC et de la DECC."
+                description="Moins de déplacements inutiles, moins d'attente au guichet et moins de longues files d'attente : disponibilité en ligne, rendez-vous au bon lieu et retrait encadré selon les règles de l'OBC et de la DECC."
               />
               <ul className="mt-8 space-y-4">
                 {whyChoose.map((item) => (

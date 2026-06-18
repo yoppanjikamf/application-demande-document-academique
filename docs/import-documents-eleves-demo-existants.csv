@@ -1,0 +1,26 @@
+eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
+DEMO2026001,francialengambia@gmail.com,NGAMBIA,Françial,2003-02-14,BEPC,2019,Centre d'examen Centre,Centre,ORIGINAL
+DEMO2026001,francialengambia@gmail.com,NGAMBIA,Françial,2003-02-14,BEPC,2019,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026001,francialengambia@gmail.com,NGAMBIA,Françial,2003-02-14,PROBATOIRE,2021,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026001,francialengambia@gmail.com,NGAMBIA,Françial,2003-02-14,BACCALAUREAT,2022,Centre d'examen Centre,Centre,ORIGINAL
+DEMO2026001,francialengambia@gmail.com,NGAMBIA,Françial,2003-02-14,BACCALAUREAT,2022,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026002,faissayoppanjikam@gmail.com,NJIKAM,Faïssa,2004-05-20,BEPC,2019,Centre d'examen Centre,Centre,ORIGINAL
+DEMO2026002,faissayoppanjikam@gmail.com,NJIKAM,Faïssa,2004-05-20,BEPC,2019,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026002,faissayoppanjikam@gmail.com,NJIKAM,Faïssa,2004-05-20,PROBATOIRE,2021,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026002,faissayoppanjikam@gmail.com,NJIKAM,Faïssa,2004-05-20,BACCALAUREAT,2022,Centre d'examen Centre,Centre,ORIGINAL
+DEMO2026002,faissayoppanjikam@gmail.com,NJIKAM,Faïssa,2004-05-20,BACCALAUREAT,2022,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026003,eyaanemesselehelenedoucette@gmail.com,MESSELE,Doucette,2003-09-08,BEPC,2019,Centre d'examen Centre,Centre,ORIGINAL
+DEMO2026003,eyaanemesselehelenedoucette@gmail.com,MESSELE,Doucette,2003-09-08,BEPC,2019,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026003,eyaanemesselehelenedoucette@gmail.com,MESSELE,Doucette,2003-09-08,PROBATOIRE,2021,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026003,eyaanemesselehelenedoucette@gmail.com,MESSELE,Doucette,2003-09-08,BACCALAUREAT,2022,Centre d'examen Centre,Centre,ORIGINAL
+DEMO2026003,eyaanemesselehelenedoucette@gmail.com,MESSELE,Doucette,2003-09-08,BACCALAUREAT,2022,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026004,ambiankeu@gmail.com,MBIANKEU,Anicet,2002-11-27,BEPC,2019,Centre d'examen Centre,Centre,ORIGINAL
+DEMO2026004,ambiankeu@gmail.com,MBIANKEU,Anicet,2002-11-27,BEPC,2019,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026004,ambiankeu@gmail.com,MBIANKEU,Anicet,2002-11-27,PROBATOIRE,2021,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026004,ambiankeu@gmail.com,MBIANKEU,Anicet,2002-11-27,BACCALAUREAT,2022,Centre d'examen Centre,Centre,ORIGINAL
+DEMO2026004,ambiankeu@gmail.com,MBIANKEU,Anicet,2002-11-27,BACCALAUREAT,2022,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026005,prince.mabengue@facsciences-uy1.cm,MABENGUE,Prince,2003-07-03,BEPC,2019,Centre d'examen Centre,Centre,ORIGINAL
+DEMO2026005,prince.mabengue@facsciences-uy1.cm,MABENGUE,Prince,2003-07-03,BEPC,2019,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026005,prince.mabengue@facsciences-uy1.cm,MABENGUE,Prince,2003-07-03,PROBATOIRE,2021,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026005,prince.mabengue@facsciences-uy1.cm,MABENGUE,Prince,2003-07-03,BACCALAUREAT,2022,Centre d'examen Centre,Centre,ORIGINAL
+DEMO2026005,prince.mabengue@facsciences-uy1.cm,MABENGUE,Prince,2003-07-03,BACCALAUREAT,2022,Centre d'examen Centre,Centre,RELEVE_NOTES

@@ -24,6 +24,9 @@ function statusTone(statut: string) {
   if (statut === "RETIRE") {
     return "border-slate-200 bg-slate-50 text-slate-700";
   }
+  if (statut === "PENDING") {
+    return "border-slate-200 bg-slate-50 text-slate-700";
+  }
   return "border-amber-200 bg-amber-50 text-amber-900";
 }
 
@@ -86,7 +89,7 @@ export function ConsultationPanel() {
               name="matricule"
               value={matricule}
               onChange={(event) => setMatricule(event.target.value.toUpperCase())}
-              placeholder="Ex. ELEVE0002"
+              placeholder="Ex. DEMO2026001"
               className="mt-2"
               autoComplete="off"
               required
@@ -115,7 +118,9 @@ export function ConsultationPanel() {
           </p>
 
           {result.documents.length === 0 ? (
-            <p className="text-sm text-text-3">Aucun document scolaire enregistré pour le moment.</p>
+            <p className="text-sm text-text-3">
+              Aucun examen composé n&apos;est rattaché à ce matricule pour le moment.
+            </p>
           ) : (
             <ul className="space-y-3">
               {result.documents.map((document) => (

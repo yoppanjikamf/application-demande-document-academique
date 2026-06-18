@@ -44,9 +44,8 @@ export function ConsultationAccessSection({ consultationUrl }: { consultationUrl
             height={220}
             className="rounded-lg border border-[var(--border-token)] bg-white p-3"
           />
-          <p className="mt-4 text-center text-sm text-text-3">
-            Scannez pour accéder à{" "}
-            <span className="break-all font-medium text-text-2">{consultationUrl}</span>
+          <p className="mt-4 text-center text-sm leading-6 text-text-3">
+            Scannez pour connaître le statut de vos documents académiques.
           </p>
         </div>
       </div>

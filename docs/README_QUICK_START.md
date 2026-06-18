@@ -1,6 +1,6 @@
 # TL;DR - Etat actuel du MVP DR-DOCSCOL
 
-Derniere mise a jour: 02/06/2026.
+Derniere mise a jour: 17/06/2026.
 
 ## Ce qui est fait
 
@@ -13,7 +13,7 @@ Le projet contient:
 - 10 admins OBC regionaux.
 - 10 admins DECC regionaux.
 - 10 agents centres d'examen.
-- 1000 eleves de test.
+- 5 eleves demo soutenance (`DEMO2026001`–`DEMO2026005`) via `seed:soutenance-eleves`.
 
 ## Quick start
 
@@ -50,8 +50,11 @@ npm run db:migrate
 npm run seed:regional-admins
 npm run seed:decc-admins
 npm run seed:centre-agents
-npm run seed:1000-eleves
+npm run seed:soutenance-eleves
 ```
+
+Kit demo complet (imports CSV + parcours) : `docs/demo/KIT_DEMO_COMPLET.pdf`  
+Fichiers CSV d'import : directement dans `docs/` (`import-*.csv`)
 
 ### 5. Demarrer
 

@@ -369,7 +369,7 @@ Chaque fichier `route.ts` exporte des fonctions HTTP (`GET`, `POST`, `PATCH`…)
 | `seed-regional-admins.ts` | 10 admins OBC |
 | `seed-decc-regional-admins.ts` | 10 admins DECC |
 | `seed-centre-examen-agents.ts` | 10 agents centre |
-| `seed-1000-eleves.ts` | Masse de données test |
+| `seed-soutenance-eleves.ts` | 5 élèves demo soutenance |
 | `seed-appointments.ts` | Paramètres RDV |
 
 ---

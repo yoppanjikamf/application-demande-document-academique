@@ -1,6 +1,6 @@
 # Guide de test fonctionnel DR-DOCSCOL
 
-Derniere mise a jour: 02/06/2026.
+Derniere mise a jour: 17/06/2026.
 
 Ce guide couvre les parcours complets eleve, admin OBC, admin DECC et agent centre d'examen.
 
@@ -12,7 +12,7 @@ npm run db:migrate
 npm run seed:regional-admins
 npm run seed:decc-admins
 npm run seed:centre-agents
-npm run seed:1000-eleves
+npm run seed:soutenance-eleves
 npm run dev
 ```
 
@@ -26,8 +26,8 @@ psql "$DATABASE_URL" -c 'select now();'
 ## 2. Test eleve
 
 1. Aller sur `/auth/register`.
-2. Activer un eleve reel, par exemple:
-   - Matricule: `ELEVE0001`
+2. Activer un eleve du seed soutenance, par exemple:
+   - Matricule: `DEMO2026002`
    - Email: `faissayoppanjikam@gmail.com`
 3. Creer un mot de passe.
 4. Aller sur `/dashboard`.

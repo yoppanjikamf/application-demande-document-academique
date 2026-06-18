@@ -411,7 +411,7 @@ Le coeur fonctionnel de l'application est implemente.
 - Gestion des documents, statuts, rendez-vous, paiements, recus, notifications et audit logs.
 - Import CSV.
 - Comptes de test regionaux OBC, DECC et centres d'examen.
-- Jeu de donnees de 1000 eleves.
+- 5 eleves demo soutenance via `npm run seed:soutenance-eleves` (`docs/test-data-soutenance-eleves.csv`).
 
 ### Points restants avant production
 

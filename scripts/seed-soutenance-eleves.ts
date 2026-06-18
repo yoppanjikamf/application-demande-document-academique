@@ -38,7 +38,7 @@ const DEMO_STUDENTS: DemoStudent[] = [
     nom: "NGAMBIA",
     prenom: "Françial",
     dateNaissance: new Date("2003-02-14T00:00:00.000Z"),
-    centreExamen: "Lycee General Leclerc",
+    centreExamen: "Centre d'examen Centre",
     regionComposition: "Centre",
   },
   {
@@ -47,7 +47,7 @@ const DEMO_STUDENTS: DemoStudent[] = [
     nom: "NJIKAM",
     prenom: "Faïssa",
     dateNaissance: new Date("2004-05-20T00:00:00.000Z"),
-    centreExamen: "Lycee General Leclerc",
+    centreExamen: "Centre d'examen Centre",
     regionComposition: "Centre",
   },
   {
@@ -56,7 +56,7 @@ const DEMO_STUDENTS: DemoStudent[] = [
     nom: "MESSELE",
     prenom: "Doucette",
     dateNaissance: new Date("2003-09-08T00:00:00.000Z"),
-    centreExamen: "Lycee Bilingue de Biyem-Assi",
+    centreExamen: "Centre d'examen Centre",
     regionComposition: "Centre",
   },
   {
@@ -65,8 +65,8 @@ const DEMO_STUDENTS: DemoStudent[] = [
     nom: "MBIANKEU",
     prenom: "Anicet",
     dateNaissance: new Date("2002-11-27T00:00:00.000Z"),
-    centreExamen: "Lycee Classique de Bafoussam",
-    regionComposition: "Ouest",
+    centreExamen: "Centre d'examen Centre",
+    regionComposition: "Centre",
   },
   {
     matricule: "DEMO2026005",
@@ -74,8 +74,8 @@ const DEMO_STUDENTS: DemoStudent[] = [
     nom: "MABENGUE",
     prenom: "Prince",
     dateNaissance: new Date("2003-07-03T00:00:00.000Z"),
-    centreExamen: "Lycee Bilingue de Deido",
-    regionComposition: "Littoral",
+    centreExamen: "Centre d'examen Centre",
+    regionComposition: "Centre",
   },
 ];
 

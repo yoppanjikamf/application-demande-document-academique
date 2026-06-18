@@ -1,6 +1,11 @@
-import { getDocumentTitle, getStudentDocumentStatusLabel } from "@/lib/appointment-service";
+import {
+  getDocumentTitle,
+  getStudentDocumentStatusLabel,
+} from "@/lib/appointment-service";
+import { isDocumentRequestAllowed } from "@/lib/document-routing";
+import type { DiplomePrincipal, StatutDocument } from "@/lib/generated/prisma/client";
+import { Role, TypeDocument } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@/lib/generated/prisma/client";
 
 export type PublicConsultationDocument = {
   title: string;
@@ -16,6 +21,67 @@ export type PublicConsultationResult =
       documents: PublicConsultationDocument[];
     };
 
+type DocumentRecord = {
+  diplomeType: DiplomePrincipal;
+  typeDocument: TypeDocument;
+  statut: StatutDocument;
+  demandeSoumiseAt: Date | null;
+};
+
+function findDocumentForExam(
+  documents: DocumentRecord[],
+  diplomeType: DocumentRecord["diplomeType"],
+  typeDocument: TypeDocument,
+) {
+  return (
+    documents.find(
+      (document) =>
+        document.diplomeType === diplomeType && document.typeDocument === typeDocument,
+    ) ?? null
+  );
+}
+
+function toPublicConsultationDocument(
+  diplomeType: DocumentRecord["diplomeType"],
+  typeDocument: TypeDocument,
+  document: DocumentRecord | null,
+): PublicConsultationDocument {
+  return {
+    title: getDocumentTitle({ diplomeType, typeDocument }),
+    statut: document?.demandeSoumiseAt ? document.statut : "PENDING",
+    statutLabel: getStudentDocumentStatusLabel(document),
+  };
+}
+
+export function buildPublicConsultationDocuments(
+  exams: Array<{ diplomeType: DocumentRecord["diplomeType"] }>,
+  documents: DocumentRecord[],
+): PublicConsultationDocument[] {
+  const entries: PublicConsultationDocument[] = [];
+
+  for (const exam of exams) {
+    if (isDocumentRequestAllowed(exam.diplomeType, "ORIGINAL")) {
+      entries.push(
+        toPublicConsultationDocument(
+          exam.diplomeType,
+          "ORIGINAL",
+          findDocumentForExam(documents, exam.diplomeType, "ORIGINAL"),
+        ),
+      );
+    }
+
+    entries.push(
+      toPublicConsultationDocument(
+        exam.diplomeType,
+        "RELEVE_NOTES",
+        findDocumentForExam(documents, exam.diplomeType, "RELEVE_NOTES"),
+      ),
+    );
+  }
+
+  return entries;
+}
+
 export async function lookupPublicConsultationByMatricule(
   matriculeInput: string,
 ): Promise<PublicConsultationResult> {
@@ -30,6 +96,10 @@ export async function lookupPublicConsultationByMatricule(
     select: {
       role: true,
       prenom: true,
+      examensValides: {
+        orderBy: { createdAt: "asc" },
+        select: { diplomeType: true },
+      },
       documentsAcademique: {
         orderBy: [{ diplomeType: "asc" }, { typeDocument: "asc" }],
         select: {
@@ -46,13 +116,10 @@ export async function lookupPublicConsultationByMatricule(
     return { found: false };
   }
 
-  const documents = eleve.documentsAcademique
-    .filter((document) => document.typeDocument !== "DUPLICATA")
-    .map((document) => ({
-      title: getDocumentTitle(document),
-      statut: document.statut,
-      statutLabel: getStudentDocumentStatusLabel(document),
-    }));
+  const documents = buildPublicConsultationDocuments(
+    eleve.examensValides,
+    eleve.documentsAcademique.filter((document) => document.typeDocument !== "DUPLICATA"),
+  );
 
   return {
     found: true,

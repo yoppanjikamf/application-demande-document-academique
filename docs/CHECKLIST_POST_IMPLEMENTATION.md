@@ -31,7 +31,7 @@ psql "$DATABASE_URL" -c 'select now();'
 - [ ] `npm run seed:regional-admins`
 - [ ] `npm run seed:decc-admins`
 - [ ] `npm run seed:centre-agents`
-- [ ] `npm run seed:1000-eleves`
+- [ ] `npm run seed:soutenance-eleves`
 
 ## 4. Tests de connexion
 

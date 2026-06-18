@@ -90,8 +90,7 @@ Il ne faut pas encore le presenter comme une production totalement terminee, car
 - 10 admins OBC regionaux.
 - 10 admins DECC regionaux.
 - 10 agents centres d'examen.
-- 1000 eleves de test via `docs/test-data-1000-eleves.csv`.
-- 5 eleves avec emails reels pour activation manuelle.
+- 5 eleves demo soutenance via `docs/test-data-soutenance-eleves.csv`.
 
 ## Ce qui reste a faire avant production
 
@@ -130,7 +129,7 @@ npm run build
 npm run seed:regional-admins
 npm run seed:decc-admins
 npm run seed:centre-agents
-npm run seed:1000-eleves
+npm run seed:soutenance-eleves
 ```
 
 ## Identifiants de reference

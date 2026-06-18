@@ -190,7 +190,7 @@ Le projet expose 37 route handlers `route.ts`, dont 36 sous `/api` et 1 route ap
 | Admin documents | `app/admin/documents/page.tsx`, `app/api/admin/documents/*` |
 | Retraits | `app/api/admin/withdrawals/route.ts`, `app/centre-examen/page.tsx`, `app/api/centre-examen/*` |
 | Import CSV | `app/admin/import/page.tsx`, `app/admin/actions.ts`, `docs/test-data-eleves.csv` |
-| Seeds | `scripts/seed-regional-admins.ts`, `scripts/seed-decc-regional-admins.ts`, `scripts/seed-centre-examen-agents.ts`, `scripts/seed-1000-eleves.ts` |
+| Seeds | `scripts/seed-regional-admins.ts`, `scripts/seed-decc-regional-admins.ts`, `scripts/seed-centre-examen-agents.ts`, `scripts/seed-soutenance-eleves.ts` |
 
 ## 8. Donnees attendues pour l'import CSV
 
