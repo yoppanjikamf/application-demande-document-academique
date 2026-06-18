@@ -3,8 +3,11 @@ import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import "react-toastify/dist/ReactToastify.css";
 import "./../styles/globals.css";
 
+import { LocaleProvider } from "@/components/i18n/locale-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { getLocale } from "@/lib/i18n/get-locale";
 
 const display = DM_Serif_Display({
   subsets: ["latin"],
@@ -29,14 +32,19 @@ export const metadata: Metadata = {
     "Demandez, suivez et retirez vos documents scolaires en ligne — portail OBC/DECC pour élèves, administrations et centres d'examen.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${body.className} ${body.variable} ${display.variable}`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <LocaleProvider locale={locale} dictionary={dictionary}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

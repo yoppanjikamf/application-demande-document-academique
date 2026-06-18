@@ -52,6 +52,30 @@ export async function sendTrackedMail(payload: MailPayload) {
   }
 }
 
+/** Envoie l'e-mail sans interrompre le flux métier si le SMTP est indisponible. */
+export async function sendTrackedMailOptional(payload: MailPayload) {
+  try {
+    await sendTrackedMail(payload);
+    return { sent: true as const };
+  } catch (error) {
+    console.error("[mail] optional send failed:", error);
+    return {
+      sent: false as const,
+      error: formatMailError(error),
+    };
+  }
+}
+
+function formatMailError(error: unknown) {
+  const message = error instanceof Error ? error.message : "Erreur email inconnue";
+
+  if (/greeting never received|connection timeout|connect econnrefused|etimedout/i.test(message)) {
+    return "E-mail non envoyé : serveur SMTP injoignable (vérifiez SMTP_HOST, SMTP_PORT et vos identifiants). La notification in-app reste disponible.";
+  }
+
+  return `E-mail non envoyé : ${message}`;
+}
+
 export async function notifyAccountActivated({
   userId,
   to,
@@ -151,7 +175,7 @@ export async function notifyDocumentAvailable({
     },
   });
 
-  await sendTrackedMail({
+  const mailResult = await sendTrackedMailOptional({
     userId,
     to,
     subject,
@@ -169,6 +193,8 @@ export async function notifyDocumentAvailable({
     }),
     fromName: getDocumentSenderName(diplomeType),
   });
+
+  return mailResult;
 }
 
 export async function notifyDuplicataRequestRegistered({

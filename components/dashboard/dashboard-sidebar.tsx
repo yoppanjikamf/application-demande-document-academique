@@ -10,12 +10,14 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import type { Role } from "@/lib/generated/prisma/client";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { useI18n } from "@/components/i18n/locale-provider";
 import { getNavSections } from "@/components/dashboard/nav-data";
 import { useSidebarContext } from "@/components/dashboard/sidebar-context";
 import { DocScolLogo } from "@/components/ui/DocScolLogo";
 import { Button } from "@/components/ui/button";
+import type { Role } from "@/lib/generated/prisma/client";
+import { cn } from "@/lib/utils";
 
 export function DashboardSidebar({
   role,
@@ -32,14 +34,15 @@ export function DashboardSidebar({
   scopeLabel?: string;
   activePath: string;
 }) {
+  const { t } = useI18n();
   const { isOpen, isMobile, setIsOpen, toggleSidebar } = useSidebarContext();
-  const sections = getNavSections(role, organismeId);
+  const sections = getNavSections(role, organismeId, t);
   const fallbackName =
     role === "ADMINISTRATEUR"
-      ? "Administrateur"
+      ? t("dashboard.roles.admin")
       : role === "AGENT_CENTRE_EXAMEN"
-        ? "Agent centre"
-        : "Élève";
+        ? t("dashboard.roles.agent")
+        : t("dashboard.roles.student");
   const badgeLabel =
     role === "ADMINISTRATEUR"
       ? (scopeLabel ?? "Administration")
@@ -78,7 +81,7 @@ export function DashboardSidebar({
                 className="rounded-md border border-white/15 px-2 py-1 text-xs font-semibold text-white/75"
                 aria-label="Fermer le menu"
               >
-                Fermer
+                {t("common.closeMenu")}
               </button>
             ) : null}
           </div>
@@ -147,20 +150,19 @@ export function DashboardSidebar({
             ))}
           </div>
 
-          <form
-            action="/logout"
-            method="post"
-            className={cn("mb-3 mt-4", isOpen ? "block" : "hidden")}
-          >
+          <div className={cn("mb-3 mt-4 space-y-3", isOpen ? "block" : "hidden")}>
+            <LanguageSwitcher />
+            <form action="/logout" method="post">
             <Button
               type="submit"
               variant="ghost"
               className="w-full justify-start text-white/75 hover:bg-red-500/10 hover:text-red-100"
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />
-              Déconnexion
+              {t("common.logout")}
             </Button>
-          </form>
+            </form>
+          </div>
 
           {!isMobile ? (
             <button

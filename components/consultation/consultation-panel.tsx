@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Search, ShieldCheck } from "lucide-react";
 
+import { useI18n } from "@/components/i18n/locale-provider";
+import type { TranslationKey } from "@/lib/i18n/translate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -30,7 +32,14 @@ function statusTone(statut: string) {
   return "border-amber-200 bg-amber-50 text-amber-900";
 }
 
+function getStatusLabel(t: (key: TranslationKey) => string, statut: string) {
+  const key = `documentStatus.${statut}` as TranslationKey;
+  const translated = t(key);
+  return translated === key ? statut : translated;
+}
+
 export function ConsultationPanel() {
+  const { t } = useI18n();
   const [matricule, setMatricule] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -52,12 +61,12 @@ export function ConsultationPanel() {
       const payload = (await response.json()) as ConsultationResponse & { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Consultation impossible.");
+        throw new Error(payload.error ?? t("consultation.errorDefault"));
       }
 
       setResult(payload);
     } catch (fetchError) {
-      setError(fetchError instanceof Error ? fetchError.message : "Erreur inconnue.");
+      setError(fetchError instanceof Error ? fetchError.message : t("consultation.errorDefault"));
     } finally {
       setLoading(false);
     }
@@ -71,25 +80,22 @@ export function ConsultationPanel() {
             <ShieldCheck className="h-5 w-5" aria-hidden="true" />
           </span>
           <div>
-            <h1 className="font-display text-2xl text-text-1">Consultation rapide</h1>
-            <p className="mt-2 text-sm leading-6 text-text-3">
-              Saisissez votre matricule pour connaître la disponibilité de vos documents scolaires.
-              Aucun compte n&apos;est créé automatiquement.
-            </p>
+            <h1 className="font-display text-2xl text-text-1">{t("consultation.title")}</h1>
+            <p className="mt-2 text-sm leading-6 text-text-3">{t("consultation.description")}</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
             <label htmlFor="consultation-matricule" className="text-sm font-medium text-text-1">
-              Matricule élève
+              {t("consultation.matriculeLabel")}
             </label>
             <Input
               id="consultation-matricule"
               name="matricule"
               value={matricule}
               onChange={(event) => setMatricule(event.target.value.toUpperCase())}
-              placeholder="Ex. DEMO2026001"
+              placeholder={t("consultation.matriculePlaceholder")}
               className="mt-2"
               autoComplete="off"
               required
@@ -98,29 +104,27 @@ export function ConsultationPanel() {
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <Button type="submit" disabled={loading} className="w-full sm:w-auto">
             <Search className="h-4 w-4" />
-            {loading ? "Recherche..." : "Consulter la disponibilité"}
+            {loading ? t("consultation.searching") : t("consultation.submit")}
           </Button>
         </form>
       </div>
 
       {result?.found === false ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Aucun élève trouvé pour ce matricule. Vérifiez la saisie ou contactez votre organisme si
-          vous venez d&apos;être enregistré.
+          {t("consultation.notFound")}
         </div>
       ) : null}
 
       {result?.found ? (
         <div className="space-y-4 rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card sm:p-6">
           <p className="text-sm text-text-3">
-            Bonjour <span className="font-semibold text-text-1">{result.prenom}</span>, voici le
-            statut de vos documents :
+            {t("consultation.greeting")}{" "}
+            <span className="font-semibold text-text-1">{result.prenom}</span>,{" "}
+            {t("consultation.statusIntro")}
           </p>
 
           {result.documents.length === 0 ? (
-            <p className="text-sm text-text-3">
-              Aucun examen composé n&apos;est rattaché à ce matricule pour le moment.
-            </p>
+            <p className="text-sm text-text-3">{t("consultation.noExams")}</p>
           ) : (
             <ul className="space-y-3">
               {result.documents.map((document) => (
@@ -129,26 +133,23 @@ export function ConsultationPanel() {
                   className={`rounded-md border px-4 py-3 ${statusTone(document.statut)}`}
                 >
                   <p className="font-medium">{document.title}</p>
-                  <p className="mt-1 text-sm">{document.statutLabel}</p>
+                  <p className="mt-1 text-sm">{getStatusLabel(t, document.statut)}</p>
                 </li>
               ))}
             </ul>
           )}
 
-          <p className="text-sm leading-6 text-text-3">
-            Pour demander un document, payer un duplicata ou prendre un rendez-vous de retrait,
-            activez votre compte ou connectez-vous.
-          </p>
+          <p className="text-sm leading-6 text-text-3">{t("consultation.nextSteps")}</p>
 
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild className="w-full sm:w-auto">
               <Link href="/auth/register">
-                Activer mon compte
+                {t("common.activateAccount")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href="/auth/login">Me connecter</Link>
+              <Link href="/auth/login">{t("consultation.connect")}</Link>
             </Button>
           </div>
         </div>

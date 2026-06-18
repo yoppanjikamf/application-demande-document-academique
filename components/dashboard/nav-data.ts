@@ -18,6 +18,7 @@ import {
 
 import type { Role } from "@/lib/generated/prisma/client";
 import { ORGANISME_IDS } from "@/lib/document-routing";
+import type { Translator } from "@/lib/i18n/translate";
 
 export type NavItem = {
   title: string;
@@ -30,90 +31,90 @@ export type NavSection = {
   items: NavItem[];
 };
 
-const obcAdminSections: NavSection[] = [
+const obcAdminSections = (t: Translator): NavSection[] => [
   {
-    label: "Navigation",
+    label: t("dashboard.nav.navigation"),
     items: [
-      { title: "Tableau de bord Admin", url: "/admin", icon: BarChart3 },
-      { title: "Documents", url: "/admin/documents", icon: FileText },
-      { title: "Élèves", url: "/admin/students", icon: UsersRound },
-      { title: "Paiements", url: "/admin/payments", icon: CreditCard },
-      { title: "Rendez-vous", url: "/admin/appointments", icon: CalendarCheck },
-      { title: "Disponibilités", url: "/admin/rdv-disponibilites", icon: Clock },
-      { title: "Journaux d'audit", url: "/admin/audit-logs", icon: Shield },
+      { title: t("dashboard.nav.adminDashboard"), url: "/admin", icon: BarChart3 },
+      { title: t("dashboard.nav.documents"), url: "/admin/documents", icon: FileText },
+      { title: t("dashboard.nav.students"), url: "/admin/students", icon: UsersRound },
+      { title: t("dashboard.nav.payments"), url: "/admin/payments", icon: CreditCard },
+      { title: t("dashboard.nav.appointments"), url: "/admin/appointments", icon: CalendarCheck },
+      { title: t("dashboard.nav.availability"), url: "/admin/rdv-disponibilites", icon: Clock },
+      { title: t("dashboard.nav.auditLogs"), url: "/admin/audit-logs", icon: Shield },
     ],
   },
   {
-    label: "Compte",
+    label: t("dashboard.nav.account"),
     items: [
-      { title: "Mon Compte", url: "/account", icon: UserRound },
-      { title: "Aide", url: "/", icon: HelpCircle },
-    ],
-  },
-];
-
-const deccAdminSections: NavSection[] = [
-  {
-    label: "Navigation",
-    items: [
-      { title: "Tableau de bord Admin", url: "/admin", icon: BarChart3 },
-      { title: "Documents", url: "/admin/documents", icon: FileText },
-      { title: "Élèves", url: "/admin/students", icon: UsersRound },
-      { title: "Paiements", url: "/admin/payments", icon: CreditCard },
-      { title: "Journaux d'audit", url: "/admin/audit-logs", icon: Shield },
-    ],
-  },
-  {
-    label: "Compte",
-    items: [
-      { title: "Mon Compte", url: "/account", icon: UserRound },
-      { title: "Aide", url: "/", icon: HelpCircle },
+      { title: t("dashboard.nav.myAccount"), url: "/account", icon: UserRound },
+      { title: t("common.help"), url: "/", icon: HelpCircle },
     ],
   },
 ];
 
-const eleveSections: NavSection[] = [
+const deccAdminSections = (t: Translator): NavSection[] => [
   {
-    label: "Navigation",
+    label: t("dashboard.nav.navigation"),
     items: [
-      { title: "Tableau de bord", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Mes Documents", url: "/dashboard/documents", icon: FolderOpen },
-      { title: "Mes Rendez-vous", url: "/dashboard/rendez-vous", icon: CalendarDays },
-      { title: "Paiements", url: "/dashboard/payments", icon: Receipt },
-      { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
+      { title: t("dashboard.nav.adminDashboard"), url: "/admin", icon: BarChart3 },
+      { title: t("dashboard.nav.documents"), url: "/admin/documents", icon: FileText },
+      { title: t("dashboard.nav.students"), url: "/admin/students", icon: UsersRound },
+      { title: t("dashboard.nav.payments"), url: "/admin/payments", icon: CreditCard },
+      { title: t("dashboard.nav.auditLogs"), url: "/admin/audit-logs", icon: Shield },
     ],
   },
   {
-    label: "Compte",
+    label: t("dashboard.nav.account"),
     items: [
-      { title: "Mon Compte", url: "/account", icon: UserRound },
-      { title: "Aide", url: "/", icon: HelpCircle },
-    ],
-  },
-];
-
-const agentCentreSections: NavSection[] = [
-  {
-    label: "Navigation",
-    items: [{ title: "Retraits du jour", url: "/centre-examen", icon: ClipboardCheck }],
-  },
-  {
-    label: "Compte",
-    items: [
-      { title: "Mon Compte", url: "/account", icon: UserRound },
-      { title: "Aide", url: "/", icon: HelpCircle },
+      { title: t("dashboard.nav.myAccount"), url: "/account", icon: UserRound },
+      { title: t("common.help"), url: "/", icon: HelpCircle },
     ],
   },
 ];
 
-export function getNavSections(role: Role, organismeId?: string | null) {
+const eleveSections = (t: Translator): NavSection[] => [
+  {
+    label: t("dashboard.nav.navigation"),
+    items: [
+      { title: t("dashboard.nav.studentDashboard"), url: "/dashboard", icon: LayoutDashboard },
+      { title: t("dashboard.nav.myDocuments"), url: "/dashboard/documents", icon: FolderOpen },
+      { title: t("dashboard.nav.myAppointments"), url: "/dashboard/rendez-vous", icon: CalendarDays },
+      { title: t("dashboard.nav.myPayments"), url: "/dashboard/payments", icon: Receipt },
+      { title: t("dashboard.nav.myNotifications"), url: "/dashboard/notifications", icon: Bell },
+    ],
+  },
+  {
+    label: t("dashboard.nav.account"),
+    items: [
+      { title: t("dashboard.nav.myAccount"), url: "/account", icon: UserRound },
+      { title: t("common.help"), url: "/", icon: HelpCircle },
+    ],
+  },
+];
+
+const agentCentreSections = (t: Translator): NavSection[] => [
+  {
+    label: t("dashboard.nav.navigation"),
+    items: [{ title: t("dashboard.nav.agentWithdrawals"), url: "/centre-examen", icon: ClipboardCheck }],
+  },
+  {
+    label: t("dashboard.nav.account"),
+    items: [
+      { title: t("dashboard.nav.myAccount"), url: "/account", icon: UserRound },
+      { title: t("common.help"), url: "/", icon: HelpCircle },
+    ],
+  },
+];
+
+export function getNavSections(role: Role, organismeId: string | null | undefined, t: Translator) {
   if (role === "AGENT_CENTRE_EXAMEN") {
-    return agentCentreSections;
+    return agentCentreSections(t);
   }
 
   if (role !== "ADMINISTRATEUR") {
-    return eleveSections;
+    return eleveSections(t);
   }
 
-  return organismeId === ORGANISME_IDS.DECC ? deccAdminSections : obcAdminSections;
+  return organismeId === ORGANISME_IDS.DECC ? deccAdminSections(t) : obcAdminSections(t);
 }

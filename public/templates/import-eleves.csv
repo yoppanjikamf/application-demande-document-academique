@@ -1,3 +1,0 @@
-eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
-ELEVE9001,eleve9001@example.com,NGONO,Claire,2005-04-12,BEPC,2025,Centre d'examen Centre,Centre,ORIGINAL
-ELEVE9002,eleve9002@example.com,FOUDA,Samuel,2004-08-20,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES

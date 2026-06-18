@@ -1,9 +1,9 @@
 eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
-ELEVE9001,eleve9001@example.com,NGONO,Claire,2005-04-12,BEPC,2025,Centre d'examen Centre,Centre,ORIGINAL
-ELEVE9001,eleve9001@example.com,NGONO,Claire,2005-04-12,BEPC,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
+ELEVE9001,eleve9001@example.com,NGONO,Claire,2005-04-12,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
+ELEVE9001,eleve9001@example.com,NGONO,Claire,2005-04-12,BACCALAUREAT,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
 ELEVE9002,eleve9002@example.com,FOUDA,Samuel,2004-08-20,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
 ELEVE9003,eleve9003@example.com,MBALLA,Estelle,2003-11-15,BACCALAUREAT,2025,Centre d'examen Centre,Centre,ORIGINAL
 ELEVE9003,eleve9003@example.com,MBALLA,Estelle,2003-11-15,BACCALAUREAT,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
-ELEVE9004,eleve9004@example.com,NJOCK,Brice,2005-06-30,BEPC,2025,Centre d'examen Centre,Centre,ORIGINAL
-ELEVE9004,eleve9004@example.com,NJOCK,Brice,2005-06-30,BEPC,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
+ELEVE9004,eleve9004@example.com,NJOCK,Brice,2005-06-30,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
+ELEVE9004,eleve9004@example.com,NJOCK,Brice,2005-06-30,BACCALAUREAT,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
 ELEVE9005,eleve9005@example.com,KAMGA,Thierry,2004-02-18,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES

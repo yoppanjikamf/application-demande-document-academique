@@ -4,25 +4,23 @@ import Link from "next/link";
 import { Download } from "lucide-react";
 
 import { importTestDataAction } from "@/app/admin/actions";
-import { STUDENT_IMPORT_CSV_HEADER } from "@/lib/admin-student-import.constants";
+import type { AdminImportPresentation } from "@/lib/admin-import-config";
 import { PendingForm, PendingSubmitButton } from "@/components/ui/action-loading-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type AdminStudentsImportFormProps = {
+  presentation: AdminImportPresentation["studentImport"];
   importStatus?: string;
   importMessage?: string;
+  importErrors?: string;
 };
 
-const CSV_COLUMNS = [
-  "eleve_matricule, eleve_email, eleve_nom, eleve_prenom (obligatoires)",
-  "eleve_date_naissance, diplome_type, annee_session, centre_examen, region_composition",
-  "document_type (optionnel ; statut initial toujours Pas disponible)",
-];
-
 export function AdminStudentsImportForm({
+  presentation,
   importStatus,
   importMessage,
+  importErrors,
 }: AdminStudentsImportFormProps) {
   const isSuccess = importStatus === "success";
 
@@ -45,35 +43,38 @@ export function AdminStudentsImportForm({
           {importMessage}
         </div>
       ) : null}
+      {importErrors ? (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="font-medium">Lignes en erreur</p>
+          <p className="mt-2 whitespace-pre-wrap break-words">
+            {importErrors.replace(/\s\|\s/g, "\n")}
+          </p>
+        </div>
+      ) : null}
       <div>
-        <h3 className="font-semibold text-text-1">Import nouveaux élèves (CSV)</h3>
-        <p className="mt-1 text-sm text-text-3">
-          Ajoutez des élèves pas encore présents en base (nouvelle promotion, entrée dans le cycle).
-          Les documents créés restent en <strong>Pas disponible</strong> jusqu&apos;à l&apos;import
-          de disponibilisation ou à une action admin manuelle.
-        </p>
+        <h3 className="font-semibold text-text-1">{presentation.title}</h3>
+        <p className="mt-1 text-sm text-text-3">{presentation.description}</p>
         <ul className="mt-3 list-inside list-disc space-y-1 text-xs text-text-muted">
-          {CSV_COLUMNS.map((line) => (
+          {presentation.bullets.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
+        <p className="mt-3 text-xs text-text-muted">
+          Fichier de démo (région) : <code className="text-text-2">{presentation.demoFileHint}</code>
+        </p>
       </div>
       <Button asChild variant="outline" size="sm" className="w-fit">
-        <Link href="/templates/import-eleves.csv" download>
+        <Link href={presentation.templateUrl} download>
           <Download className="h-4 w-4" />
           Télécharger le modèle CSV
         </Link>
       </Button>
       <details className="rounded-md border border-[var(--border-token)] bg-surface-1 p-3 text-xs text-text-3">
         <summary className="cursor-pointer font-medium text-text-2">En-tête attendu</summary>
-        <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all">
-          {STUDENT_IMPORT_CSV_HEADER}
-        </pre>
+        <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all">{presentation.csvHeader}</pre>
       </details>
       <Input type="file" name="file" accept=".csv,text/csv" required />
-      <PendingSubmitButton pendingLabel="Import en cours...">
-        Importer le fichier
-      </PendingSubmitButton>
+      <PendingSubmitButton pendingLabel="Import en cours...">Importer le fichier</PendingSubmitButton>
     </PendingForm>
   );
 }

@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { Menu } from "lucide-react";
 
+import { useI18n } from "@/components/i18n/locale-provider";
 import { Button } from "@/components/ui/button";
-import { loginPortals } from "@/components/landing/login-portals";
+import { getLoginPortals } from "@/lib/i18n/login-portals";
 import {
   Sheet,
   SheetClose,
@@ -14,14 +15,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-
-const landingNavItems = [
-  { href: "/#fonctionnalites", label: "Fonctionnalités" },
-  { href: "/#consultation", label: "Consultation" },
-  { href: "/#etapes", label: "Étapes" },
-  { href: "/#acces", label: "Accès" },
-  { href: "/#faq", label: "FAQ" },
-] as const;
 
 function NavLink({ href, label, className }: { href: string; label: string; className?: string }) {
   return (
@@ -38,11 +31,21 @@ function NavLink({ href, label, className }: { href: string; label: string; clas
 }
 
 export function LandingNavLinks() {
+  const { t } = useI18n();
+  const loginPortals = getLoginPortals(t);
+
+  const landingNavItems = [
+    { href: "/#etapes", label: t("nav.steps") },
+    { href: "/#acces", label: t("nav.access") },
+    { href: "/#faq", label: t("nav.faq") },
+    { href: "/#fonctionnalites", label: t("nav.features") },
+  ] as const;
+
   return (
     <>
       <nav
         className="hidden items-center gap-6 md:flex lg:gap-8"
-        aria-label="Sections de la page d'accueil"
+        aria-label={t("nav.homeSections")}
       >
         {landingNavItems.map((item) => (
           <NavLink key={item.href} href={item.href} label={item.label} />
@@ -56,16 +59,16 @@ export function LandingNavLinks() {
             variant="outline"
             size="icon"
             className="md:hidden"
-            aria-label="Ouvrir le menu de navigation"
+            aria-label={t("common.openMenu")}
           >
             <Menu className="h-5 w-5" aria-hidden="true" />
           </Button>
         </SheetTrigger>
         <SheetContent side="right" className="w-[min(100%,280px)]">
           <SheetHeader>
-            <SheetTitle className="text-left font-display text-xl">Navigation</SheetTitle>
+            <SheetTitle className="text-left font-display text-xl">{t("common.navigation")}</SheetTitle>
           </SheetHeader>
-          <nav className="mt-6 flex flex-col gap-4" aria-label="Sections mobile">
+          <nav className="mt-6 flex flex-col gap-4" aria-label={t("nav.mobileNav")}>
             {landingNavItems.map((item) => (
               <SheetClose asChild key={item.href}>
                 <NavLink
@@ -78,14 +81,14 @@ export function LandingNavLinks() {
             <SheetClose asChild>
               <NavLink
                 href="/#probleme"
-                label="Problème & solution"
+                label={t("nav.problemSolution")}
                 className="block rounded-md px-2 py-2 text-base hover:bg-obc-50"
               />
             </SheetClose>
 
             <div className="mt-4 border-t border-[var(--border-token)] pt-4 sm:hidden">
               <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
-                Se connecter en tant que
+                {t("common.signInAs")}
               </p>
               <div className="flex flex-col">
                 {loginPortals.map((portal) => (
@@ -101,7 +104,7 @@ export function LandingNavLinks() {
               </div>
               <SheetClose asChild>
                 <Button asChild className="mt-3 w-full justify-start">
-                  <Link href="/auth/register">Activer mon compte élève</Link>
+                  <Link href="/auth/register">{t("common.activateStudentAccount")}</Link>
                 </Button>
               </SheetClose>
             </div>

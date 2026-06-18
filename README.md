@@ -40,16 +40,18 @@ Consultation publique (sans compte) : `/consultation` (matricule).
 | `npm run seed:regional-admins` | Admins OBC régionaux |
 | `npm run seed:decc-admins` | Admins DECC régionaux |
 | `npm run seed:centre-agents` | Agents centres d'examen |
-| `npm run export:disponibilisation-csv` | Export CSV Import A depuis la base |
+| `npm run generate:demo-csv` | Régénère les CSV par région OBC/DECC |
+| `npm run export:disponibilisation-csv` | Export CSV disponibilisation depuis la base |
 | `npm run lint` · `npm run build` | Qualité et build |
 
 ## Données démo (CSV)
 
-Fichiers dans `docs/` :
+Fichiers **par région et organisme** : [`docs/csv-demo/README.md`](docs/csv-demo/README.md)
 
-- `import-documents-eleves-demo-existants.csv` — créer les fiches documents (Import B admin)
-- `import-disponibilisation-session-2024.csv` — disponibiliser (Import A admin)
-- `import-nouveaux-eleves-demo-2025.csv` — nouveaux élèves `ELEVE9001`–`9005`
+Exemple région **Centre** :
+
+- OBC : `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv`
+- DECC : `docs/csv-demo/centre/decc/import-disponibilisation-bepc.csv`
 
 Identifiants de test : [`docs/connexions-tests-completes.md`](docs/connexions-tests-completes.md).
 

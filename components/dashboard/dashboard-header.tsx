@@ -4,30 +4,20 @@ import Link from "next/link";
 import type { Role } from "@/lib/generated/prisma/client";
 import { Bell, ChevronRight, Menu } from "lucide-react";
 
+import { useI18n } from "@/components/i18n/locale-provider";
 import { useSidebarContext } from "@/components/dashboard/sidebar-context";
 import { Button } from "@/components/ui/button";
+import type { TranslationKey } from "@/lib/i18n/translate";
 
-const pathLabels: Record<string, string> = {
-  admin: "Administration",
-  dashboard: "Tableau de bord",
-  documents: "Documents scolaires",
-  students: "Élèves",
-  appointments: "Rendez-vous",
-  "rendez-vous": "Rendez-vous",
-  payments: "Paiements",
-  notifications: "Notifications",
-  "rdv-disponibilites": "Disponibilités",
-  import: "Import",
-  "audit-logs": "Logs d'audit",
-  account: "Compte",
-  "centre-examen": "Centre d'examen",
-};
-
-function getBreadcrumbItems(activePath: string) {
+function getBreadcrumbItems(activePath: string, t: (key: TranslationKey) => string) {
   return activePath
     .split("/")
     .filter(Boolean)
-    .map((segment) => pathLabels[segment] ?? segment);
+    .map((segment) => {
+      const key = `dashboard.paths.${segment.replace(/-/g, "")}` as TranslationKey;
+      const translated = t(key);
+      return translated === key ? segment : translated;
+    });
 }
 
 export function DashboardHeader({
@@ -47,14 +37,15 @@ export function DashboardHeader({
   activePath: string;
   unreadNotificationCount?: number;
 }) {
+  const { t } = useI18n();
   const { toggleSidebar } = useSidebarContext();
-  const breadcrumbItems = getBreadcrumbItems(activePath);
+  const breadcrumbItems = getBreadcrumbItems(activePath, t);
   const areaLabel =
     role === "ADMINISTRATEUR"
-      ? "Back-office"
+      ? t("dashboard.areas.backOffice")
       : role === "AGENT_CENTRE_EXAMEN"
-        ? "Espace agent"
-        : "Espace élève";
+        ? t("dashboard.areas.agent")
+        : t("dashboard.areas.student");
 
   return (
     <header className="z-30 shrink-0 border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.92)] backdrop-blur-md lg:sticky lg:top-0">
@@ -67,13 +58,13 @@ export function DashboardHeader({
           onClick={toggleSidebar}
         >
           <Menu className="h-4 w-4" />
-          <span className="sr-only">Ouvrir le menu</span>
+          <span className="sr-only">{t("dashboard.openMenu")}</span>
         </Button>
 
         <div className="min-w-0 flex-1">
           <nav
             className="mb-1 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs font-semibold text-text-3"
-            aria-label="Fil d'Ariane"
+            aria-label={t("dashboard.breadcrumb")}
           >
             <span>{areaLabel}</span>
             {breadcrumbItems.map((item) => (
@@ -89,7 +80,7 @@ export function DashboardHeader({
           <p className="mt-1 line-clamp-3 text-sm text-text-3 sm:line-clamp-none">{subtitle}</p>
           {scopeLabel ? (
             <p className="mt-2 inline-flex rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-obc-800 ring-1 ring-gold-300">
-              Périmètre: {scopeLabel}
+              {t("dashboard.scopePrefix")}: {scopeLabel}
             </p>
           ) : null}
         </div>
@@ -108,7 +99,7 @@ export function DashboardHeader({
                   {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
                 </span>
               ) : null}
-              <span className="sr-only">Notifications</span>
+              <span className="sr-only">{t("dashboard.notifications")}</span>
             </Link>
           </Button>
         ) : null}

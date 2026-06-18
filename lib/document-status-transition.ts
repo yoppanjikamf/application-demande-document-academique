@@ -93,7 +93,7 @@ export async function applyDocumentStatusTransition({
 
   if (previousStatus !== "DISPONIBLE" && nextStatus === "DISPONIBLE") {
     const location = await getPickupLocation(document);
-    await notifyDocumentAvailable({
+    const mailResult = await notifyDocumentAvailable({
       userId: document.eleve.id,
       to: document.eleve.email,
       documentTitle,
@@ -101,6 +101,13 @@ export async function applyDocumentStatusTransition({
       diplomeType: document.diplomeType,
       location,
     });
+
+    return {
+      previousStatus,
+      nextStatus,
+      notified: true,
+      emailWarning: mailResult.sent ? undefined : mailResult.error,
+    };
   }
 
   if (previousStatus !== "RETIRE" && nextStatus === "RETIRE") {
@@ -120,7 +127,7 @@ export async function applyDocumentStatusTransition({
     });
   }
 
-  return { previousStatus, nextStatus, notified: previousStatus !== "DISPONIBLE" && nextStatus === "DISPONIBLE" };
+  return { previousStatus, nextStatus, notified: false };
 }
 
 export function assertAdminCanManageDocument(

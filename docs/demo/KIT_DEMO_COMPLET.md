@@ -44,40 +44,39 @@ Emails élèves fictifs : `eleve9001@example.com`.
 
 ## 3. Fichiers CSV fournis
 
-**Emplacement :** dossier `docs/` à la racine de la documentation (pas dans `documents-word/` qui ne contient que des PDF).
+**Emplacement :** `docs/csv-demo/{region}/{obc|decc}/` — voir [`docs/csv-demo/README.md`](../csv-demo/README.md).
 
-| Fichier | Chemin | Type | Usage |
-| --- | --- | --- | --- |
-| Nouveaux élèves | `docs/import-nouveaux-eleves-demo-2025.csv` | **Import B** | 5 élèves `ELEVE9001`–`ELEVE9005`, région Centre |
-| Documents DEMO | `docs/import-documents-eleves-demo-existants.csv` | **Import B** | Documents Pas disponible pour **DEMO2026001**–**005** |
-| Disponibilisation | `docs/import-disponibilisation-session-2024.csv` | **Import A** | Disponibiliser des documents DEMO |
+| Organisme | Import élèves | Import disponibilisation |
+| --- | --- | --- |
+| OBC (Centre) | `centre/obc/import-eleves-probatoire-bac.csv` | `centre/obc/import-disponibilisation-probatoire-bac.csv` |
+| DECC (Centre) | `centre/decc/import-eleves-bepc.csv` | `centre/decc/import-disponibilisation-bepc.csv` |
 
-Export automatique depuis **votre** base (si `DATABASE_URL` configurée) :
+Modèles UI (selon organisme connecté) : `public/templates/obc/` et `public/templates/decc/`.
 
-```bash
-npm run export:disponibilisation-csv
-```
-
-→ génère `docs/import-disponibilisation-depuis-bd.csv` avec les matricules réellement présents en statut Pas disponible.
-
-Modèles vides : `public/templates/import-eleves.csv` et `public/templates/import-disponibilisation.csv`.
+Régénération : `npm run generate:demo-csv`
 
 ---
 
 ## 4. Ordre de test recommandé (seed soutenance DEMO)
 
-### Étape 0 — Créer les documents des élèves DEMO existants
+### Étape 1 — Disponibilisation (une étape par organisme)
 
-Si vous avez lancé `seed:soutenance-eleves` : les élèves existent mais **sans document**.
+Après `seed:soutenance-eleves`, les élèves **DEMO2026001**–**005** existent sans document.
 
-1. Admin OBC ou DECC (région correspondante).
-2. `/admin/students` → **Import nouveaux élèves** → fichier `docs/import-documents-eleves-demo-existants.csv`.
-3. Vérifier : documents créés en **Pas disponible** pour DEMO2026001–005.
+**Admin OBC Centre** (`ADM-02-CENTRE`) :
 
-### Étape 1 — Import B (nouveaux élèves)
+1. `/admin/students` → importer `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv`
+2. Vérifier : relevé Probatoire **DEMO2026002** → Disponible (parcours RDV Faïssa).
 
-1. `/admin/students` → importer `docs/import-nouveaux-eleves-demo-2025.csv`.
-2. Vérifier : `ELEVE9001` à `ELEVE9005` créés (noms camerounais : NGONO, FOUDA, MBALLA, NJOCK, KAMGA).
+**Admin DECC Centre** (`DECC-02-CENTRE`) :
+
+1. Importer `docs/csv-demo/centre/decc/import-disponibilisation-bepc.csv`
+2. Vérifier : documents BEPC Disponibles pour les DEMO concernés.
+
+### Étape 2 — Import élèves (optionnel)
+
+- OBC : `docs/csv-demo/centre/obc/import-eleves-probatoire-bac.csv` → `ELEVE9001`–`9005`
+- DECC : `docs/csv-demo/centre/decc/import-eleves-bepc.csv` → `ELEVE9101`–`9102`
 
 ### Étape 2 — Import A (disponibilisation)
 

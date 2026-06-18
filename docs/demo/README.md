@@ -1,21 +1,21 @@
-# Dossier demo — guide et PDF
+# Fichiers de démonstration
 
-| Fichier | Description |
-| --- | --- |
-| `KIT_DEMO_COMPLET.md` / `KIT_DEMO_COMPLET.pdf` | Guide complet demo (parcours, comptes, ordre des imports) |
+Index détaillé : [`csv-demo/README.md`](../csv-demo/README.md)
 
-## Fichiers CSV (dans le dossier parent `docs/`)
+## Région Centre (soutenance)
 
-Les CSV d'import ne sont pas dans `demo/` : ils sont a la **racine de `docs/`** pour les trouver facilement :
-
-| Fichier | Chemin | Usage |
+| Organisme | Import élèves | Import disponibilisation |
 | --- | --- | --- |
-| Import B — nouveaux eleves | `docs/import-nouveaux-eleves-demo-2025.csv` | ELEVE9001–9005 |
-| Import B — documents DEMO | `docs/import-documents-eleves-demo-existants.csv` | DEMO2026001–005 |
-| Import A — disponibilisation | `docs/import-disponibilisation-session-2024.csv` | Passer en Disponible |
-| Liste eleves seed | `docs/test-data-soutenance-eleves.csv` | 5 eleves apres `seed:soutenance-eleves` |
-| Export depuis votre BD | `docs/import-disponibilisation-depuis-bd.csv` | Genere par `npm run export:disponibilisation-csv` |
+| **OBC** | `docs/csv-demo/centre/obc/import-eleves-probatoire-bac.csv` | `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv` |
+| **DECC** | `docs/csv-demo/centre/decc/import-eleves-bepc.csv` | `docs/csv-demo/centre/decc/import-disponibilisation-bepc.csv` |
 
-**Prerequis seed :** `npm run seed:soutenance-eleves`
+## Autres régions
 
-Modèles vides pour l'app : `public/templates/import-eleves.csv` et `public/templates/import-disponibilisation.csv`
+Même arborescence sous `docs/csv-demo/{region}/obc/` et `.../decc/`.
+
+Régénération : `npm run generate:demo-csv`
+
+## Guides
+
+- [`KIT_DEMO_COMPLET.md`](KIT_DEMO_COMPLET.md)
+- [`SCENARIO_VIDEO_SOUTENANCE.md`](SCENARIO_VIDEO_SOUTENANCE.md)

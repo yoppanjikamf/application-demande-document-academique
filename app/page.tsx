@@ -2,18 +2,7 @@ import { headers } from "next/headers";
 
 import { NavBar } from "@/components/ui/nav-bar";
 import { LandingPage } from "@/components/landing/landing-page";
-
-function resolveConsultationUrl(headersList: Headers) {
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (configuredSiteUrl) {
-    return `${configuredSiteUrl}/consultation`;
-  }
-
-  const host = headersList.get("x-forwarded-host") ?? headersList.get("host") ?? "localhost:3000";
-  const protocol = headersList.get("x-forwarded-proto") ?? "http";
-
-  return `${protocol}://${host}/consultation`;
-}
+import { resolveConsultationUrl } from "@/lib/site-url";
 
 export default async function HomePage() {
   const headersList = await headers();

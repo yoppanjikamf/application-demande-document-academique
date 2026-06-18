@@ -55,6 +55,8 @@ type ParsedCsv = {
 type ImportCsvResult = {
   rowsCount: number;
   documentsCount: number;
+  studentsCount: number;
+  errors: string[];
 };
 
 type ImportAdminUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
@@ -354,11 +356,15 @@ function requireImportErrorUrl(message: string) {
   return `/admin/students?${params.toString()}`;
 }
 
-function getImportSuccessUrl(rowsCount: number, documentsCount: number) {
+function getImportSuccessUrl(result: ImportCsvResult) {
   const params = new URLSearchParams({
     importStatus: "success",
-    importMessage: `${rowsCount} élève(s) traité(s) et ${documentsCount} document(s) enregistré(s) en attente. Utilisez l'import de disponibilisation pour passer les documents à Disponible.`,
+    importMessage: `${result.studentsCount} élève(s) enregistré(s), ${result.documentsCount} document(s) créé(s) (${result.rowsCount} ligne(s) CSV). Utilisez l'import de disponibilisation pour passer les documents à Disponible.`,
   });
+
+  if (result.errors.length > 0) {
+    params.set("importErrors", result.errors.slice(0, 8).join(" | "));
+  }
 
   return `/admin/students?${params.toString()}`;
 }
@@ -577,7 +583,7 @@ export async function importDocumentAvailabilityAction(formData: FormData) {
     redirect(getAvailabilityImportErrorUrl(message));
   }
 
-  if (result.updated === 0 && result.errors.length > 0) {
+  if (result.updated === 0 && result.created === 0 && result.alreadyAvailable === 0 && result.errors.length > 0) {
     redirect(
       getAvailabilityImportErrorUrl(
         `Aucune disponibilisation effectuée. ${result.errors.slice(0, 3).join(" ")}`,
@@ -589,15 +595,22 @@ export async function importDocumentAvailabilityAction(formData: FormData) {
   revalidatePath("/admin/students");
   revalidatePath("/dashboard/documents");
 
+  const createdSuffix =
+    result.created > 0 ? ` ${result.created} fiche(s) document créée(s) automatiquement.` : "";
   const errorSuffix =
     result.errors.length > 0
       ? ` ${result.errors.length} ligne(s) en erreur (voir détail ci-dessous).`
       : "";
+  const warningSuffix =
+    result.warnings.length > 0
+      ? ` ${result.warnings.length} avertissement(s) e-mail (voir détail ci-dessous).`
+      : "";
 
   redirect(
     getAvailabilityImportSuccessUrl(
-      `${result.updated} document(s) disponibilise(s), ${result.notified} notification(s) envoyee(s), ${result.alreadyAvailable} deja disponible(s).${errorSuffix}`,
+      `${result.updated} document(s) disponibilise(s), ${result.notified} notification(s) envoyee(s), ${result.alreadyAvailable} deja disponible(s).${createdSuffix}${errorSuffix}${warningSuffix}`,
       result.errors,
+      result.warnings,
     ),
   );
 }
@@ -610,7 +623,7 @@ function getAvailabilityImportErrorUrl(message: string) {
   return `/admin/students?${params.toString()}`;
 }
 
-function getAvailabilityImportSuccessUrl(message: string, errors: string[]) {
+function getAvailabilityImportSuccessUrl(message: string, errors: string[], warnings: string[] = []) {
   const params = new URLSearchParams({
     availStatus: "success",
     availMessage: message,
@@ -618,6 +631,10 @@ function getAvailabilityImportSuccessUrl(message: string, errors: string[]) {
 
   if (errors.length > 0) {
     params.set("availErrors", errors.slice(0, 10).join(" | "));
+  }
+
+  if (warnings.length > 0) {
+    params.set("availWarnings", warnings.slice(0, 10).join(" | "));
   }
 
   return `/admin/students?${params.toString()}`;
@@ -828,6 +845,8 @@ export async function importTestDataFromCsv(
 
   let importedRowsCount = 0;
   let importedDocumentsCount = 0;
+  const studentMatricules = new Set<string>();
+  const errors: string[] = [];
 
   try {
     const file = formData.get("file");
@@ -852,49 +871,66 @@ export async function importTestDataFromCsv(
     for (const row of rows) {
       const matricule = normalizeUpper(getCsvValue(row, "eleve_matricule"));
       const rowLabel = getRowLabel(row, matricule);
-      const diplomeValue = getCsvValue(row, "diplome_type");
-      const typeDocumentValue = getCsvValue(row, "document_type");
-      const sessionValue = getCsvValue(row, "annee_session");
-      const parsedSession = sessionValue ? Number(sessionValue) : null;
 
-      const importRow: StudentImportRow = {
-        matricule,
-        email: normalize(getCsvValue(row, "eleve_email")).toLowerCase(),
-        nom: normalize(getCsvValue(row, "eleve_nom")),
-        prenom: normalize(getCsvValue(row, "eleve_prenom")),
-        dateNaissance: parseDate(getCsvValue(row, "eleve_date_naissance")),
-        diplomeType: diplomeValue ? (parseImportDiplomeType(diplomeValue) ?? undefined) : undefined,
-        anneeSession:
-          parsedSession && !Number.isNaN(parsedSession) ? Math.trunc(parsedSession) : null,
-        centreExamen: normalize(getCsvValue(row, "centre_examen")) || undefined,
-        regionComposition: normalize(getCsvValue(row, "region_composition") || "Centre"),
-      };
+      try {
+        const diplomeValue = getCsvValue(row, "diplome_type");
+        const typeDocumentValue = getCsvValue(row, "document_type");
+        const sessionValue = getCsvValue(row, "annee_session");
+        const parsedSession = sessionValue ? Number(sessionValue) : null;
 
-      if (importRow.diplomeType === undefined && diplomeValue) {
-        throw new Error(`${rowLabel}: type de diplôme invalide "${diplomeValue}".`);
-      }
+        const importRow: StudentImportRow = {
+          matricule,
+          email: normalize(getCsvValue(row, "eleve_email")).toLowerCase(),
+          nom: normalize(getCsvValue(row, "eleve_nom")),
+          prenom: normalize(getCsvValue(row, "eleve_prenom")),
+          dateNaissance: parseDate(getCsvValue(row, "eleve_date_naissance")),
+          diplomeType: diplomeValue ? (parseImportDiplomeType(diplomeValue) ?? undefined) : undefined,
+          anneeSession:
+            parsedSession && !Number.isNaN(parsedSession) ? Math.trunc(parsedSession) : null,
+          centreExamen: normalize(getCsvValue(row, "centre_examen")) || undefined,
+          regionComposition: normalize(getCsvValue(row, "region_composition") || "Centre"),
+        };
 
-      if (typeDocumentValue) {
-        const type = parseImportDocumentType(typeDocumentValue);
-
-        if (!type) {
-          throw new Error(`${rowLabel}: type de document invalide "${typeDocumentValue}".`);
-        }
-        if (!importRow.diplomeType) {
-          throw new Error(
-            `${rowLabel}: diplome_type est obligatoire lorsque document_type est renseigné.`,
-          );
+        if (importRow.diplomeType === undefined && diplomeValue) {
+          throw new Error(`${rowLabel}: type de diplôme invalide "${diplomeValue}".`);
         }
 
-        importRow.documentType = type;
-        importRow.documentStatut = StatutDocument.PAS_DISPONIBLE;
-      }
+        if (typeDocumentValue) {
+          const type = parseImportDocumentType(typeDocumentValue);
 
-      const result = await upsertStudentImportRow(user, importRow, rowLabel);
-      importedRowsCount += 1;
-      if (result.documentCreated) {
-        importedDocumentsCount += 1;
+          if (!type) {
+            throw new Error(`${rowLabel}: type de document invalide "${typeDocumentValue}".`);
+          }
+          if (!importRow.diplomeType) {
+            throw new Error(
+              `${rowLabel}: diplome_type est obligatoire lorsque document_type est renseigné.`,
+            );
+          }
+
+          importRow.documentType = type;
+          importRow.documentStatut = StatutDocument.PAS_DISPONIBLE;
+        }
+
+        const result = await upsertStudentImportRow(user, importRow, rowLabel);
+        importedRowsCount += 1;
+        if (matricule) {
+          studentMatricules.add(matricule);
+        }
+        if (result.documentCreated) {
+          importedDocumentsCount += 1;
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : `${rowLabel} : erreur inconnue.`;
+        errors.push(message);
       }
+    }
+
+    if (studentMatricules.size === 0) {
+      throw new Error(
+        errors.length > 0
+          ? errors.slice(0, 3).join(" ")
+          : "Aucun élève enregistré depuis le CSV.",
+      );
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Import CSV impossible.";
@@ -907,6 +943,8 @@ export async function importTestDataFromCsv(
   return {
     rowsCount: importedRowsCount,
     documentsCount: importedDocumentsCount,
+    studentsCount: studentMatricules.size,
+    errors,
   };
 }
 
@@ -983,7 +1021,7 @@ export async function importTestDataAction(formData: FormData) {
     redirect(requireImportErrorUrl(message));
   }
 
-  redirect(getImportSuccessUrl(result.rowsCount, result.documentsCount));
+  redirect(getImportSuccessUrl(result));
 }
 
 export async function cancelAppointmentAction(formData: FormData) {

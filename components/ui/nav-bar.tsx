@@ -3,8 +3,9 @@ import { cookies } from "next/headers";
 
 import { LandingNavLinks } from "@/components/landing/landing-nav-links";
 import { NavLoginMenu } from "@/components/landing/nav-login-menu";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { getCurrentUser, getHomePathForRole } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
+import { NavBarGuestActions } from "@/components/ui/nav-bar-guest-actions";
 import { DocScolLogo } from "@/components/ui/DocScolLogo";
 import { NavUserMenu } from "@/components/ui/nav-user-menu";
 
@@ -34,6 +35,7 @@ export async function NavBar() {
         )}
 
         <nav className="flex shrink-0 items-center gap-2">
+          {!dbUser ? <LanguageSwitcher compact /> : null}
           {dbUser ? (
             <NavUserMenu homePath={getHomePathForRole(dbUser.role)} />
           ) : (
@@ -41,9 +43,7 @@ export async function NavBar() {
               <div className="hidden sm:block">
                 <NavLoginMenu />
               </div>
-              <Button asChild>
-                <Link href="/auth/register">Activation</Link>
-              </Button>
+              <NavBarGuestActions />
             </>
           )}
         </nav>

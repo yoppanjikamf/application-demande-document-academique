@@ -1,0 +1,4 @@
+eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
+ELEVE9101,eleve9101@example.com,ATANG,Grace,2005-02-08,BEPC,2025,Centre d'examen Centre,Centre,ORIGINAL
+ELEVE9101,eleve9101@example.com,ATANG,Grace,2005-02-08,BEPC,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
+ELEVE9102,eleve9102@example.com,BILONG,Emmanuel,2004-11-19,BEPC,2025,Centre d'examen Centre,Centre,RELEVE_NOTES

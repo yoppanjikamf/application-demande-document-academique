@@ -1,0 +1,3 @@
+eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
+ELEVE08101,eleve08101@example.com,MBALLA,Sylvie,2005-05-01,BEPC,2025,Centre d'examen Ouest,Ouest,ORIGINAL
+ELEVE08101,eleve08101@example.com,MBALLA,Sylvie,2005-05-01,BEPC,2025,Centre d'examen Ouest,Ouest,RELEVE_NOTES

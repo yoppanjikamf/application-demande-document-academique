@@ -4,6 +4,7 @@ import {
   isDocumentRequestAllowed,
   resolveDocumentRoute,
 } from "@/lib/document-routing";
+import { assertDiplomeMatchesAdminOrganisme } from "@/lib/import-organisme-guard";
 import { prisma } from "@/lib/prisma";
 import type { AuthenticatedUser } from "@/lib/auth";
 import {
@@ -125,6 +126,8 @@ export async function upsertStudentImportRow(
   let documentCreated = false;
 
   if (row.diplomeType) {
+    assertDiplomeMatchesAdminOrganisme(admin.organismeId, row.diplomeType, contextLabel);
+
     const centreExamen = row.centreExamen?.trim() || null;
     const regionComposition = row.regionComposition?.trim() || "Centre";
 
@@ -167,7 +170,7 @@ export async function upsertStudentImportRow(
 
       if (!canAdminAccessDocument(admin, route)) {
         throw new Error(
-          `${contextLabel} : cet enregistrement est hors de votre organisme ou antenne régionale.`,
+          `${contextLabel} : document hors de votre antenne régionale (vérifiez region_composition et centre_examen).`,
         );
       }
 
