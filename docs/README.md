@@ -2,7 +2,7 @@
 
 Ce dossier contient la documentation fonctionnelle et technique de l'application de gestion des demandes et retraits de documents scolaires.
 
-Derniere mise a jour globale: 17/06/2026.
+Derniere mise a jour globale: 18/06/2026.
 
 ## Etat du projet
 
@@ -47,7 +47,7 @@ Voir `ETAT_FINAL_PROJET.md` pour le verdict detaille.
 | `import-disponibilisation-session-2024.csv` | **Import A** admin — disponibiliser des documents DEMO |
 | `import-disponibilisation-depuis-bd.csv` | **Import A** — export auto : `npm run export:disponibilisation-csv` |
 | `test-data-soutenance-eleves.csv` | Liste des 5 eleves apres `npm run seed:soutenance-eleves` |
-| `test-data-eleves.csv` | Petit exemple CSV (autre jeu de test) |
+| `test-data-eleves.csv` | Exemple minimal Import B (3 lignes) — preferer `import-documents-eleves-demo-existants.csv` pour la demo |
 
 Guide d'utilisation : `demo/KIT_DEMO_COMPLET.pdf`. Modeles vides dans `public/templates/`.
 
@@ -77,7 +77,7 @@ Les anciennes versions et les doublons ont ete retires du dossier `docs/`.
 - Les agents centres d'examen voient les rendez-vous transmis et confirment uniquement les retraits physiques de leur region.
 - Les notifications du MVP sont en base + email, pas encore push.
 - Le paiement Mobile Money / carte bancaire reel reste a finaliser ; le MVP gere le paiement applicatif du duplicata avec recu.
-- Les pieces justificatives sont exigees dans le formulaire, mais leur stockage fichier complet reste a brancher.
+- Les pieces justificatives duplicata sont uploadees dans Supabase Storage (4 pieces obligatoires : declaration de perte, CNI, demande DG OBC, decharge bordereau). Durcissement bucket prod a finaliser.
 
 ## Attention sur les exports PDF
 

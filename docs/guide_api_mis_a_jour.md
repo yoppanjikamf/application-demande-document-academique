@@ -12,7 +12,7 @@ Le projet utilise Next.js App Router. La logique metier est repartie entre :
 - services partages dans `lib/*` ;
 - schema relationnel dans `prisma/schema.prisma`.
 
-Le projet expose 37 route handlers `route.ts`, dont 36 sous `/api` et 1 route applicative `/logout`. Les routes critiques du MVP sont implementees. Les limites restantes concernent surtout le paiement externe, le stockage reel des justificatifs et la stabilite de la connexion Prisma/Postgres Supabase.
+Le projet expose 39 route handlers `route.ts` (37 sous `/api` + `/logout` + `/auth/callback`). Les routes critiques du MVP sont implementees. Les limites restantes concernent surtout le paiement externe reel et la stabilite de la connexion Prisma/Postgres Supabase.
 
 ## 2. Etat final court
 
@@ -26,7 +26,7 @@ Le projet expose 37 route handlers `route.ts`, dont 36 sous `/api` et 1 route ap
 | Agent centre d'examen | Implemente | Consultation RDV `PLANIFIE`/`CONFIRME` et confirmation du retrait physique |
 | Notifications email | Implemente | Via Nodemailer + `mail_logs` |
 | Paiement externe | Partiel | Paiement applicatif + webhook, pas de prestataire reel |
-| Justificatifs duplicata | Partiel | Fichier requis, stockage fichier a brancher |
+| Justificatifs duplicata | Implemente | Upload Supabase Storage, 4 pieces obligatoires (`PieceDuplicata`) |
 | Production Supabase | A valider | Pooler Postgres / Prisma a stabiliser |
 
 ## 3. Conventions API
@@ -70,6 +70,7 @@ Le projet expose 37 route handlers `route.ts`, dont 36 sous `/api` et 1 route ap
 
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
+| `/api/public/consultation` | POST | Public | Implemente | Consultation statuts par matricule (rate limit) |
 | `/api/auth/register` | POST | Public | Implemente | Active un eleve deja present en base |
 | `/api/auth/login` | POST | Public | Implemente | Connexion matricule + email + mot de passe |
 | `/api/auth/logout` | POST | Connecte | Implemente | Deconnexion Supabase |
@@ -107,6 +108,7 @@ Le projet expose 37 route handlers `route.ts`, dont 36 sous `/api` et 1 route ap
 | Route | Methode | Acteur | Etat | Notes |
 | --- | --- | --- | --- | --- |
 | `/api/students/me/notifications` | GET | Eleve | Implemente | Historique notifications |
+| `/api/students/me/notifications/:notificationId` | DELETE | Eleve | Implemente | Suppression d'une notification |
 | `/api/internal/notifications/dispatch` | POST | Systeme interne | Implemente | Envoi document disponible via secret |
 | `/api/internal/notifications/reminder-30days` | POST | Systeme interne | Implemente | Rappel auto 30j avant RDV |
 
@@ -189,25 +191,36 @@ Le projet expose 37 route handlers `route.ts`, dont 36 sous `/api` et 1 route ap
 | Paiements | `app/dashboard/actions.ts`, `app/api/students/me/payments/*`, `app/api/payments/webhook/route.ts` |
 | Admin documents | `app/admin/documents/page.tsx`, `app/api/admin/documents/*` |
 | Retraits | `app/api/admin/withdrawals/route.ts`, `app/centre-examen/page.tsx`, `app/api/centre-examen/*` |
-| Import CSV | `app/admin/import/page.tsx`, `app/admin/actions.ts`, `docs/test-data-eleves.csv` |
+| Import CSV | `app/admin/students/page.tsx`, `app/admin/actions.ts`, `docs/import-documents-eleves-demo-existants.csv`, `docs/import-disponibilisation-session-2024.csv` |
 | Seeds | `scripts/seed-regional-admins.ts`, `scripts/seed-decc-regional-admins.ts`, `scripts/seed-centre-examen-agents.ts`, `scripts/seed-soutenance-eleves.ts` |
 
 ## 8. Donnees attendues pour l'import CSV
 
-Colonnes recommandees :
+Deux formats distincts (voir `lib/admin-student-import.constants.ts`).
+
+### Import B — nouveaux eleves / documents (statut initial toujours Pas disponible)
 
 ```csv
-eleve_matricule,eleve_email,eleve_password,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,centre_examen,region_composition,document_type,document_statut,admin_matricule,rdv_date,rdv_heure,rdv_lieu,rdv_statut,rdv_commentaire
+eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
 ```
 
-Valeurs acceptees :
+Fichiers demo : `docs/import-documents-eleves-demo-existants.csv`, `docs/import-nouveaux-eleves-demo-2025.csv`.
 
 - `diplome_type` : `BEPC`, `PROBATOIRE`, `BACCALAUREAT`
-- `document_type` : `ORIGINAL`, `RELEVE_NOTES`, `DUPLICATA`
-- alias toleres : `DIPLOME` -> `ORIGINAL`, `RELEVE` -> `RELEVE_NOTES`
-- `document_statut` : `PAS_DISPONIBLE`, `DISPONIBLE`, `RETIRE`
-- alias toleres : `EN_ATTENTE`, `NON_DISPONIBLE` -> `PAS_DISPONIBLE`
-- `rdv_statut` : `PLANIFIE`, `CONFIRME`, `ANNULE`, `HONORE`
+- `document_type` : `ORIGINAL`, `RELEVE_NOTES` (pas `DUPLICATA` via Import B)
+- Les mots de passe ne sont **pas** importes depuis le CSV (activation eleve via `/auth/register`).
+- Les rendez-vous ne sont **pas** crees depuis le CSV.
+
+### Import A — disponibilisation (une ligne = un document existant → Disponible)
+
+```csv
+eleve_matricule,diplome_type,document_type,annee_session
+```
+
+Fichier demo : `docs/import-disponibilisation-session-2024.csv`.
+
+- Le document doit deja exister en base (Import B ou saisie manuelle).
+- Les duplicatas sont exclus de l'Import A.
 
 ## 9. Verification manuelle recommandee
 

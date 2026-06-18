@@ -265,16 +265,44 @@ export function LandingPage({ consultationUrl }: { consultationUrl: string }) {
   return (
     <>
       <section id="accueil" className="relative overflow-hidden bg-obc-900 text-white">
+        {/* Couche 1 — élèves en tenue, le parcours au quotidien */}
+        <Image
+          src="/images/photos/eleves.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="absolute inset-0 h-full w-full object-cover object-[center_35%]"
+          aria-hidden="true"
+          style={{
+            WebkitMaskImage:
+              "linear-gradient(to right, black 0%, black 42%, rgba(0,0,0,0.55) 58%, transparent 72%)",
+            maskImage:
+              "linear-gradient(to right, black 0%, black 42%, rgba(0,0,0,0.55) 58%, transparent 72%)",
+          }}
+        />
+        {/* Couche 2 — diplômés, l'aboutissement */}
         <Image
           src="/images/landing/hero-graduation.png"
-          alt="Diplômés célébrant l'obtention de leurs documents scolaires"
+          alt="Élèves camerounais en classe consultant le portail et diplômés célébrant l'obtention de leurs documents scolaires"
           fill
           priority
           sizes="100vw"
           className="absolute inset-0 h-full w-full object-cover object-right"
+          style={{
+            WebkitMaskImage:
+              "linear-gradient(to right, transparent 0%, transparent 34%, rgba(0,0,0,0.45) 52%, black 68%, black 100%)",
+            maskImage:
+              "linear-gradient(to right, transparent 0%, transparent 34%, rgba(0,0,0,0.45) 52%, black 68%, black 100%)",
+          }}
+        />
+        {/* Zone de fusion entre les deux scènes */}
+        <div
+          className="pointer-events-none absolute inset-y-0 left-[38%] w-[28%] bg-gradient-to-r from-transparent via-gold-400/10 to-transparent"
+          aria-hidden="true"
         />
         <div
-          className="via-obc-900/90 to-obc-900/45 absolute inset-0 bg-gradient-to-r from-obc-900"
+          className="via-obc-900/88 to-obc-900/25 absolute inset-0 bg-gradient-to-r from-obc-900"
           aria-hidden="true"
         />
         <div
@@ -491,7 +519,7 @@ export function LandingPage({ consultationUrl }: { consultationUrl: string }) {
               <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-[var(--border-token)] shadow-card">
                 <Image
                   src="/images/photos/eleves.jpg"
-                  alt="Des élèves consultant le portail ensemble"
+                  alt="Élèves camerounais en uniforme scolaire consultant le portail sur leur téléphone en salle de classe"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   className="absolute inset-0 h-full w-full object-cover"

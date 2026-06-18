@@ -57,7 +57,7 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
       subtitle="Ajoutez des élèves manuellement ou importez un tableau CSV, puis recherchez et suivez leurs dossiers."
     >
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-text-1">Disponibiliser des documents (liste OBC)</h2>
+        <h2 className="text-lg font-semibold text-text-1">Disponibiliser des documents (Import A)</h2>
         <AdminAvailabilityImportForm
           availStatus={availStatus}
           availMessage={availMessage}

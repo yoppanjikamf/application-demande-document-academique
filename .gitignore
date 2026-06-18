@@ -23,6 +23,9 @@
 # misc
 .DS_Store
 *.pem
+docs/exports/
+/*.jpeg
+/*.jpg
 
 # debug
 npm-debug.log*

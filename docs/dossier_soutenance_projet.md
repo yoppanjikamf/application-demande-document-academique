@@ -41,7 +41,7 @@ L'application comporte aussi :
 - Reservation, annulation et confirmation de retrait physique.
 - Gestion du quota journalier de rendez-vous.
 - Export calendrier `.ics`.
-- Import CSV d'eleves, examens, documents et rendez-vous.
+- Import CSV d'eleves, examens et documents (Import B + Import A disponibilisation). Les rendez-vous ne sont pas importes depuis CSV.
 - Envoi de notifications applicatives et emails.
 - Historisation des actions sensibles dans des audit logs.
 
@@ -123,7 +123,7 @@ L'application comporte aussi :
 
 ## 8. Routes API
 
-Le projet expose 37 route handlers, dont 36 sous `/api` et 1 route `/logout`. Les familles principales sont :
+Le projet expose 39 route handlers (37 sous `/api` + `/logout` + `/auth/callback`). Les familles principales sont :
 
 - `/api/auth/*` ;
 - `/api/students/me/*` ;

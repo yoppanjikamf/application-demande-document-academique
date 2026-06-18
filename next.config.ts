@@ -61,6 +61,15 @@ const nextConfig: NextConfig = {
   },
   compress: true,
   poweredByHeader: false,
+  async redirects() {
+    return [
+      {
+        source: "/dashboard/rendezvous",
+        destination: "/dashboard/rendez-vous",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     const connectSrc = ["'self'", "https:", "wss:"];
     if (isDevelopment) {

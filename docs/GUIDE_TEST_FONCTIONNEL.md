@@ -88,11 +88,11 @@ psql "$DATABASE_URL" -c 'select now();'
 
 ## 6. Test import CSV
 
-1. Se connecter avec un admin du bon scope.
-2. Aller sur `/admin/import`.
-3. Importer `docs/test-data-eleves.csv`.
-4. Verifier que les documents hors scope sont refuses si l'admin n'est pas responsable.
-5. Verifier les documents importes dans `/admin/documents`.
+1. Se connecter avec un admin du bon scope (`ADM-02-CENTRE` ou `DECC-02-CENTRE`).
+2. Aller sur `/admin/students`.
+3. **Import B** : coller `docs/import-documents-eleves-demo-existants.csv` (cree les fiches documents en Pas disponible).
+4. **Import A** : coller `docs/import-disponibilisation-session-2024.csv` (passe a Disponible + notification).
+5. Verifier les documents importes dans `/admin/documents` et le scope regional.
 
 ## 7. Test routes internes
 
@@ -129,6 +129,6 @@ Si la commande timeout, corriger `DATABASE_URL`, le pooler Supabase ou l'etat du
 
 Normal dans le MVP: le paiement externe n'est pas encore branche.
 
-### Justificatif non stocke en fichier
+### Justificatifs duplicata
 
-Normal dans le MVP: le formulaire exige le fichier, mais le stockage Supabase Storage reste a faire pour la production.
+Quatre pieces obligatoires uploadees dans Supabase Storage (`duplicata-documents`) : declaration de perte, CNI, demande DG OBC, decharge bordereau. Verifier les lignes `PieceDuplicata` en base apres soumission.

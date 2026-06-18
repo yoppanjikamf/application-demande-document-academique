@@ -1,6 +1,6 @@
 # Resume d'implementation DR-DOCSCOL
 
-Derniere mise a jour: 17/06/2026.
+Derniere mise a jour: 18/06/2026.
 
 ## Objectif atteint
 
@@ -26,9 +26,9 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 
 | Element | Quantite |
 | --- | --- |
-| Pages UI `page.tsx` | 25 |
-| Route handlers `route.ts` | 38 |
-| Fichiers `actions.ts` | 4 |
+| Pages UI `page.tsx` | 25 (incl. `/consultation`) |
+| Route handlers `route.ts` | 39 |
+| Fichiers `actions.ts` | 5 |
 | Roles Prisma | 3 |
 | Migrations Prisma | 20 |
 
@@ -80,7 +80,7 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 - Liste paiements.
 - Audit logs.
 - Import CSV nouveaux eleves (Import B, statut initial Pas disponible).
-- Import CSV disponibilisation OBC (Import A, document par document).
+- Import CSV disponibilisation (Import A, OBC et DECC selon scope).
 - Historique retraits.
 - Parametres RDV OBC.
 
@@ -96,7 +96,7 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 - `docs/admins-regionaux-test.md`: admins OBC.
 - `docs/admins-decc-regionaux-test.md`: admins DECC.
 - `docs/agents-centres-examen-test.md`: agents centres.
-- `docs/test-data-eleves.csv`: petit CSV d'import.
+- `docs/test-data-eleves.csv`: exemple minimal Import B (preferer les CSV demo du kit).
 - `docs/test-data-soutenance-eleves.csv`: 5 eleves demo soutenance.
 - `docs/connexions-tests-completes.md`: fichier central des identifiants.
 
@@ -113,7 +113,7 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 1. Stabiliser `DATABASE_URL` / Supabase pooler pour Prisma.
 2. Brancher un vrai prestataire de paiement.
    - Conserver le bareme duplicata: 10 000 FCFA pour un releve, 15 000 FCFA pour un original.
-3. Stocker les justificatifs dans Supabase Storage ou equivalent.
+3. Durcir le bucket Supabase Storage duplicata en production (upload deja implemente).
 4. Ajouter les futures demandes de traduction et de rectification de diplome.
 5. Ajouter tests automatises E2E.
 

@@ -214,6 +214,11 @@ function RetiredSummary({ appointment, label }: { appointment: RendezVous | null
   );
 }
 
+const actionColumnHeadClassName =
+  "sticky right-0 z-10 min-w-[6.5rem] bg-surface-1 px-4 text-right shadow-[-6px_0_10px_-6px_rgba(15,23,42,0.12)]";
+const actionColumnCellClassName =
+  "sticky right-0 z-10 min-w-[6.5rem] bg-surface-0 px-4 text-right shadow-[-6px_0_10px_-6px_rgba(15,23,42,0.12)] group-hover:bg-muted/50";
+
 export default async function DocumentsPage({ searchParams }: DocumentsPageProps) {
   const user = await requireRole("ELEVE", "/dashboard/documents");
   const params = await searchParams;
@@ -340,6 +345,9 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                 Enregistrez d&apos;abord votre demande, puis suivez le statut et prenez rendez-vous
                 lorsque le document est disponible.
               </p>
+              <p className="mt-2 text-xs text-text-muted md:hidden">
+                Faites glisser le tableau vers la gauche pour afficher la colonne « Action ».
+              </p>
             </div>
 
             {currentExam.diplomeType === "PROBATOIRE" ? (
@@ -349,19 +357,19 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
               </p>
             ) : null}
 
-            <div className="overflow-x-auto rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
+            <div className="rounded-md border border-[var(--border-token)] bg-surface-0 shadow-card">
               <Table className="min-w-[640px]">
                 <TableHeader className="bg-surface-1">
                   <TableRow>
                     <TableHead className="w-[34%] px-4">Document</TableHead>
                     <TableHead className="hidden px-4 md:table-cell">Retrait</TableHead>
                     <TableHead className="px-4">Statut</TableHead>
-                    <TableHead className="px-4 text-right">Action</TableHead>
+                    <TableHead className={actionColumnHeadClassName}>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isDocumentRequestAllowed(currentExam.diplomeType, "ORIGINAL") ? (
-                    <TableRow>
+                    <TableRow className="group">
                       <TableCell className="px-4">
                         <div className="flex items-center gap-3">
                           <FileCheck2 className="h-5 w-5 text-obc-800" />
@@ -389,7 +397,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                           {getStudentDocumentStatusLabel(originalDocument)}
                         </StatusBadge>
                       </TableCell>
-                      <TableCell className="px-4 text-right">
+                      <TableCell className={actionColumnCellClassName}>
                         <Sheet>
                           <SheetTrigger asChild>
                             <Button variant="outline" size="sm">
@@ -469,7 +477,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                     </TableRow>
                   ) : null}
 
-                  <TableRow>
+                  <TableRow className="group">
                     <TableCell className="px-4">
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-obc-800" />
@@ -495,7 +503,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                         {getStudentDocumentStatusLabel(releveDocument)}
                       </StatusBadge>
                     </TableCell>
-                    <TableCell className="px-4 text-right">
+                    <TableCell className={actionColumnCellClassName}>
                       <Sheet>
                         <SheetTrigger asChild>
                           <Button variant="outline" size="sm">
@@ -588,7 +596,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                       });
 
                       return (
-                        <TableRow key={target}>
+                        <TableRow key={target} className="group">
                           <TableCell className="px-4">
                             <div className="flex items-center gap-3">
                               <RotateCcw className="h-5 w-5 text-obc-800" />
@@ -608,7 +616,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                               {context.workflowStatus.label}
                             </StatusBadge>
                           </TableCell>
-                          <TableCell className="px-4 text-right">
+                          <TableCell className={actionColumnCellClassName}>
                             <Sheet>
                               <SheetTrigger asChild>
                                 <Button variant="outline" size="sm">

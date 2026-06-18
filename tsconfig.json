@@ -23,11 +23,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": [
-    "node_modules",
-    "supabase/functions",
-    "nextjs-admin-dashboard-main",
-    "TEMPLATE",
-    "docs/free-nextjs-admin-dashboard-main"
-  ]
+  "exclude": ["node_modules", "supabase/functions"]
 }

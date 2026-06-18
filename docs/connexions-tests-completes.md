@@ -44,7 +44,7 @@ L'application a besoin de Supabase Auth et de Postgres via Prisma.
 
 - Frais duplicata relevé: 10 000 FCFA.
 - Frais duplicata original: 15 000 FCFA.
-- Justificatif obligatoire: CNI ou carte scolaire.
+- Justificatifs obligatoires duplicata (4 pieces) : declaration de perte, CNI, demande adressee au DG OBC, decharge bordereau de reussite.
 - Les duplicatas BEPC sont retires exclusivement a l'antenne regionale DECC competente.
 - Les duplicatas ne sont pas traites par l'Agent Centre d'Examen.
 
@@ -104,12 +104,12 @@ Source CSV : `docs/test-data-soutenance-eleves.csv`
 | Matricule   | Email                                 | Nom     | Prenom   | Date naiss. | Centre examen            | Region | Examens composes                                | Docs en BD | Activation     |
 | ----------- | ------------------------------------- | ------- | -------- | ----------- | ------------------------ | ------ | ----------------------------------------------- | ---------- | -------------- |
 | DEMO2026001 | francialengambia@gmail.com            | NGAMBIA | Françial | 2003-02-14  | Centre d'examen Centre   | Centre | BEPC 2019 / Probatoire 2021 / Baccalaureat 2022 | 0          | /auth/register |
-| DEMO2026002 | faissayoppanjikam@gmail.com           | NJIKAM  | Faïssa   | 2004-05-20  | Centre d'examen Centre   | Centre | BEPC 2019 / Probatoire 2021 / Baccalaureat 2022 | 3          | /auth/register |
+| DEMO2026002 | faissayoppanjikam@gmail.com           | NJIKAM  | Faïssa   | 2004-05-20  | Centre d'examen Centre   | Centre | BEPC 2019 / Probatoire 2021 / Baccalaureat 2022 | 0*         | /auth/register |
 | DEMO2026003 | eyaanemesselehelenedoucette@gmail.com | MESSELE | Doucette | 2003-09-08  | Centre d'examen Centre   | Centre | BEPC 2019 / Probatoire 2021 / Baccalaureat 2022 | 0          | /auth/register |
 | DEMO2026004 | ambiankeu@gmail.com                   | MBIANKEU| Anicet   | 2002-11-27  | Centre d'examen Centre   | Centre | BEPC 2019 / Probatoire 2021 / Baccalaureat 2022 | 0          | /auth/register |
 | DEMO2026005 | prince.mabengue@facsciences-uy1.cm    | MABENGUE| Prince   | 2003-07-03  | Centre d'examen Centre   | Centre | BEPC 2019 / Probatoire 2021 / Baccalaureat 2022 | 0          | /auth/register |
 
-> Les examens de tous les eleves sont enregistres avec la region **Centre** et le centre **Centre d'examen Centre** (etat reel de la BD). Pour creer les fiches documents manquantes : Import B `docs/import-documents-eleves-demo-existants.csv`, puis Import A `docs/import-disponibilisation-session-2024.csv`.
+> *Colonne « Docs en BD » : **0 apres `seed:soutenance-eleves` seul**. Les chiffres > 0 indiquent une base deja importee (Import B). Appliquer `import-documents-eleves-demo-existants.csv` puis `import-disponibilisation-session-2024.csv` pour la demo complete.
 
 ## Eleves demo import CSV (kit demo — optionnel)
 

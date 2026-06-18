@@ -1,16 +1,17 @@
 # Etat final du projet DR-DOCSCOL
 
-Date d'audit: 05/06/2026.
+Date d'audit: 18/06/2026.
 
 ## Verdict
 
 Le projet est fonctionnellement tres avance et peut etre considere comme pret pour une soutenance ou une demonstration encadree.
 
-Il ne faut pas encore le presenter comme une production totalement terminee, car trois points restent a verrouiller:
+Il ne faut pas encore le presenter comme une production totalement terminee, car deux points restent a verrouiller:
 
 - la connectivite Postgres Supabase via Prisma / Supavisor est instable depuis la machine de developpement;
-- le paiement Mobile Money / carte bancaire est simule ou confirme applicativement selon le flux, mais pas encore branche a un prestataire reel;
-- le stockage objet durable des justificatifs de duplicata dans un bucket dedie reste a brancher (le MVP enregistre le nom du fichier dans les instructions du document).
+- le paiement Mobile Money / carte bancaire est simule ou confirme applicativement selon le flux, mais pas encore branche a un prestataire reel.
+
+Le stockage des pieces justificatives duplicata est implemente via Supabase Storage (`lib/duplicata-storage.ts`, bucket `duplicata-documents`, modele `PieceDuplicata`). Il reste a durcir la configuration bucket en production (politiques, retention, sauvegarde).
 
 ## Ce qui est termine
 
@@ -71,7 +72,7 @@ Il ne faut pas encore le presenter comme une production totalement terminee, car
 - Liste des eleves du scope.
 - Liste des paiements du scope.
 - Journaux d'audit scopes.
-- Import CSV d'eleves, examens, documents et rendez-vous.
+- Import CSV d'eleves, examens et documents (Import B puis Import A disponibilisation). Les rendez-vous ne sont pas crees depuis le CSV.
 - Historique de retraits via API `/api/admin/withdrawals`.
 - OBC uniquement: gestion planning RDV et disponibilites.
 - DECC: gestion des demandes BEPC et validation des duplicatas BEPC dans son antenne regionale.
@@ -104,10 +105,9 @@ Il ne faut pas encore le presenter comme une production totalement terminee, car
    - Le bareme duplicata est differencie: 10 000 FCFA pour un releve et 15 000 FCFA pour un original.
    - Le webhook existe, mais aucun prestataire Orange Money / MTN Money / carte bancaire n'est integre.
 
-3. Brancher le stockage objet des pieces justificatives.
-   - Le formulaire exige un fichier.
-   - Le MVP enregistre le nom du fichier dans les instructions du document.
-   - Pour production, utiliser Supabase Storage ou un stockage equivalent.
+3. Durcir le stockage des pieces justificatives duplicata en production.
+   - Upload Supabase Storage deja implemente (`PieceDuplicata`, 4 pieces obligatoires).
+   - A finaliser: politiques bucket, URLs signees en prod, retention et sauvegarde.
 
 4. Ajouter les demandes futures.
    - Demandes de traduction de diplome.

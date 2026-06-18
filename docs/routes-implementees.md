@@ -1,15 +1,15 @@
 # Routes implementees
 
-Derniere mise a jour: 02/06/2026.
+Derniere mise a jour: 18/06/2026.
 
 Ce document liste les routes actuellement presentes dans le projet Next.js App Router.
 
 ## Resume rapide
 
-- `page.tsx`: 25 pages UI.
-- `route.ts`: 37 routes HTTP, dont 36 sous `/api` et 1 route `/logout`.
-- `actions.ts`: 4 fichiers de Server Actions.
-- Segments dynamiques utilises: `[documentId]`, `[appointmentId]`, `[paymentId]`, `[userId]`.
+- `page.tsx`: 25 pages UI (incluant `/consultation`).
+- `route.ts`: 39 handlers HTTP (37 sous `/api` + `/logout` + `/auth/callback`).
+- `actions.ts`: 5 fichiers de Server Actions.
+- Segments dynamiques utilises: `[documentId]`, `[appointmentId]`, `[paymentId]`, `[userId]`, `[notificationId]`.
 
 ## Pages UI
 
@@ -18,6 +18,7 @@ Ce document liste les routes actuellement presentes dans le projet Next.js App R
 | Route | Fichier |
 | --- | --- |
 | `/` | `app/page.tsx` |
+| `/consultation` | `app/consultation/page.tsx` |
 | `/account` | `app/account/page.tsx` |
 
 ### Authentification
@@ -42,7 +43,7 @@ Ce document liste les routes actuellement presentes dans le projet Next.js App R
 | `/dashboard/notifications` | `app/dashboard/notifications/page.tsx` |
 | `/dashboard/payments` | `app/dashboard/payments/page.tsx` |
 | `/dashboard/rendez-vous` | `app/dashboard/rendez-vous/page.tsx` |
-| `/dashboard/rendezvous` | `app/dashboard/rendezvous/page.tsx` |
+| `/dashboard/rendezvous` | Redirection permanente vers `/dashboard/rendez-vous` (`next.config.ts`) |
 
 ### Administration OBC / DECC
 
@@ -53,7 +54,7 @@ Ce document liste les routes actuellement presentes dans le projet Next.js App R
 | `/admin/students` | `app/admin/students/page.tsx` | Eleves visibles dans le scope admin |
 | `/admin/payments` | `app/admin/payments/page.tsx` | Paiements duplicata |
 | `/admin/audit-logs` | `app/admin/audit-logs/page.tsx` | Journaux d'audit scopes |
-| `/admin/import` | `app/admin/import/page.tsx` | Import CSV |
+| `/admin/import` | `app/admin/import/page.tsx` | Redirection vers `/admin/students` |
 | `/admin/appointments` | `app/admin/appointments/page.tsx` | OBC uniquement |
 | `/admin/rdv-disponibilites` | `app/admin/rdv-disponibilites/page.tsx` | OBC uniquement |
 
@@ -105,12 +106,19 @@ Ce document liste les routes actuellement presentes dans le projet Next.js App R
 | POST | `/api/students/me/documents/[documentId]/appointments` | `app/api/students/me/documents/[documentId]/appointments/route.ts` |
 | POST | `/api/students/me/documents/[documentId]/calendar-event` | `app/api/students/me/documents/[documentId]/calendar-event/route.ts` |
 
+### Consultation publique
+
+| Methode | Route | Fichier |
+| --- | --- | --- |
+| POST | `/api/public/consultation` | `app/api/public/consultation/route.ts` |
+
 ### Eleve: rendez-vous, notifications, paiements
 
 | Methode | Route | Fichier |
 | --- | --- | --- |
-| DELETE | `/api/students/me/appointments/[appointmentId]/cancel` | `app/api/students/me/appointments/[appointmentId]/cancel/route.ts` |
+| PATCH | `/api/students/me/appointments/[appointmentId]/cancel` | `app/api/students/me/appointments/[appointmentId]/cancel/route.ts` |
 | GET | `/api/students/me/notifications` | `app/api/students/me/notifications/route.ts` |
+| DELETE | `/api/students/me/notifications/[notificationId]` | `app/api/students/me/notifications/[notificationId]/route.ts` |
 | POST | `/api/students/me/payments/initiate` | `app/api/students/me/payments/initiate/route.ts` |
 | GET | `/api/students/me/payments/[paymentId]` | `app/api/students/me/payments/[paymentId]/route.ts` |
 | PATCH | `/api/students/me/payments/[paymentId]/cancel` | `app/api/students/me/payments/[paymentId]/cancel/route.ts` |
@@ -159,6 +167,7 @@ Ce document liste les routes actuellement presentes dans le projet Next.js App R
 | --- | --- |
 | `app/auth/actions.ts` | Connexion, inscription, selection antenne admin, reset indirect |
 | `app/dashboard/actions.ts` | RDV eleve, demandes releve, demandes duplicata |
+| `app/dashboard/notifications/actions.ts` | Suppression notifications eleve |
 | `app/admin/actions.ts` | Statuts documents, import CSV, quota, jours feries, RDV admin |
 | `app/account/actions.ts` | Mise a jour profil |
 

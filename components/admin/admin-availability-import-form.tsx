@@ -27,7 +27,7 @@ export function AdminAvailabilityImportForm({
       action={importDocumentAvailabilityAction}
       className="space-y-4 rounded-md border border-[var(--border-token)] bg-surface-0 p-5 shadow-card"
       pendingTitle="Disponibilisation en cours"
-      pendingDescription="Mise à jour des statuts document par document selon la liste OBC."
+      pendingDescription="Mise à jour des statuts document par document (Import A disponibilisation)."
       pendingHint="Les notifications sont envoyées aux élèves concernés."
     >
       {availMessage ? (
@@ -48,7 +48,7 @@ export function AdminAvailabilityImportForm({
         </div>
       ) : null}
       <div>
-        <h3 className="font-semibold text-text-1">Import disponibilisation (liste OBC)</h3>
+        <h3 className="font-semibold text-text-1">Import disponibilisation (Import A)</h3>
         <p className="mt-1 text-sm text-text-3">
           Une ligne = un élève déjà en base + un document précis à passer à{" "}
           <strong>Disponible</strong>. Exemples : relevés Probatoire, originaux BEPC ou

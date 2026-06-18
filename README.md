@@ -1,82 +1,77 @@
 # DR-DOCSCOL
 
-[![CI](https://github.com/DimitriTedom/NEXTJS-SUPABASE-TEMPLATE/actions/workflows/ci.yml/badge.svg)](https://github.com/DimitriTedom/NEXTJS-SUPABASE-TEMPLATE/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/DimitriTedom/NEXTJS-SUPABASE-TEMPLATE)](LICENSE)
+Application web de gestion des **demandes et retraits de documents scolaires** (BEPC, Probatoire, Baccalauréat) pour les organismes **OBC** et **DECC**, les **élèves** et les **agents de centre d'examen**.
 
-Application de gestion des demandes et retraits de documents académiques, construite avec :
+Stack : **Next.js 15** (App Router) · **Supabase Auth** · **Prisma** · **PostgreSQL** · **Tailwind** · **shadcn/ui**
 
-- Next.js (App Router)
-- Supabase Auth (email + password)
-- Prisma (PostgreSQL)
-- shadcn/ui + Tailwind
-- Docker + Vercel-friendly build
-
-## Quick start (local)
-
-### 1) Install
+## Démarrage rapide
 
 ```bash
 npm install
-```
-
-Optional formatting:
-
-```bash
-npm run format
-```
-
-### 2) Configure env
-
-```bash
-cp .env.template .env
-```
-
-Fill in `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-
-### 3) Start Supabase locally
-
-Requires the Supabase CLI and Docker.
-
-```bash
-supabase start
-```
-
-### 4) Prisma
-
-```bash
-npx prisma generate
-npx prisma migrate dev --name init
-```
-
-### 5) Run the app
-
-```bash
+cp .env.template .env   # renseigner Supabase + DATABASE_URL
+npm run db:generate
+npm run db:migrate
+npm run seed:soutenance-eleves
 npm run dev
 ```
 
-Open http://localhost:3000
+Ouvrir [http://localhost:3000](http://localhost:3000).
 
-## Routes included
+Variables minimales : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `DIRECT_URL`, `INTERNAL_API_SECRET`.
 
-- `/auth/register` – create account
-- `/auth/login` – login
-- `/dashboard` – protected page
-- `/account` – protected page (reads Profile from Prisma)
+Guide détaillé : [`docs/README_QUICK_START.md`](docs/README_QUICK_START.md).
 
-## Deploy
+## Rôles et parcours
 
-### Vercel
+| Rôle | Connexion | Espace |
+|------|-----------|--------|
+| Élève | `/auth/login` · activation `/auth/register` | `/dashboard` |
+| Admin OBC | `/auth/login/obc` | `/admin` |
+| Admin DECC | `/auth/login/decc` | `/admin` |
+| Agent centre d'examen | `/auth/login/centre-examen` | `/centre-examen` |
 
-Set env vars:
+Consultation publique (sans compte) : `/consultation` (matricule).
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `DATABASE_URL`
-- `DIRECT_URL`
+## Scripts utiles
 
-### Docker
+| Commande | Usage |
+|----------|--------|
+| `npm run seed:soutenance-eleves` | 5 élèves démo `DEMO2026001`–`005` (région Centre) |
+| `npm run seed:regional-admins` | Admins OBC régionaux |
+| `npm run seed:decc-admins` | Admins DECC régionaux |
+| `npm run seed:centre-agents` | Agents centres d'examen |
+| `npm run export:disponibilisation-csv` | Export CSV Import A depuis la base |
+| `npm run lint` · `npm run build` | Qualité et build |
 
-```bash
-docker build -t nextjs-template .
-docker run -p 3000:3000 --env-file .env nextjs-template
-```
+## Données démo (CSV)
+
+Fichiers dans `docs/` :
+
+- `import-documents-eleves-demo-existants.csv` — créer les fiches documents (Import B admin)
+- `import-disponibilisation-session-2024.csv` — disponibiliser (Import A admin)
+- `import-nouveaux-eleves-demo-2025.csv` — nouveaux élèves `ELEVE9001`–`9005`
+
+Identifiants de test : [`docs/connexions-tests-completes.md`](docs/connexions-tests-completes.md).
+
+## Documentation
+
+Index complet : [`docs/README.md`](docs/README.md).
+
+| Document | Contenu |
+|----------|---------|
+| [`docs/ETAT_FINAL_PROJET.md`](docs/ETAT_FINAL_PROJET.md) | État du projet, limites connues |
+| [`docs/GUIDE_TEST_FONCTIONNEL.md`](docs/GUIDE_TEST_FONCTIONNEL.md) | Tests manuels |
+| [`docs/demo/KIT_DEMO_COMPLET.md`](docs/demo/KIT_DEMO_COMPLET.md) | Scénario de démonstration |
+| [`docs/routes-implementees.md`](docs/routes-implementees.md) | Pages, API, Server Actions |
+
+## Déploiement
+
+**Vercel** : variables d'environnement Supabase + `DATABASE_URL` + `DIRECT_URL`. Build : `npm run vercel-build`.
+
+**Docker** : `docker build -t dr-docscol .` puis `docker run -p 3000:3000 --env-file .env dr-docscol`.
+
+## État du projet
+
+Prêt pour **soutenance et démo encadrée**. Trois points restent ouverts avant une production réelle : connectivité Prisma/Supabase stable, paiement Mobile Money réel, stockage durable des pièces duplicata.
+
+Voir [`docs/ETAT_FINAL_PROJET.md`](docs/ETAT_FINAL_PROJET.md).

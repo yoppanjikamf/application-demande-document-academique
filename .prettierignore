@@ -8,8 +8,6 @@ supabase/.branches
 .agents
 .github
 .vscode
-TEMPLATE
-nextjs-admin-dashboard-main
 docs
 instructions.md
 *.docx

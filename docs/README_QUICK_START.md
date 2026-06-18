@@ -1,14 +1,14 @@
 # TL;DR - Etat actuel du MVP DR-DOCSCOL
 
-Derniere mise a jour: 17/06/2026.
+Derniere mise a jour: 18/06/2026.
 
 ## Ce qui est fait
 
 Le projet contient:
 
-- 25 pages UI.
-- 37 route handlers `route.ts`.
-- 4 fichiers de Server Actions.
+- 25 pages UI (incluant `/consultation`).
+- 39 route handlers `route.ts`.
+- 5 fichiers de Server Actions.
 - 3 roles applicatifs: `ELEVE`, `ADMINISTRATEUR`, `AGENT_CENTRE_EXAMEN`.
 - 10 admins OBC regionaux.
 - 10 admins DECC regionaux.
