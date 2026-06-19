@@ -38,18 +38,19 @@ Voir `ETAT_FINAL_PROJET.md` pour le verdict detaille.
 | `demo/KIT_DEMO_COMPLET.pdf` | Guide demo complet (parcours pas a pas) |
 | `routes-implementees.md` | Inventaire des pages, routes API et Server Actions |
 
-## Fichiers CSV (imports demo — dossier `docs/`)
+## Fichiers CSV (imports demo — dossier `docs/csv-demo/`)
 
-| Fichier CSV | Role |
+| Fichier | Role |
 | --- | --- |
-| `import-nouveaux-eleves-demo-2025.csv` | **Import B** admin — creer ELEVE9001–9005 (region Centre) |
-| `import-documents-eleves-demo-existants.csv` | **Import B** admin — creer les documents pour DEMO2026001–005 |
-| `import-disponibilisation-session-2024.csv` | **Import A** admin — disponibiliser des documents DEMO |
-| `import-disponibilisation-depuis-bd.csv` | **Import A** — export auto : `npm run export:disponibilisation-csv` |
-| `test-data-soutenance-eleves.csv` | Liste des 5 eleves apres `npm run seed:soutenance-eleves` |
-| `test-data-eleves.csv` | Exemple minimal Import B (3 lignes) — preferer `import-documents-eleves-demo-existants.csv` pour la demo |
+| `csv-demo/centre/obc/import-eleves-probatoire-bac.csv` | Import admin OBC — nouveaux élèves **DEMO2026006**–**008** |
+| `csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv` | Disponibilisation OBC — **DEMO2026001**–**005** + **DEMO2026006+** |
+| `csv-demo/centre/decc/import-eleves-bepc.csv` | Import admin DECC — nouveaux élèves **DEMO2026009**–**011** |
+| `csv-demo/centre/decc/import-disponibilisation-bepc.csv` | Disponibilisation DECC — **DEMO2026001**–**005** + **DEMO2026009+** |
+| `test-data-soutenance-eleves.csv` | Liste exportée après `npm run seed:soutenance-eleves` (référence, pas un import) |
 
-Guide d'utilisation : `demo/KIT_DEMO_COMPLET.pdf`. Modeles vides dans `public/templates/`.
+Guide d'utilisation : `demo/KIT_DEMO_COMPLET.md` et `csv-demo/README.md`. Modèles vides dans `public/templates/`.
+
+Régénération : `npm run generate:demo-csv`
 
 ## Organisation finale
 

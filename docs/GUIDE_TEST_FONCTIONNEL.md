@@ -90,8 +90,8 @@ psql "$DATABASE_URL" -c 'select now();'
 
 1. Se connecter avec un admin du bon scope (`ADM-02-CENTRE` ou `DECC-02-CENTRE`).
 2. Aller sur `/admin/students`.
-3. **Import B** : coller `docs/import-documents-eleves-demo-existants.csv` (cree les fiches documents en Pas disponible).
-4. **Import A** : coller `docs/import-disponibilisation-session-2024.csv` (passe a Disponible + notification).
+3. **Import élèves** : coller `docs/csv-demo/centre/obc/import-eleves-probatoire-bac.csv` ou `.../decc/import-eleves-bepc.csv` (crée élève + document **Pas disponible**).
+4. **Disponibilisation** : coller `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv` ou `.../decc/import-disponibilisation-bepc.csv` (passe à **Disponible** + notification).
 5. Verifier les documents importes dans `/admin/documents` et le scope regional.
 
 ## 7. Test routes internes

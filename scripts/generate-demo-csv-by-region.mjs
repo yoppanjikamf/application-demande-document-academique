@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * Génère les CSV de démo par région et par organisme (OBC / DECC).
+ * Matricules alignés sur le seed soutenance : DEMO2026001–005 (existants), DEMO2026006+ (nouveaux imports).
  * Usage: node scripts/generate-demo-csv-by-region.mjs
  */
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -12,6 +13,45 @@ const OUT = join(ROOT, "docs", "csv-demo");
 const STUDENT_HEADER =
   "eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type";
 const AVAIL_HEADER = "eleve_matricule,diplome_type,document_type,annee_session";
+
+/** Élèves déjà en base via `npm run seed:soutenance-eleves` (région Centre). */
+const DEMO_CENTRE_SEED = [
+  {
+    matricule: "DEMO2026001",
+    email: "francialengambia@gmail.com",
+    nom: "NGAMBIA",
+    prenom: "Françial",
+    dob: "2003-02-14",
+  },
+  {
+    matricule: "DEMO2026002",
+    email: "faissayoppanjikam@gmail.com",
+    nom: "NJIKAM",
+    prenom: "Faïssa",
+    dob: "2004-05-20",
+  },
+  {
+    matricule: "DEMO2026003",
+    email: "eyaanemesselehelenedoucette@gmail.com",
+    nom: "MESSELE",
+    prenom: "Doucette",
+    dob: "2003-09-08",
+  },
+  {
+    matricule: "DEMO2026004",
+    email: "ambiankeu@gmail.com",
+    nom: "MBIANKEU",
+    prenom: "Anicet",
+    dob: "2002-11-27",
+  },
+  {
+    matricule: "DEMO2026005",
+    email: "prince.mabengue@facsciences-uy1.cm",
+    nom: "MABENGUE",
+    prenom: "Prince",
+    dob: "2003-07-03",
+  },
+];
 
 const REGIONS = [
   { region: "Adamaoua", slug: "adamaoua", code: "01" },
@@ -25,6 +65,13 @@ const REGIONS = [
   { region: "Sud", slug: "sud", code: "09" },
   { region: "Sud-Ouest", slug: "sud-ouest", code: "10" },
 ];
+
+/** Sessions d'examen du seed (examens_valides). */
+const SEED_SESSION = {
+  BEPC: 2019,
+  PROBATOIRE: 2021,
+  BACCALAUREAT: 2022,
+};
 
 function centreName(region) {
   return `Centre d'examen ${region}`;
@@ -42,88 +89,256 @@ function writeRootFile(relativePath, lines) {
   writeFileSync(fullPath, lines.join("\n") + "\n", "utf8");
 }
 
+function studentRow({ matricule, email, nom, prenom, dob, diplome, session, region, document }) {
+  const centre = centreName(region);
+  return `${matricule},${email},${nom},${prenom},${dob},${diplome},${session},${centre},${region},${document}`;
+}
+
+function availRow(matricule, diplome, document, session, region = "Centre") {
+  return `${matricule},${diplome},${document},${session},${region},${centreName(region)}`;
+}
+
 function obcStudentsCentre() {
+  const region = "Centre";
   return [
     STUDENT_HEADER,
-    "ELEVE9001,eleve9001@example.com,NGONO,Claire,2005-04-12,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES",
-    "ELEVE9001,eleve9001@example.com,NGONO,Claire,2005-04-12,BACCALAUREAT,2025,Centre d'examen Centre,Centre,RELEVE_NOTES",
-    "ELEVE9002,eleve9002@example.com,FOUDA,Samuel,2004-08-20,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES",
-    "ELEVE9003,eleve9003@example.com,MBALLA,Estelle,2003-11-15,BACCALAUREAT,2025,Centre d'examen Centre,Centre,ORIGINAL",
-    "ELEVE9003,eleve9003@example.com,MBALLA,Estelle,2003-11-15,BACCALAUREAT,2025,Centre d'examen Centre,Centre,RELEVE_NOTES",
-    "ELEVE9004,eleve9004@example.com,NJOCK,Brice,2005-06-30,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES",
-    "ELEVE9004,eleve9004@example.com,NJOCK,Brice,2005-06-30,BACCALAUREAT,2025,Centre d'examen Centre,Centre,RELEVE_NOTES",
-    "ELEVE9005,eleve9005@example.com,KAMGA,Thierry,2004-02-18,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES",
+    studentRow({
+      matricule: "DEMO2026006",
+      email: "demo2026006@example.com",
+      nom: "TCHOUA",
+      prenom: "Marie",
+      dob: "2005-03-18",
+      diplome: "PROBATOIRE",
+      session: 2025,
+      region,
+      document: "RELEVE_NOTES",
+    }),
+    studentRow({
+      matricule: "DEMO2026006",
+      email: "demo2026006@example.com",
+      nom: "TCHOUA",
+      prenom: "Marie",
+      dob: "2005-03-18",
+      diplome: "BACCALAUREAT",
+      session: 2025,
+      region,
+      document: "RELEVE_NOTES",
+    }),
+    studentRow({
+      matricule: "DEMO2026007",
+      email: "demo2026007@example.com",
+      nom: "FOTSING",
+      prenom: "Yannick",
+      dob: "2004-09-22",
+      diplome: "PROBATOIRE",
+      session: 2025,
+      region,
+      document: "RELEVE_NOTES",
+    }),
+    studentRow({
+      matricule: "DEMO2026008",
+      email: "demo2026008@example.com",
+      nom: "NANA",
+      prenom: "Carine",
+      dob: "2003-12-05",
+      diplome: "BACCALAUREAT",
+      session: 2025,
+      region,
+      document: "ORIGINAL",
+    }),
+    studentRow({
+      matricule: "DEMO2026008",
+      email: "demo2026008@example.com",
+      nom: "NANA",
+      prenom: "Carine",
+      dob: "2003-12-05",
+      diplome: "BACCALAUREAT",
+      session: 2025,
+      region,
+      document: "RELEVE_NOTES",
+    }),
   ];
 }
 
 function obcAvailabilityCentre() {
+  const region = "Centre";
   return [
     AVAIL_HEADER,
-    "DEMO2026002,PROBATOIRE,RELEVE_NOTES,2021",
-    "DEMO2026003,BACCALAUREAT,RELEVE_NOTES,2022",
-    "DEMO2026004,PROBATOIRE,RELEVE_NOTES,2021",
-    "DEMO2026005,BACCALAUREAT,ORIGINAL,2022",
-    "DEMO2026001,PROBATOIRE,RELEVE_NOTES,2021",
-    "DEMO2026001,BACCALAUREAT,RELEVE_NOTES,2022",
+    availRow("DEMO2026001", "PROBATOIRE", "RELEVE_NOTES", SEED_SESSION.PROBATOIRE, region),
+    availRow("DEMO2026001", "BACCALAUREAT", "RELEVE_NOTES", SEED_SESSION.BACCALAUREAT, region),
+    availRow("DEMO2026002", "PROBATOIRE", "RELEVE_NOTES", SEED_SESSION.PROBATOIRE, region),
+    availRow("DEMO2026003", "BACCALAUREAT", "RELEVE_NOTES", SEED_SESSION.BACCALAUREAT, region),
+    availRow("DEMO2026003", "BACCALAUREAT", "ORIGINAL", SEED_SESSION.BACCALAUREAT, region),
+    availRow("DEMO2026004", "PROBATOIRE", "RELEVE_NOTES", SEED_SESSION.PROBATOIRE, region),
+    availRow("DEMO2026005", "BACCALAUREAT", "RELEVE_NOTES", SEED_SESSION.BACCALAUREAT, region),
+    availRow("DEMO2026005", "BACCALAUREAT", "ORIGINAL", SEED_SESSION.BACCALAUREAT, region),
+    availRow("DEMO2026006", "PROBATOIRE", "RELEVE_NOTES", 2025, region),
+    availRow("DEMO2026007", "PROBATOIRE", "RELEVE_NOTES", 2025, region),
+    availRow("DEMO2026008", "BACCALAUREAT", "ORIGINAL", 2025, region),
+    availRow("DEMO2026008", "BACCALAUREAT", "RELEVE_NOTES", 2025, region),
   ];
 }
 
 function deccStudentsCentre() {
+  const region = "Centre";
   return [
     STUDENT_HEADER,
-    "ELEVE9101,eleve9101@example.com,ATANG,Grace,2005-02-08,BEPC,2025,Centre d'examen Centre,Centre,ORIGINAL",
-    "ELEVE9101,eleve9101@example.com,ATANG,Grace,2005-02-08,BEPC,2025,Centre d'examen Centre,Centre,RELEVE_NOTES",
-    "ELEVE9102,eleve9102@example.com,BILONG,Emmanuel,2004-11-19,BEPC,2025,Centre d'examen Centre,Centre,RELEVE_NOTES",
+    studentRow({
+      matricule: "DEMO2026009",
+      email: "demo2026009@example.com",
+      nom: "EBOGO",
+      prenom: "Judith",
+      dob: "2005-06-11",
+      diplome: "BEPC",
+      session: 2025,
+      region,
+      document: "ORIGINAL",
+    }),
+    studentRow({
+      matricule: "DEMO2026009",
+      email: "demo2026009@example.com",
+      nom: "EBOGO",
+      prenom: "Judith",
+      dob: "2005-06-11",
+      diplome: "BEPC",
+      session: 2025,
+      region,
+      document: "RELEVE_NOTES",
+    }),
+    studentRow({
+      matricule: "DEMO2026010",
+      email: "demo2026010@example.com",
+      nom: "MENGUE",
+      prenom: "Patrick",
+      dob: "2004-10-03",
+      diplome: "BEPC",
+      session: 2025,
+      region,
+      document: "RELEVE_NOTES",
+    }),
+    studentRow({
+      matricule: "DEMO2026011",
+      email: "demo2026011@example.com",
+      nom: "ONGA",
+      prenom: "Berthe",
+      dob: "2005-01-25",
+      diplome: "BEPC",
+      session: 2025,
+      region,
+      document: "ORIGINAL",
+    }),
+    studentRow({
+      matricule: "DEMO2026011",
+      email: "demo2026011@example.com",
+      nom: "ONGA",
+      prenom: "Berthe",
+      dob: "2005-01-25",
+      diplome: "BEPC",
+      session: 2025,
+      region,
+      document: "RELEVE_NOTES",
+    }),
   ];
 }
 
 function deccAvailabilityCentre() {
+  const region = "Centre";
   return [
     AVAIL_HEADER,
-    "DEMO2026001,BEPC,ORIGINAL,2019",
-    "DEMO2026001,BEPC,RELEVE_NOTES,2019",
-    "DEMO2026002,BEPC,RELEVE_NOTES,2019",
-    "DEMO2026003,BEPC,ORIGINAL,2019",
-    "DEMO2026004,BEPC,ORIGINAL,2019",
-    "DEMO2026004,BEPC,RELEVE_NOTES,2019",
-    "DEMO2026005,BEPC,RELEVE_NOTES,2019",
+    availRow("DEMO2026001", "BEPC", "ORIGINAL", SEED_SESSION.BEPC, region),
+    availRow("DEMO2026001", "BEPC", "RELEVE_NOTES", SEED_SESSION.BEPC, region),
+    availRow("DEMO2026002", "BEPC", "RELEVE_NOTES", SEED_SESSION.BEPC, region),
+    availRow("DEMO2026003", "BEPC", "ORIGINAL", SEED_SESSION.BEPC, region),
+    availRow("DEMO2026004", "BEPC", "ORIGINAL", SEED_SESSION.BEPC, region),
+    availRow("DEMO2026004", "BEPC", "RELEVE_NOTES", SEED_SESSION.BEPC, region),
+    availRow("DEMO2026005", "BEPC", "RELEVE_NOTES", SEED_SESSION.BEPC, region),
+    availRow("DEMO2026009", "BEPC", "ORIGINAL", 2025, region),
+    availRow("DEMO2026009", "BEPC", "RELEVE_NOTES", 2025, region),
+    availRow("DEMO2026010", "BEPC", "RELEVE_NOTES", 2025, region),
+    availRow("DEMO2026011", "BEPC", "ORIGINAL", 2025, region),
   ];
 }
 
+function demoMatriculeForRegion(code, suffix) {
+  return `DEMO2026${code}${suffix}`;
+}
+
 function obcStudentsRegion({ region, code }) {
-  const centre = centreName(region);
-  const m1 = `ELEVE${code}001`;
-  const m2 = `ELEVE${code}002`;
+  const m1 = demoMatriculeForRegion(code, "06");
+  const m2 = demoMatriculeForRegion(code, "07");
   return [
     STUDENT_HEADER,
-    `${m1},${m1.toLowerCase()}@example.com,NDONGO,Alice,2005-03-14,PROBATOIRE,2025,${centre},${region},RELEVE_NOTES`,
-    `${m2},${m2.toLowerCase()}@example.com,ESSOMBA,Paul,2004-07-22,BACCALAUREAT,2025,${centre},${region},RELEVE_NOTES`,
+    studentRow({
+      matricule: m1,
+      email: `${m1.toLowerCase()}@example.com`,
+      nom: "NDONGO",
+      prenom: "Alice",
+      dob: "2005-03-14",
+      diplome: "PROBATOIRE",
+      session: 2025,
+      region,
+      document: "RELEVE_NOTES",
+    }),
+    studentRow({
+      matricule: m2,
+      email: `${m2.toLowerCase()}@example.com`,
+      nom: "ESSOMBA",
+      prenom: "Paul",
+      dob: "2004-07-22",
+      diplome: "BACCALAUREAT",
+      session: 2025,
+      region,
+      document: "RELEVE_NOTES",
+    }),
   ];
 }
 
 function obcAvailabilityRegion({ region, code }) {
-  const m1 = `ELEVE${code}001`;
-  const m2 = `ELEVE${code}002`;
+  const m1 = demoMatriculeForRegion(code, "06");
+  const m2 = demoMatriculeForRegion(code, "07");
   return [
     AVAIL_HEADER,
-    `${m1},PROBATOIRE,RELEVE_NOTES,2025`,
-    `${m2},BACCALAUREAT,RELEVE_NOTES,2025`,
+    availRow(m1, "PROBATOIRE", "RELEVE_NOTES", 2025, region),
+    availRow(m2, "BACCALAUREAT", "RELEVE_NOTES", 2025, region),
   ];
 }
 
 function deccStudentsRegion({ region, code }) {
-  const centre = centreName(region);
-  const m1 = `ELEVE${code}101`;
+  const m1 = demoMatriculeForRegion(code, "09");
   return [
     STUDENT_HEADER,
-    `${m1},${m1.toLowerCase()}@example.com,MBALLA,Sylvie,2005-05-01,BEPC,2025,${centre},${region},ORIGINAL`,
-    `${m1},${m1.toLowerCase()}@example.com,MBALLA,Sylvie,2005-05-01,BEPC,2025,${centre},${region},RELEVE_NOTES`,
+    studentRow({
+      matricule: m1,
+      email: `${m1.toLowerCase()}@example.com`,
+      nom: "MBALLA",
+      prenom: "Sylvie",
+      dob: "2005-05-01",
+      diplome: "BEPC",
+      session: 2025,
+      region,
+      document: "ORIGINAL",
+    }),
+    studentRow({
+      matricule: m1,
+      email: `${m1.toLowerCase()}@example.com`,
+      nom: "MBALLA",
+      prenom: "Sylvie",
+      dob: "2005-05-01",
+      diplome: "BEPC",
+      session: 2025,
+      region,
+      document: "RELEVE_NOTES",
+    }),
   ];
 }
 
 function deccAvailabilityRegion({ region, code }) {
-  const m1 = `ELEVE${code}101`;
-  return [AVAIL_HEADER, `${m1},BEPC,ORIGINAL,2025`, `${m1},BEPC,RELEVE_NOTES,2025`];
+  const m1 = demoMatriculeForRegion(code, "09");
+  return [
+    AVAIL_HEADER,
+    availRow(m1, "BEPC", "ORIGINAL", 2025, region),
+    availRow(m1, "BEPC", "RELEVE_NOTES", 2025, region),
+  ];
 }
 
 for (const entry of REGIONS) {
@@ -147,16 +362,18 @@ for (const entry of REGIONS) {
   );
 }
 
-// Modèles publics téléchargeables depuis l'UI admin
 writeRootFile("public/templates/obc/import-eleves.csv", obcStudentsCentre().slice(0, 3));
 writeRootFile(
   "public/templates/obc/import-disponibilisation.csv",
-  obcAvailabilityCentre().slice(0, 3),
+  obcAvailabilityCentre().slice(0, 4),
 );
 writeRootFile("public/templates/decc/import-eleves.csv", deccStudentsCentre().slice(0, 3));
 writeRootFile(
   "public/templates/decc/import-disponibilisation.csv",
-  deccAvailabilityCentre().slice(0, 3),
+  deccAvailabilityCentre().slice(0, 4),
 );
 
 console.log(`CSV générés sous ${OUT} (10 régions × OBC/DECC × 2 types)`);
+console.log(
+  `Centre — élèves seed : ${DEMO_CENTRE_SEED.map((s) => s.matricule).join(", ")} ; nouveaux OBC : DEMO2026006–008 ; nouveaux DECC : DEMO2026009–011`,
+);

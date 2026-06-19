@@ -33,15 +33,16 @@ npm run seed:soutenance-eleves
 ### Admin OBC — `ADM-02-CENTRE`
 
 1. Disponibilisation : `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv`  
-   → ex. relevé Probatoire **DEMO2026002** (Faïssa) pour le parcours RDV.
-2. (Option) Nouveaux élèves : `docs/csv-demo/centre/obc/import-eleves-probatoire-bac.csv`  
-   → `ELEVE9001`–`9005`.
+   → matricules **DEMO2026001** à **DEMO2026005** (déjà en base via le seed) + **DEMO2026006**–**008** après import élèves.
+2. Nouveaux élèves : `docs/csv-demo/centre/obc/import-eleves-probatoire-bac.csv`  
+   → **DEMO2026006**–**008** (même format que `DEMO2026002`).
 
 ### Admin DECC — `DECC-02-CENTRE`
 
 1. Disponibilisation : `docs/csv-demo/centre/decc/import-disponibilisation-bepc.csv`  
-   → BEPC pour **DEMO2026001**–**005**.
-2. (Option) Nouveaux élèves BEPC : `docs/csv-demo/centre/decc/import-eleves-bepc.csv`.
+   → **DEMO2026001**–**005** + **DEMO2026009**–**011** après import.
+2. Nouveaux élèves BEPC : `docs/csv-demo/centre/decc/import-eleves-bepc.csv`  
+   → **DEMO2026009**–**011**.
 
 ## Modèles UI
 
@@ -56,6 +57,6 @@ Téléchargés depuis `/admin/students` selon l’organisme connecté :
 node scripts/generate-demo-csv-by-region.mjs
 ```
 
-## Anciens fichiers (racine `docs/`)
+## Anciens fichiers (supprimés)
 
-Les fichiers `import-*-demo*.csv` à la racine de `docs/` sont **obsolètes**. Utiliser `docs/csv-demo/` à la place.
+Les anciens CSV à la racine de `docs/` (`import-*-demo*.csv`, `test-data-eleves.csv`) ont été retirés. Utiliser uniquement `docs/csv-demo/`.

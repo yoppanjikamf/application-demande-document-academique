@@ -50,7 +50,7 @@ export const dictionary = {
   consultation: {
     title: "Consultation rapide",
     description:
-      "Saisissez votre matricule pour connaître la disponibilité de vos documents scolaires. Aucun compte n'est créé automatiquement.",
+      "Réservée aux élèves ayant déjà activé leur compte DR-DOCSCOL. Saisissez votre matricule pour connaître la disponibilité de vos documents scolaires.",
     matriculeLabel: "Matricule élève",
     matriculePlaceholder: "Ex. DEMO2026001",
     submit: "Consulter la disponibilité",
@@ -58,20 +58,26 @@ export const dictionary = {
     errorDefault: "Consultation impossible.",
     notFound:
       "Aucun élève trouvé pour ce matricule. Vérifiez la saisie ou contactez votre organisme si vous venez d'être enregistré.",
+    notActivated:
+      "Bonjour {prenom}, votre compte n'est pas encore activé. Activez votre compte élève pour accéder à la consultation rapide et consulter le statut de vos documents.",
     greeting: "Bonjour",
     statusIntro: "voici le statut de vos documents :",
     noExams: "Aucun examen composé n'est rattaché à ce matricule pour le moment.",
     nextSteps:
       "Pour demander un document, payer un duplicata ou prendre un rendez-vous de retrait, activez votre compte ou connectez-vous.",
+    nextStepsActivated:
+      "Connectez-vous à votre espace élève pour effectuer une demande, un paiement ou un rendez-vous de retrait.",
     connect: "Me connecter",
+    openDashboard: "Ouvrir mon espace",
     sectionBadge: "Consultation rapide",
-    sectionTitle: "Vérifiez la disponibilité de vos documents avec votre matricule",
+    sectionTitle: "Consultez vos documents après activation de compte",
     sectionDescription:
-      "Scannez le QR code ou ouvrez la page de consultation : saisissez votre matricule pour voir si vos documents sont disponibles, en attente ou déjà retirés. Aucun compte n'est créé automatiquement.",
+      "Scannez le QR code ou ouvrez la page de consultation : cette fonctionnalité est réservée aux élèves ayant déjà activé leur compte. Saisissez votre matricule pour voir si vos documents sont disponibles, en attente ou déjà retirés.",
     sectionFollowUp:
-      "Pour une demande, un paiement ou un rendez-vous de retrait, activez votre compte ou connectez-vous ensuite.",
+      "Si votre compte n'est pas encore activé, commencez par l'activation avec votre matricule et votre e-mail enregistrés par l'administration.",
     openButton: "Ouvrir la consultation",
-    qrCaption: "Scannez pour connaître le statut de vos documents académiques.",
+    qrCaption:
+      "Scannez ce QR code avec votre téléphone pour consulter le statut de vos documents scolaires avec votre matricule, après activation de votre compte.",
     qrAlt: "QR code vers la consultation rapide DR-DOCSCOL",
     qrDevWarning:
       "Ce QR pointe vers localhost : il ne fonctionne pas depuis un téléphone. Ouvrez le site via l'adresse réseau affichée par npm run dev (ex. http://192.168.x.x:3000), connectez le téléphone au même Wi‑Fi, ou définissez NEXT_PUBLIC_SITE_URL / NEXT_PUBLIC_DEV_LAN_URL.",

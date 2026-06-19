@@ -191,7 +191,7 @@ Le projet expose 39 route handlers `route.ts` (37 sous `/api` + `/logout` + `/au
 | Paiements | `app/dashboard/actions.ts`, `app/api/students/me/payments/*`, `app/api/payments/webhook/route.ts` |
 | Admin documents | `app/admin/documents/page.tsx`, `app/api/admin/documents/*` |
 | Retraits | `app/api/admin/withdrawals/route.ts`, `app/centre-examen/page.tsx`, `app/api/centre-examen/*` |
-| Import CSV | `app/admin/students/page.tsx`, `app/admin/actions.ts`, `docs/import-documents-eleves-demo-existants.csv`, `docs/import-disponibilisation-session-2024.csv` |
+| Import CSV | `app/admin/students/page.tsx`, `app/admin/actions.ts`, `docs/csv-demo/` |
 | Seeds | `scripts/seed-regional-admins.ts`, `scripts/seed-decc-regional-admins.ts`, `scripts/seed-centre-examen-agents.ts`, `scripts/seed-soutenance-eleves.ts` |
 
 ## 8. Donnees attendues pour l'import CSV
@@ -204,7 +204,7 @@ Deux formats distincts (voir `lib/admin-student-import.constants.ts`).
 eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
 ```
 
-Fichiers demo : `docs/import-documents-eleves-demo-existants.csv`, `docs/import-nouveaux-eleves-demo-2025.csv`.
+Fichiers demo : `docs/csv-demo/centre/obc/import-eleves-probatoire-bac.csv`, `docs/csv-demo/centre/decc/import-eleves-bepc.csv`.
 
 - `diplome_type` : `BEPC`, `PROBATOIRE`, `BACCALAUREAT`
 - `document_type` : `ORIGINAL`, `RELEVE_NOTES` (pas `DUPLICATA` via Import B)
@@ -217,7 +217,7 @@ Fichiers demo : `docs/import-documents-eleves-demo-existants.csv`, `docs/import-
 eleve_matricule,diplome_type,document_type,annee_session
 ```
 
-Fichier demo : `docs/import-disponibilisation-session-2024.csv`.
+Fichiers demo : `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv`, `docs/csv-demo/centre/decc/import-disponibilisation-bepc.csv`.
 
 - Le document doit deja exister en base (Import B ou saisie manuelle).
 - Les duplicatas sont exclus de l'Import A.

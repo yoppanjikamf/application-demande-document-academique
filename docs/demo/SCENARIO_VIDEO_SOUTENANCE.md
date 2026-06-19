@@ -28,8 +28,8 @@ npm run seed:centre-agents
 npm run seed:soutenance-eleves
 ```
 
-Puis **Import B** (admin) — fichier `docs/import-documents-eleves-demo-existants.csv`  
-→ crée les fiches documents **Pas disponible** pour DEMO2026001–005.
+Puis **disponibilisation** (admin) — fichier `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv`  
+→ passe les documents DEMO2026001–005 à **Disponible** (après `seed:soutenance-eleves`).
 
 **Ne pas** lancer Import A tout de suite : vous le ferez **à l’écran** pendant la vidéo (étape 5–6).
 
@@ -45,7 +45,7 @@ Matricules admin / agent : `ADM-02-CENTRE`, `AGENT-CE-02-CENTRE`.
 
 ### 3. Document cible pour la fin de parcours (RDV + retrait)
 
-Pour **DEMO2026002**, l’Import A du fichier `docs/import-disponibilisation-session-2024.csv` contient :
+Pour **DEMO2026002**, le CSV `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv` contient :
 
 ```csv
 DEMO2026002,PROBATOIRE,RELEVE_NOTES,2021
@@ -97,8 +97,8 @@ Fermer notifications OS, mode « Ne pas déranger », onglets inutiles.
 | --- | --- | --- |
 | 7:00 | Déconnexion → `/auth/login/obc` — **ADM-02-CENTRE** | « L’administrateur OBC régional Centre se connecte sur un espace dédié, limité à sa région. » |
 | 7:30 | `/admin/students` | « Depuis la gestion des élèves, l’admin peut importer des dossiers en masse. » |
-| 7:45 | **Import B** — rappeler `import-documents-eleves-demo-existants.csv` *(si base déjà importée : expliquer que c’est fait)* | « L’Import B crée les fiches documents en statut initial Pas disponible. » |
-| 8:30 | **Import A** — coller `docs/import-disponibilisation-session-2024.csv` (section Disponibiliser) | « L’Import A disponibilise document par document. Pour Faïssa, le relevé Probatoire 2021 passe à Disponible. » |
+| 7:45 | **Seed** — rappeler `npm run seed:soutenance-eleves` *(si base déjà seedée : expliquer que c’est fait)* | « Le seed crée les 5 élèves DEMO2026001–005 avec leurs examens validés. » |
+| 8:30 | **Disponibilisation** — coller `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv` (section Disponibiliser) | « L’import disponibilise document par document. Pour Faïssa, le relevé Probatoire 2021 passe à Disponible. » |
 | 9:30 | `/admin/documents` — filtrer **Disponible**, montrer DEMO2026002 | « L’administrateur voit l’ensemble des documents de son périmètre et peut aussi changer un statut manuellement. » |
 | 10:30 | (Si SMTP actif) mentionner email ; sinon notifications en base | « Une notification est créée pour l’élève ; un e-mail part si la messagerie est configurée. » |
 
@@ -133,7 +133,7 @@ Fermer notifications OS, mode « Ne pas déranger », onglets inutiles.
 - [ ] Import B déjà appliqué (documents Pas disponible)
 - [ ] Compte élève activé ou prêt à activer à l’écran
 - [ ] Import A **non** appliqué avant l’étape admin (sauf si vous montrez seulement le changement manuel)
-- [ ] Fichier CSV `import-disponibilisation-session-2024.csv` ouvert dans un éditeur
+- [ ] Fichier CSV `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv` ouvert dans un éditeur
 - [ ] Créneaux RDV disponibles (admin OBC : `/admin/rdv-disponibilites` si besoin)
 - [ ] Enregistrement testé (son + micro)
 
@@ -172,7 +172,7 @@ Matricule DEMO2026002 : liste des documents et statuts.
 
 | Fichier | Rôle |
 | --- | --- |
-| `docs/import-documents-eleves-demo-existants.csv` | Import B — documents DEMO |
-| `docs/import-disponibilisation-session-2024.csv` | Import A — disponibilisation |
+| `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv` | Disponibilisation OBC — DEMO |
+| `docs/csv-demo/centre/decc/import-disponibilisation-bepc.csv` | Disponibilisation DECC — BEPC |
 
 Guide détaillé : `docs/demo/KIT_DEMO_COMPLET.md`

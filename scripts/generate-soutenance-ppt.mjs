@@ -387,19 +387,19 @@ async function main() {
     ["Fichier", "Import", "Usage"],
     [
       [
-        "import-documents-eleves-demo-existants.csv",
-        "Import B",
-        "Documents DEMO2026001–005",
+        "csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv",
+        "Disponibilisation",
+        "DEMO2026001–005 + DEMO2026006+",
       ],
       [
-        "import-disponibilisation-session-2024.csv",
-        "Import A",
-        "Disponibiliser relevé Probatoire DEMO2026002",
+        "csv-demo/centre/obc/import-eleves-probatoire-bac.csv",
+        "Import élèves",
+        "Nouveaux DEMO2026006–008 (optionnel)",
       ],
       [
-        "import-nouveaux-eleves-demo-2025.csv",
-        "Import B",
-        "Nouveaux élèves ELEVE9001–9005 (optionnel)",
+        "csv-demo/centre/decc/import-disponibilisation-bepc.csv",
+        "Disponibilisation",
+        "BEPC DEMO2026001–005 + DEMO2026009+",
       ],
     ],
   );

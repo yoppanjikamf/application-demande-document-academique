@@ -1,3 +1,4 @@
 eleve_matricule,diplome_type,document_type,annee_session
-DEMO2026001,BEPC,ORIGINAL,2019
-DEMO2026001,BEPC,RELEVE_NOTES,2019
+DEMO2026001,BEPC,ORIGINAL,2019,Centre,Centre d'examen Centre
+DEMO2026001,BEPC,RELEVE_NOTES,2019,Centre,Centre d'examen Centre
+DEMO2026002,BEPC,RELEVE_NOTES,2019,Centre,Centre d'examen Centre

@@ -24,7 +24,7 @@ npm run seed:soutenance-eleves
 
 Variables d’environnement : Supabase Auth + `DATABASE_URL` (Prisma) doivent être configurées.
 
-**Région unique pour la demo :** tous les élèves (DEMO202600x et ELEVE900x) sont en **Centre**. Connectez-vous avec **ADM-02-CENTRE** (OBC), **DECC-02-CENTRE** (DECC) ou **AGENT-CE-02-CENTRE** (agent centre).
+**Région unique pour la demo :** tous les élèves utilisent le format **`DEMO202600x`** (ex. `DEMO2026002` pour Faïssa). Connectez-vous avec **ADM-02-CENTRE** (OBC), **DECC-02-CENTRE** (DECC) ou **AGENT-CE-02-CENTRE** (agent centre).
 
 ---
 
@@ -32,13 +32,14 @@ Variables d’environnement : Supabase Auth + `DATABASE_URL` (Prisma) doivent ê
 
 | Profil | Format | Exemple |
 | --- | --- | --- |
-| Élève import demo | `ELEVE` + 4 chiffres | `ELEVE9001` |
+| Élève seed / existant | `DEMO2026` + 3 chiffres | `DEMO2026002` |
+| Nouvel élève import CSV | `DEMO2026` + 3 chiffres | `DEMO2026006` |
 | Élève seed soutenance | `DEMO2026` + 3 chiffres | `DEMO2026001` |
 | Admin OBC | `ADM-NN-REGION` | `ADM-02-CENTRE` |
 | Admin DECC | `DECC-NN-REGION` | `DECC-02-CENTRE` |
 | Agent centre | `AGENT-CE-NN-REGION` | `AGENT-CE-02-CENTRE` |
 
-Emails élèves fictifs : `eleve9001@example.com`.
+Emails nouveaux élèves fictifs : `demo2026006@example.com`, `demo2026009@example.com`.
 
 ---
 
@@ -73,34 +74,24 @@ Après `seed:soutenance-eleves`, les élèves **DEMO2026001**–**005** existent
 1. Importer `docs/csv-demo/centre/decc/import-disponibilisation-bepc.csv`
 2. Vérifier : documents BEPC Disponibles pour les DEMO concernés.
 
-### Étape 2 — Import élèves (optionnel)
+### Étape 2 — Import élèves (nouveaux matricules DEMO)
 
-- OBC : `docs/csv-demo/centre/obc/import-eleves-probatoire-bac.csv` → `ELEVE9001`–`9005`
-- DECC : `docs/csv-demo/centre/decc/import-eleves-bepc.csv` → `ELEVE9101`–`9102`
+1. OBC : `docs/csv-demo/centre/obc/import-eleves-probatoire-bac.csv` → **DEMO2026006**–**008**
+2. DECC : `docs/csv-demo/centre/decc/import-eleves-bepc.csv` → **DEMO2026009**–**011**
+3. Puis réimporter les CSV de disponibilisation pour activer les lignes **DEMO2026006+**.
 
-### Étape 2 — Import A (disponibilisation)
+### Étape 3 — Disponibiliser les nouveaux DEMO2026006+
 
-1. Importer `docs/import-disponibilisation-session-2024.csv` (section **Disponibiliser des documents**).
-2. Utiliser l’admin **DECC** pour les lignes **BEPC**, **OBC** pour **Probatoire** / **Bac** (région de l’élève).
-3. Vérifier : statut **Disponible** + notification si SMTP configuré.
-
-### Étape 3 — Disponibiliser les nouveaux ELEVE900x
-
-Après l’étape 1, ajouter par exemple :
-
-```
-ELEVE9001,BEPC,ORIGINAL,2025
-ELEVE9003,BACCALAUREAT,RELEVE_NOTES,2025
-```
+Après l’import élèves, réimporter les CSV de disponibilisation (les lignes **DEMO2026006+** sont déjà incluses).
 
 ### Étape 4 — Consultation publique
 
 - URL : `/consultation`
-- Matricules : `DEMO2026002`, `ELEVE9001`, etc.
+- Matricules : `DEMO2026002`, `DEMO2026006`, etc.
 
 ### Étape 5 — Activation élève
 
-- `/auth/register` avec `DEMO2026002` + `faissayoppanjikam@gmail.com` (ou `ELEVE9001` + `eleve9001@example.com`).
+- `/auth/register` avec `DEMO2026002` + `faissayoppanjikam@gmail.com` (ou `DEMO2026006` + `demo2026006@example.com`).
 
 ### Étape 6 — Agent centre
 
@@ -155,15 +146,21 @@ Liste alignée sur la base Postgres au 05/06/2026 — **5 élèves**, dont **Ani
 | DEMO2026004 | ambiankeu@gmail.com | Anicet MBIANKEU | Centre d'examen Centre | Centre | 0 |
 | DEMO2026005 | prince.mabengue@facsciences-uy1.cm | Prince MABENGUE | Centre d'examen Centre | Centre | 0 |
 
-### Nouveaux élèves (après Import B `ELEVE900x`)
+### Nouveaux élèves OBC (après import `import-eleves-probatoire-bac.csv`)
 
 | Matricule | Email | Nom | Examen | Région |
 | --- | --- | --- | --- | --- |
-| ELEVE9001 | eleve9001@example.com | Claire NGONO | BEPC 2025 | Centre |
-| ELEVE9002 | eleve9002@example.com | Samuel FOUDA | Probatoire 2025 | Centre |
-| ELEVE9003 | eleve9003@example.com | Estelle MBALLA | Bac 2025 | Centre |
-| ELEVE9004 | eleve9004@example.com | Brice NJOCK | BEPC 2025 | Centre |
-| ELEVE9005 | eleve9005@example.com | Thierry KAMGA | Probatoire 2025 | Centre |
+| DEMO2026006 | demo2026006@example.com | Marie TCHOUA | Probatoire + Bac 2025 | Centre |
+| DEMO2026007 | demo2026007@example.com | Yannick FOTSING | Probatoire 2025 | Centre |
+| DEMO2026008 | demo2026008@example.com | Carine NANA | Bac 2025 | Centre |
+
+### Nouveaux élèves DECC (après import `import-eleves-bepc.csv`)
+
+| Matricule | Email | Nom | Examen | Région |
+| --- | --- | --- | --- | --- |
+| DEMO2026009 | demo2026009@example.com | Judith EBOGO | BEPC 2025 | Centre |
+| DEMO2026010 | demo2026010@example.com | Patrick MENGUE | BEPC 2025 | Centre |
+| DEMO2026011 | demo2026011@example.com | Berthe ONGA | BEPC 2025 | Centre |
 
 Tous les élèves demo sont en **région Centre** (centre d'examen : Centre d'examen Centre). Comptes admin recommandés pour les tests : **ADM-02-CENTRE**, **DECC-02-CENTRE**, **AGENT-CE-02-CENTRE**.
 
@@ -171,25 +168,48 @@ Mot de passe élève : créer via `/auth/register`.
 
 ---
 
-## 6. Détail CSV Import A — Disponibilisation (DEMO2026001–005)
+## 6. Détail CSV disponibilisation (DEMO + nouveaux élèves)
 
-| Matricule | Diplôme | Document | Session | Admin |
-| --- | --- | --- | --- | --- |
-| DEMO2026001 | BEPC | ORIGINAL | 2019 | DECC Centre |
-| DEMO2026001 | BEPC | RELEVE_NOTES | 2019 | DECC Centre |
-| DEMO2026002 | PROBATOIRE | RELEVE_NOTES | 2021 | OBC Centre |
-| DEMO2026003 | BACCALAUREAT | RELEVE_NOTES | 2022 | OBC Centre |
-| DEMO2026004 | BEPC | ORIGINAL | 2019 | DECC Centre |
-| DEMO2026005 | BEPC | RELEVE_NOTES | 2019 | DECC Centre |
+**OBC** (`centre/obc/import-disponibilisation-probatoire-bac.csv`) — sessions alignées sur le seed (Probatoire 2021, Bac 2022) :
 
-> Prérequis : importer d’abord `import-documents-eleves-demo-existants.csv` si les documents n’existent pas encore.
+| Matricule | Diplôme | Document | Session |
+| --- | --- | --- | --- |
+| DEMO2026001 | PROBATOIRE | RELEVE_NOTES | 2021 |
+| DEMO2026001 | BACCALAUREAT | RELEVE_NOTES | 2022 |
+| DEMO2026002 | PROBATOIRE | RELEVE_NOTES | 2021 |
+| DEMO2026003 | BACCALAUREAT | RELEVE_NOTES | 2022 |
+| DEMO2026003 | BACCALAUREAT | ORIGINAL | 2022 |
+| DEMO2026004 | PROBATOIRE | RELEVE_NOTES | 2021 |
+| DEMO2026005 | BACCALAUREAT | RELEVE_NOTES | 2022 |
+| DEMO2026005 | BACCALAUREAT | ORIGINAL | 2022 |
+| DEMO2026006 | PROBATOIRE | RELEVE_NOTES | 2025 |
+| DEMO2026007 | PROBATOIRE | RELEVE_NOTES | 2025 |
+| DEMO2026008 | BACCALAUREAT | ORIGINAL | 2025 |
+| DEMO2026008 | BACCALAUREAT | RELEVE_NOTES | 2025 |
+
+**DECC** (`centre/decc/import-disponibilisation-bepc.csv`) — BEPC session 2019 pour le seed :
+
+| Matricule | Diplôme | Document | Session |
+| --- | --- | --- | --- |
+| DEMO2026001 | BEPC | ORIGINAL | 2019 |
+| DEMO2026001 | BEPC | RELEVE_NOTES | 2019 |
+| DEMO2026002 | BEPC | RELEVE_NOTES | 2019 |
+| DEMO2026003 | BEPC | ORIGINAL | 2019 |
+| DEMO2026004 | BEPC | ORIGINAL | 2019 |
+| DEMO2026004 | BEPC | RELEVE_NOTES | 2019 |
+| DEMO2026005 | BEPC | RELEVE_NOTES | 2019 |
+| DEMO2026009 | BEPC | ORIGINAL | 2025 |
+| DEMO2026009 | BEPC | RELEVE_NOTES | 2025 |
+| DEMO2026010 | BEPC | RELEVE_NOTES | 2025 |
+| DEMO2026011 | BEPC | ORIGINAL | 2025 |
+
+> Les lignes **DEMO2026001**–**005** fonctionnent dès `seed:soutenance-eleves`. Les lignes **DEMO2026006+** nécessitent l’import élèves avant.
 
 ---
 
-## 7. Détail CSV Import B — Nouveaux élèves ELEVE9001–9005
+## 7. Détail CSV import élèves — DEMO2026006+ (OBC) / DEMO2026009+ (DECC)
 
-Syntaxe matricule nouveaux élèves : **`ELEVE` + 4 chiffres** (ex. `ELEVE9001`).
-Noms et prénoms **camerounais** (NGONO, FOUDA, MBALLA, NJOCK, KAMGA).  
+Syntaxe matricule : **`DEMO2026` + 3 chiffres** (même format que `DEMO2026002`).  
 Statut initial documents : **Pas disponible** (forcé par l’application).
 
 ---
@@ -274,7 +294,7 @@ Mot de passe agents : `AgentCentre2026!` pour tous.
 | Problème | Cause probable |
 | --- | --- |
 | Import A : élève introuvable | Matricule absent de la BD (utiliser DEMO202600x ou `npm run export:disponibilisation-csv`) |
-| Import A : document introuvable | Importer d’abord `import-documents-eleves-demo-existants.csv` |
+| Import A : document introuvable | Vérifier que l'élève existe (`seed:soutenance-eleves`) puis réimporter `docs/csv-demo/centre/*/import-disponibilisation-*.csv` |
 | Import A : hors périmètre | Admin connecté sur une autre région |
 | Matricule inconnu à l'import | Utiliser un matricule présent en base (`DEMO202600x`) ou exporter via `npm run export:disponibilisation-csv` |
 | Connexion admin échoue | Prisma / `DATABASE_URL` inaccessible |

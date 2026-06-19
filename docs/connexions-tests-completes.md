@@ -109,21 +109,22 @@ Source CSV : `docs/test-data-soutenance-eleves.csv`
 | DEMO2026004 | ambiankeu@gmail.com                   | MBIANKEU| Anicet   | 2002-11-27  | Centre d'examen Centre   | Centre | BEPC 2019 / Probatoire 2021 / Baccalaureat 2022 | 0          | /auth/register |
 | DEMO2026005 | prince.mabengue@facsciences-uy1.cm    | MABENGUE| Prince   | 2003-07-03  | Centre d'examen Centre   | Centre | BEPC 2019 / Probatoire 2021 / Baccalaureat 2022 | 0          | /auth/register |
 
-> *Colonne « Docs en BD » : **0 apres `seed:soutenance-eleves` seul**. Les chiffres > 0 indiquent une base deja importee (Import B). Appliquer `import-documents-eleves-demo-existants.csv` puis `import-disponibilisation-session-2024.csv` pour la demo complete.
+> *Colonne « Docs en BD » : **0 apres `seed:soutenance-eleves` seul**. Pour la demo complete, importer les CSV de disponibilisation dans `docs/csv-demo/centre/` (OBC et DECC).
 
 ## Eleves demo import CSV (kit demo — optionnel)
 
-Ces matricules **n'existent pas** tant que vous n'avez pas importe `docs/import-nouveaux-eleves-demo-2025.csv` depuis l'admin (Import B nouveaux eleves).
+Ces matricules **n'existent pas** tant que vous n'avez pas importe les fichiers `docs/csv-demo/centre/*/import-eleves-*.csv` depuis l'admin.
 
-| Matricule | Email                 | Nom    | Prenom  | Region   | Statut initial apres import |
-| --------- | --------------------- | ------ | ------- | -------- | --------------------------- |
-| ELEVE9001 | eleve9001@example.com | NGONO  | Claire  | Centre | PAS_DISPONIBLE              |
-| ELEVE9002 | eleve9002@example.com | FOUDA  | Samuel  | Centre | PAS_DISPONIBLE              |
-| ELEVE9003 | eleve9003@example.com | MBALLA | Estelle | Centre | PAS_DISPONIBLE              |
-| ELEVE9004 | eleve9004@example.com | NJOCK  | Brice   | Centre | PAS_DISPONIBLE              |
-| ELEVE9005 | eleve9005@example.com | KAMGA  | Thierry | Centre | PAS_DISPONIBLE              |
+| Matricule | Email | Nom | Prenom | Region | Organisme |
+| --------- | ----- | --- | ------ | ------ | --------- |
+| DEMO2026006 | demo2026006@example.com | TCHOUA | Marie | Centre | OBC |
+| DEMO2026007 | demo2026007@example.com | FOTSING | Yannick | Centre | OBC |
+| DEMO2026008 | demo2026008@example.com | NANA | Carine | Centre | OBC |
+| DEMO2026009 | demo2026009@example.com | EBOGO | Judith | Centre | DECC |
+| DEMO2026010 | demo2026010@example.com | MENGUE | Patrick | Centre | DECC |
+| DEMO2026011 | demo2026011@example.com | ONGA | Berthe | Centre | DECC |
 
-> Tous les eleves demo (DEMO + ELEVE900x) sont en **region Centre**. Pour les tests admin, utiliser **ADM-02-CENTRE** (OBC), **DECC-02-CENTRE** (DECC) et **AGENT-CE-02-CENTRE** (centre d'examen).
+> Tous les eleves demo sont en **region Centre**. Pour les tests admin, utiliser **ADM-02-CENTRE** (OBC), **DECC-02-CENTRE** (DECC) et **AGENT-CE-02-CENTRE** (centre d'examen).
 
 ## Consultation publique (sans connexion)
 
@@ -134,5 +135,5 @@ Ces matricules **n'existent pas** tant que vous n'avez pas importe `docs/import-
 
 Pour une demonstration pas a pas (imports CSV, consultation, parcours par role) :
 
-- Guide : `docs/demo/KIT_DEMO_COMPLET.pdf`
-- CSV : dossier `docs/` (fichiers `import-*.csv` et `test-data-soutenance-eleves.csv`)
+- Guide : `docs/demo/KIT_DEMO_COMPLET.md`
+- CSV : dossier `docs/csv-demo/` (10 régions × OBC/DECC)

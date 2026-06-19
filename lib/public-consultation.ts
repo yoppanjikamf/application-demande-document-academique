@@ -15,8 +15,10 @@ export type PublicConsultationDocument = {
 
 export type PublicConsultationResult =
   | { found: false }
+  | { found: true; activated: false; prenom: string }
   | {
       found: true;
+      activated: true;
       prenom: string;
       documents: PublicConsultationDocument[];
     };
@@ -96,6 +98,7 @@ export async function lookupPublicConsultationByMatricule(
     select: {
       role: true,
       prenom: true,
+      authUserId: true,
       examensValides: {
         orderBy: { createdAt: "asc" },
         select: { diplomeType: true },
@@ -116,6 +119,10 @@ export async function lookupPublicConsultationByMatricule(
     return { found: false };
   }
 
+  if (!eleve.authUserId) {
+    return { found: true, activated: false, prenom: eleve.prenom };
+  }
+
   const documents = buildPublicConsultationDocuments(
     eleve.examensValides,
     eleve.documentsAcademique.filter((document) => document.typeDocument !== "DUPLICATA"),
@@ -123,6 +130,7 @@ export async function lookupPublicConsultationByMatricule(
 
   return {
     found: true,
+    activated: true,
     prenom: eleve.prenom,
     documents,
   };

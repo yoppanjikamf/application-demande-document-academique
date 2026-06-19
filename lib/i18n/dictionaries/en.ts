@@ -52,7 +52,7 @@ export const dictionary: Dictionary = {
   consultation: {
     title: "Quick lookup",
     description:
-      "Enter your student ID to check the availability of your academic documents. No account is created automatically.",
+      "For students who have already activated their DR-DOCSCOL account. Enter your student ID to check the availability of your academic documents.",
     matriculeLabel: "Student ID",
     matriculePlaceholder: "E.g. DEMO2026001",
     submit: "Check availability",
@@ -60,20 +60,26 @@ export const dictionary: Dictionary = {
     errorDefault: "Unable to look up records.",
     notFound:
       "No student found for this ID. Check your entry or contact your organisation if you were recently registered.",
+    notActivated:
+      "Hello {prenom}, your account is not activated yet. Activate your student account to use quick lookup and check your document status.",
     greeting: "Hello",
     statusIntro: "here is the status of your documents:",
     noExams: "No completed exams are linked to this student ID yet.",
     nextSteps:
       "To request a document, pay for a duplicate or book a withdrawal appointment, activate your account or sign in.",
+    nextStepsActivated:
+      "Sign in to your student space to submit a request, pay for a duplicate or book a withdrawal appointment.",
     connect: "Sign in",
+    openDashboard: "Open my space",
     sectionBadge: "Quick lookup",
-    sectionTitle: "Check document availability with your student ID",
+    sectionTitle: "Check your documents after account activation",
     sectionDescription:
-      "Scan the QR code or open the lookup page: enter your student ID to see whether your documents are available, pending or already collected. No account is created automatically.",
+      "Scan the QR code or open the lookup page: this feature is for students who have already activated their account. Enter your student ID to see whether your documents are available, pending or already collected.",
     sectionFollowUp:
-      "To submit a request, pay for a duplicate or book a withdrawal appointment, activate your account or sign in afterwards.",
+      "If your account is not activated yet, start with activation using your student ID and the email registered by your organisation.",
     openButton: "Open lookup",
-    qrCaption: "Scan to check the status of your academic documents.",
+    qrCaption:
+      "Scan this QR code with your phone to check your document status with your student ID, after activating your account.",
     qrAlt: "QR code to DR-DOCSCOL quick lookup",
     qrDevWarning:
       "This QR points to localhost and will not work from a phone. Open the site using the network address shown by npm run dev (e.g. http://192.168.x.x:3000), connect your phone to the same Wi‑Fi, or set NEXT_PUBLIC_SITE_URL / NEXT_PUBLIC_DEV_LAN_URL.",

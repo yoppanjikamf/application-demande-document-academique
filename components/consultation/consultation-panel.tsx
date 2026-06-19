@@ -17,7 +17,8 @@ type ConsultationDocument = {
 
 type ConsultationResponse =
   | { found: false }
-  | { found: true; prenom: string; documents: ConsultationDocument[] };
+  | { found: true; activated: false; prenom: string }
+  | { found: true; activated: true; prenom: string; documents: ConsultationDocument[] };
 
 function statusTone(statut: string) {
   if (statut === "DISPONIBLE") {
@@ -115,7 +116,21 @@ export function ConsultationPanel() {
         </div>
       ) : null}
 
-      {result?.found ? (
+      {result?.found && result.activated === false ? (
+        <div className="space-y-4 rounded-lg border border-amber-200 bg-amber-50 p-5 sm:p-6">
+          <p className="text-sm leading-6 text-amber-900">
+            {t("consultation.notActivated").replace("{prenom}", result.prenom)}
+          </p>
+          <Button asChild className="w-full sm:w-auto">
+            <Link href="/auth/register">
+              {t("common.activateAccount")}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      ) : null}
+
+      {result?.found && result.activated ? (
         <div className="space-y-4 rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card sm:p-6">
           <p className="text-sm text-text-3">
             {t("consultation.greeting")}{" "}
@@ -139,17 +154,17 @@ export function ConsultationPanel() {
             </ul>
           )}
 
-          <p className="text-sm leading-6 text-text-3">{t("consultation.nextSteps")}</p>
+          <p className="text-sm leading-6 text-text-3">{t("consultation.nextStepsActivated")}</p>
 
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild className="w-full sm:w-auto">
-              <Link href="/auth/register">
-                {t("common.activateAccount")}
+              <Link href="/auth/login">
+                {t("consultation.connect")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href="/auth/login">{t("consultation.connect")}</Link>
+              <Link href="/dashboard/documents">{t("consultation.openDashboard")}</Link>
             </Button>
           </div>
         </div>

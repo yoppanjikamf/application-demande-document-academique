@@ -6,7 +6,7 @@ import { DocScolLogo } from "@/components/ui/DocScolLogo";
 export const metadata = {
   title: "Consultation rapide",
   description:
-    "Consultez la disponibilité de vos documents scolaires avec votre matricule, sans connexion.",
+    "Consultez la disponibilité de vos documents scolaires avec votre matricule, après activation de votre compte élève.",
 };
 
 export default function ConsultationPage() {

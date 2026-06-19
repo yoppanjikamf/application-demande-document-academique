@@ -96,8 +96,7 @@ Le MVP DR-DOCSCOL couvre les principaux parcours de gestion des demandes et retr
 - `docs/admins-regionaux-test.md`: admins OBC.
 - `docs/admins-decc-regionaux-test.md`: admins DECC.
 - `docs/agents-centres-examen-test.md`: agents centres.
-- `docs/test-data-eleves.csv`: exemple minimal Import B (preferer les CSV demo du kit).
-- `docs/test-data-soutenance-eleves.csv`: 5 eleves demo soutenance.
+- `docs/test-data-soutenance-eleves.csv`: 5 eleves demo soutenance (genere par le seed).
 - `docs/connexions-tests-completes.md`: fichier central des identifiants.
 
 ## Verification realisee
