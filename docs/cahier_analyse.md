@@ -220,6 +220,19 @@ La digitalisation permet de :
 | BF-09 | Import A CSV — une ligne = un document à Disponible |
 | BF-12 | Agent (centre) ou admin (antenne) selon routage |
 
+### 5.4 — Figure : diagramme de cas d'utilisation (vue analyse)
+
+![Figure 5.1 — Diagramme de cas d'utilisation (vue métier / analyse des besoins)](diagrammes-images/cas utilisation.jpeg)
+
+| Lien besoin → cas d'utilisation | Exemples |
+| --- | --- |
+| BF-01 Consultation disponibilité | Consulter documents, consultation matricule |
+| BF-02 Activation compte | Activer son compte |
+| BF-03 / BF-04 Demandes | Demander relevé, demander duplicata |
+| BF-06 Rendez-vous | Prendre rendez-vous |
+| BF-08 / BF-09 Imports admin | Import élèves, disponibilisation |
+| BF-12 Retrait | Confirmer retrait (agent ou admin) |
+
 ---
 
 ## 6. ANALYSE DES BESOINS NON FONCTIONNELS

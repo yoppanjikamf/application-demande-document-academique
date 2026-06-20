@@ -1,7 +1,7 @@
 import { cancelAppointmentAction } from "@/app/admin/actions";
 import { getDocumentTitle } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope, getAdminScopeLabel, ORGANISME_IDS } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAdminScopeLabel } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import {
@@ -10,13 +10,9 @@ import {
 } from "@/components/dashboard/dashboard-list-panel";
 import { StatusBadge, appointmentTone } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
-import { redirect } from "next/navigation";
 
 export default async function AdminAppointmentsPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin/appointments");
-  if (user.organismeId === ORGANISME_IDS.DECC) {
-    redirect("/admin");
-  }
   const scopeLabel = getAdminScopeLabel(user);
   const appointments = await prisma.rendezVous.findMany({
     where: {

@@ -57,7 +57,7 @@ Régénération : `npm run generate:demo-csv`
 Les anciennes versions et les doublons ont ete retires du dossier `docs/`.
 
 - Les Markdown a la racine de `docs/` sont les sources de verite.
-- Les exports PDF sont dans `documents-word/` (regeneres via `scripts/md_to_docx.py` puis conversion LibreOffice).
+- Les exports PDF sont dans `documents-word/` (régénérés via `npm run export:docs-pdf`).
 - Les diagrammes images sont uniquement dans `diagrammes-images/`.
 - Les sources Mermaid sont uniquement dans `diagrammes-mermaid/`; les MCD, MLD et classes conformes sont generes par `scripts/generate-conform-diagrams.mjs`.
 - Les fichiers Excel generes depuis les CSV sont dans `tableurs-excel/`.
@@ -82,4 +82,8 @@ Les anciennes versions et les doublons ont ete retires du dossier `docs/`.
 
 ## Attention sur les exports PDF
 
-Les fichiers `.md` restent la source de verite la plus recente. Les PDF dans `documents-word/` sont regeneres depuis les Markdown. Pour regenerer : `python3 scripts/md_to_docx.py <fichier.md> docs/documents-word` puis conversion PDF LibreOffice.
+Les fichiers `.md` restent la source de verite la plus recente. Pour tout regenerer en PDF :
+
+```bash
+npm run export:docs-pdf
+```

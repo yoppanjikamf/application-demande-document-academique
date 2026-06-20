@@ -4,12 +4,13 @@
 Usage: python3 scripts/md_to_docx.py <fichier.md> [dossier_sortie]
 
 Prend en charge : titres (#, ##, ###), paragraphes, listes (-/*),
-citations (>), regles horizontales (---), tableaux pipe, gras **...**
-et code `...`. Suffisant pour la documentation du projet.
+citations (>), regles horizontales (---), tableaux pipe, images ![alt](path),
+gras **...** et code `...`.
 """
 
 import os
 import re
+import struct
 import sys
 import zipfile
 
@@ -132,7 +133,126 @@ def split_row(line):
     return [c.strip() for c in line.strip().strip("|").split("|")]
 
 
+def png_dimensions(path):
+    with open(path, "rb") as f:
+        header = f.read(24)
+    if len(header) < 24 or header[:8] != b"\x89PNG\r\n\x1a\n":
+        return 1200, 800
+    return struct.unpack(">II", header[16:24])
+
+
+def jpeg_dimensions(path):
+    with open(path, "rb") as f:
+        data = f.read()
+    i = 2
+    while i < len(data) - 9:
+        if data[i] != 0xFF:
+            i += 1
+            continue
+        marker = data[i + 1]
+        if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+            height = (data[i + 5] << 8) + data[i + 6]
+            width = (data[i + 7] << 8) + data[i + 8]
+            return width, height
+        if marker in (0xD8, 0xD9):
+            break
+        length = (data[i + 2] << 8) + data[i + 3]
+        i += 2 + length
+    return 1200, 800
+
+
+def image_dimensions(path):
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".png":
+        return png_dimensions(path)
+    if ext in (".jpg", ".jpeg"):
+        return jpeg_dimensions(path)
+    return 1200, 800
+
+
+def image_media_info(path):
+    ext = os.path.splitext(path)[1].lower()
+    if ext in (".jpg", ".jpeg"):
+        return "jpeg", "image/jpeg"
+    return "png", "image/png"
+
+
+def scale_to_max_width(width_px, height_px, max_emu=5486400):
+    """Redimensionne pour tenir dans ~6 pouces de large (EMU)."""
+    px_to_emu = 914400 / 96
+    cx = int(width_px * px_to_emu)
+    cy = int(height_px * px_to_emu)
+    if cx <= max_emu:
+        return cx, cy
+    ratio = max_emu / cx
+    return int(cx * ratio), int(cy * ratio)
+
+
+class ImageRegistry:
+    def __init__(self):
+        self.items = []
+
+    def add(self, path):
+        for idx, existing in enumerate(self.items, start=1):
+            if existing == path:
+                return f"rId{idx}"
+        self.items.append(path)
+        return f"rId{len(self.items)}"
+
+
+def image_paragraph(rid, cx, cy, docpr_id, name="Image"):
+    return (
+        "<w:p><w:pPr><w:jc w:val=\"center\"/></w:pPr><w:r><w:drawing>"
+        '<wp:inline distT="0" distB="0" distL="0" distR="0" '
+        'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">'
+        f'<wp:extent cx="{cx}" cy="{cy}"/>'
+        f'<wp:docPr id="{docpr_id}" name="{esc(name)}"/>'
+        '<wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1" '
+        'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"/></wp:cNvGraphicFramePr>'
+        '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+        '<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+        '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+        "<pic:nvPicPr>"
+        f'<pic:cNvPr id="0" name="{esc(name)}"/>'
+        "<pic:cNvPicPr/>"
+        "</pic:nvPicPr>"
+        "<pic:blipFill>"
+        '<a:blip r:embed="' + rid + '" '
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>'
+        "<a:stretch><a:fillRect/></a:stretch>"
+        "</pic:blipFill>"
+        "<pic:spPr>"
+        f'<a:xfrm><a:off x="0" y="0"/><a:ext cx="{cx}" cy="{cy}"/></a:xfrm>'
+        '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
+        "</pic:spPr>"
+        "</pic:pic>"
+        "</a:graphicData>"
+        "</a:graphic>"
+        "</wp:inline>"
+        "</w:drawing></w:r></w:p>"
+    )
+
+
+def caption_para(text):
+    ppr = '<w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>'
+    return para(runs_for(text, size=20, color="555555"), ppr)
+
+
+def image_placeholder(alt, path):
+    return blockquote(
+        [
+            f"Emplacement figure — {alt}",
+            f"Insérer l'image : {path}",
+            "(Fichier introuvable au moment de la conversion ; glisser-déposer le PNG dans Word.)",
+        ]
+    )
+
+
 def convert(md_path, out_dir):
+    md_dir = os.path.dirname(os.path.abspath(md_path))
+    images = ImageRegistry()
+    docpr_id = 1
+
     with open(md_path, encoding="utf-8") as f:
         lines = f.read().splitlines()
 
@@ -142,6 +262,22 @@ def convert(md_path, out_dir):
     while i < n:
         line = lines[i]
         if not line.strip():
+            i += 1
+            continue
+        img_match = re.match(r"^!\[([^\]]*)\]\(([^)]+)\)\s*$", line.strip())
+        if img_match:
+            alt = img_match.group(1).strip() or "Figure"
+            rel_path = img_match.group(2).strip()
+            abs_path = rel_path if os.path.isabs(rel_path) else os.path.normpath(os.path.join(md_dir, rel_path))
+            if os.path.isfile(abs_path) and abs_path.lower().endswith((".png", ".jpg", ".jpeg")):
+                w_px, h_px = image_dimensions(abs_path)
+                cx, cy = scale_to_max_width(w_px, h_px)
+                rid = images.add(abs_path)
+                docpr_id += 1
+                body.append(image_paragraph(rid, cx, cy, docpr_id, alt))
+                body.append(caption_para(alt))
+            else:
+                body.append(image_placeholder(alt, rel_path))
             i += 1
             continue
         if re.match(r"^---+\s*$", line):
@@ -196,10 +332,31 @@ def convert(md_path, out_dir):
         '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
         '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
         '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Default Extension="png" ContentType="image/png"/>'
+        '<Default Extension="jpeg" ContentType="image/jpeg"/>'
+        '<Default Extension="jpg" ContentType="image/jpeg"/>'
         '<Override PartName="/word/document.xml" '
         'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
-        "</Types>"
     )
+    for idx, img_path in enumerate(images.items, start=1):
+        media_ext, media_type = image_media_info(img_path)
+        content_types += (
+            f'<Override PartName="/word/media/image{idx}.{media_ext}" ContentType="{media_type}"/>'
+        )
+    content_types += "</Types>"
+
+    doc_rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    )
+    for idx, img_path in enumerate(images.items, start=1):
+        media_ext, _ = image_media_info(img_path)
+        doc_rels += (
+            f'<Relationship Id="rId{idx}" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
+            f'Target="media/image{idx}.{media_ext}"/>'
+        )
+    doc_rels += "</Relationships>"
     rels = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
@@ -215,6 +372,12 @@ def convert(md_path, out_dir):
         z.writestr("[Content_Types].xml", content_types)
         z.writestr("_rels/.rels", rels)
         z.writestr("word/document.xml", document)
+        if images.items:
+            z.writestr("word/_rels/document.xml.rels", doc_rels)
+        for idx, img_path in enumerate(images.items, start=1):
+            media_ext, _ = image_media_info(img_path)
+            with open(img_path, "rb") as img_f:
+                z.writestr(f"word/media/image{idx}.{media_ext}", img_f.read())
     print(f"OK -> {out_path}")
 
 

@@ -179,6 +179,61 @@ async function ensureAdminAuthUser(options: {
   return data.user.id;
 }
 
+async function ensureAgentAuthUser(options: {
+  email: string;
+  password: string;
+  matricule: string;
+  nom: string;
+  prenom: string;
+  centreExamenId: string | null;
+  authUserId: string | null;
+}) {
+  const supabaseAdmin = createSupabaseAdminClient();
+  const appMetadata = {
+    role: "AGENT_CENTRE_EXAMEN",
+    matricule: options.matricule,
+    centreExamenId: options.centreExamenId,
+  };
+  const userMetadata = {
+    matricule: options.matricule,
+    nom: options.nom,
+    prenom: options.prenom,
+  };
+  const payload = {
+    password: options.password,
+    email_confirm: true,
+    app_metadata: appMetadata,
+    user_metadata: userMetadata,
+  };
+
+  if (options.authUserId) {
+    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
+      options.authUserId,
+      payload,
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data.user.id;
+  }
+
+  const existingAuthUserId = await findSupabaseUserIdByEmail(options.email);
+  const { data, error } = existingAuthUserId
+    ? await supabaseAdmin.auth.admin.updateUserById(existingAuthUserId, payload)
+    : await supabaseAdmin.auth.admin.createUser({
+        email: options.email,
+        ...payload,
+      });
+
+  if (error) {
+    throw error;
+  }
+
+  return data.user.id;
+}
+
 export async function signInAction(
   input: z.infer<typeof signInSchema> & {
     next?: string;
@@ -317,6 +372,70 @@ export async function signInAction(
       return {
         ok: false as const,
         error: adminError instanceof Error ? adminError.message : "Connexion admin impossible.",
+      };
+    }
+  }
+
+  if (error && dbUser.role === "AGENT_CENTRE_EXAMEN" && expectedAgentCentre) {
+    try {
+      const authUserId = await ensureAgentAuthUser({
+        email: dbUser.email,
+        password: parsed.data.password,
+        matricule: dbUser.matricule,
+        nom: dbUser.nom,
+        prenom: dbUser.prenom,
+        centreExamenId: dbUser.centreExamenId,
+        authUserId: dbUser.authUserId,
+      });
+
+      if (!dbUser.authUserId || dbUser.authUserId !== authUserId) {
+        await withDatabaseRetry(() =>
+          prisma.user.update({
+            where: { id: dbUser.id },
+            data: { authUserId },
+          }),
+        );
+      }
+
+      const retry = await supabase.auth.signInWithPassword({
+        email: parsed.data.email,
+        password: parsed.data.password,
+      });
+
+      if (retry.error) {
+        return { ok: false as const, error: "Mot de passe incorrect." };
+      }
+
+      if (retry.data.user && dbUser.authUserId !== retry.data.user.id) {
+        await withDatabaseRetry(() =>
+          prisma.user.update({
+            where: { id: dbUser.id },
+            data: {
+              authUserId: retry.data.user.id,
+              derniereConnexion: new Date(),
+            },
+          }),
+        );
+      } else {
+        await withDatabaseRetry(() =>
+          prisma.user.update({
+            where: { id: dbUser.id },
+            data: { derniereConnexion: new Date() },
+          }),
+        );
+      }
+
+      return {
+        ok: true as const,
+        redirectTo: input.next
+          ? safeNextPathForRole(dbUser.role, input.next)
+          : getHomePathForRole(dbUser.role),
+      };
+    } catch (agentError) {
+      return {
+        ok: false as const,
+        error:
+          agentError instanceof Error ? agentError.message : "Connexion agent centre impossible.",
       };
     }
   }

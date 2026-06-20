@@ -113,6 +113,18 @@ export function LoginForm({
           {pending ? "Connexion..." : "Se connecter"}
         </Button>
 
+        {loginRole === "AGENT_CENTRE_EXAMEN" ? (
+          <div className="rounded-lg border border-border/70 bg-muted/40 p-3 text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">Demo region Centre</p>
+            <p>Matricule : AGENT-CE-02-CENTRE</p>
+            <p>Email : agent.centre.centre@example.com</p>
+            <p>Mot de passe : AgentCentre2026!</p>
+            <p className="mt-2">
+              Les trois champs sont obligatoires. Page dediee : /auth/login/centre-examen
+            </p>
+          </div>
+        ) : null}
+
         <div className="space-y-2 text-sm text-muted-foreground">
           <p>
             Mot de passe oublié ?{" "}
@@ -124,13 +136,15 @@ export function LoginForm({
             </Link>
             .
           </p>
-          <p>
-            Pas encore inscrit ?{" "}
-            <Link href="/auth/register" className="text-foreground underline underline-offset-4">
-              Activer mon compte
-            </Link>
-            .
-          </p>
+          {loginRole !== "AGENT_CENTRE_EXAMEN" && !loginOrganisme ? (
+            <p>
+              Pas encore inscrit ?{" "}
+              <Link href="/auth/register" className="text-foreground underline underline-offset-4">
+                Activer mon compte
+              </Link>
+              .
+            </p>
+          ) : null}
         </div>
       </form>
     </Form>

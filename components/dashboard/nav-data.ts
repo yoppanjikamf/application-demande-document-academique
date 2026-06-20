@@ -61,6 +61,8 @@ const deccAdminSections = (t: Translator): NavSection[] => [
       { title: t("dashboard.nav.documents"), url: "/admin/documents", icon: FileText },
       { title: t("dashboard.nav.students"), url: "/admin/students", icon: UsersRound },
       { title: t("dashboard.nav.payments"), url: "/admin/payments", icon: CreditCard },
+      { title: t("dashboard.nav.appointments"), url: "/admin/appointments", icon: CalendarCheck },
+      { title: t("dashboard.nav.availability"), url: "/admin/rdv-disponibilites", icon: Clock },
       { title: t("dashboard.nav.auditLogs"), url: "/admin/audit-logs", icon: Shield },
     ],
   },

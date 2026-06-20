@@ -6,18 +6,14 @@ import {
 } from "@/app/admin/actions";
 import { OBC_SETTINGS_ID, formatDateKey, getActiveTimeSlots } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
-import { getAdminDocumentScope, getAdminScopeLabel, ORGANISME_IDS } from "@/lib/document-routing";
+import { getAdminDocumentScope, getAdminScopeLabel } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { redirect } from "next/navigation";
 
 export default async function AdminDisponibilitesPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin/rdv-disponibilites");
-  if (user.organismeId === ORGANISME_IDS.DECC) {
-    redirect("/admin");
-  }
   const documentScope = getAdminDocumentScope(user);
   const scopeLabel = getAdminScopeLabel(user);
 

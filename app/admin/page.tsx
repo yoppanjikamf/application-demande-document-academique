@@ -65,7 +65,8 @@ export default async function AdminPage() {
   const user = await requireRole("ADMINISTRATEUR", "/admin");
   const documentScope = getAdminDocumentScope(user);
   const scopeLabel = getAdminScopeLabel(user);
-  const isObcAdmin = user.organismeId === ORGANISME_IDS.OBC;
+  const canManageAppointments =
+    user.organismeId === ORGANISME_IDS.OBC || user.organismeId === ORGANISME_IDS.DECC;
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const thirtyDaysAgo = new Date(startOfDay());
@@ -321,7 +322,7 @@ export default async function AdminPage() {
           <Button asChild variant="outline">
             <Link href="/admin/documents">Documents</Link>
           </Button>
-          {isObcAdmin ? (
+          {canManageAppointments ? (
             <Button asChild variant="outline">
               <Link href="/admin/rdv-disponibilites">Disponibilités RDV</Link>
             </Button>

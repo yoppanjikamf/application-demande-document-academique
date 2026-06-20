@@ -387,9 +387,12 @@ function getManualStudentErrorUrl(message: string) {
   return `/admin/students?${params.toString()}`;
 }
 
-function assertObcAdmin(user: { role: Role; organismeId: string | null }) {
-  if (user.role !== "ADMINISTRATEUR" || user.organismeId !== ORGANISME_IDS.OBC) {
-    throw new Error("Outil reserve aux administrateurs OBC.");
+function assertAppointmentAdmin(user: { role: Role; organismeId: string | null }) {
+  if (
+    user.role !== "ADMINISTRATEUR" ||
+    (user.organismeId !== ORGANISME_IDS.OBC && user.organismeId !== ORGANISME_IDS.DECC)
+  ) {
+    throw new Error("Outil reserve aux administrateurs OBC ou DECC.");
   }
 }
 
@@ -408,7 +411,7 @@ export async function updateAdminQuotaAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
-  assertObcAdmin(user);
+  assertAppointmentAdmin(user);
 
   const parsed = adminQuotaSchema.safeParse({
     quotaJournalier: formData.get("quotaJournalier"),
@@ -458,7 +461,7 @@ export async function upsertHolidayAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
-  assertObcAdmin(user);
+  assertAppointmentAdmin(user);
 
   const dateStr = String(formData.get("date") ?? "");
   const nom = String(formData.get("nom") ?? "Jour férié");
@@ -483,7 +486,7 @@ export async function deleteHolidayAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
-  assertObcAdmin(user);
+  assertAppointmentAdmin(user);
 
   const dateStr = String(formData.get("date") ?? "");
   if (!dateStr) {
@@ -502,7 +505,7 @@ export async function toggleWeekendBookingsAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
-  assertObcAdmin(user);
+  assertAppointmentAdmin(user);
 
   const allow = String(formData.get("allow")) === "true";
 
@@ -1029,7 +1032,7 @@ export async function cancelAppointmentAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
-  assertObcAdmin(user);
+  assertAppointmentAdmin(user);
 
   const rendezVousId = String(formData.get("rendezVousId") ?? "");
   if (!rendezVousId) {

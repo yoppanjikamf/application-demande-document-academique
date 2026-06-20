@@ -2,22 +2,31 @@
 ## Application Web de Gestion des Retraits de Documents Scolaires
 ### (Diplômes, Relevés, Duplicatas) — CAS DE OBC / DECC
 
-**Cameroun — 2026 | Version 2.1**
+**Cameroun — 2026 | Version 3.0**
 
 ---
 
 ## TABLE DES MATIÈRES
 
-1. Contexte & Problématique
-2. Objectifs du Projet
-3. Périmètre du Projet
-4. Besoins Fonctionnels
-5. Besoins Non Fonctionnels
-6. Architecture Technique
-7. Contraintes du Projet
-8. Glossaire
+Structure alignée sur le modèle **TP GoFind** :
+
+| N° | Section | Contenu dans ce document |
+|----|---------|--------------------------|
+| **I** | Introduction | §1 Contexte & problématique, §2 Objectifs, §3 Périmètre |
+| **II** | Définitions des concepts | §4 Définitions des concepts |
+| **III** | Besoins fonctionnels & non fonctionnels | §5 Besoins fonctionnels, §6 Besoins non fonctionnels, §3.4 Règles métier |
+| **IV** | Acteurs (bénéficiaires & utilisateurs) | §7 Acteurs |
+| **V** | Architecture visée | §8 Architecture visée |
+| **VI** | Ressources | §9 Ressources |
+| **VII** | Planification | §10 Planification |
+| **VIII** | Budget | §11 Budget |
+| **IX** | Clauses juridiques | §12 Clauses juridiques |
+| **X** | Conclusion | §13 Conclusion |
+| — | Annexes | §14 Contraintes, §15 Glossaire technique, §16 État d'implémentation |
 
 ---
+
+# I. INTRODUCTION
 
 ## 1. CONTEXTE & PROBLÉMATIQUE
 
@@ -98,7 +107,8 @@ L’objectif général du projet est de concevoir et développer une application
 - Envoi d’emails via Nodemailer.
 - Journalisation des emails envoyés ou échoués dans `mail_logs`.
 - Back-office administrateur.
-- Import CSV d’élèves, examens, documents et rendez-vous.
+- Page d'accueil publique (landing) et consultation rapide par matricule.
+- Import CSV en deux flux : élèves / examens / documents (`PAS_DISPONIBLE`) et disponibilisation (`DISPONIBLE`).
 - Gestion des statuts de documents.
 - Gestion des rendez-vous côté élève et côté administration.
 - Annulation de rendez-vous par l’élève ou l’administration.
@@ -117,7 +127,7 @@ L’objectif général du projet est de concevoir et développer une application
 ### 3.2 — Hors périmètre (exclus)
 
 - Téléchargement numérique sécurisé des documents scolaires au format PDF.
-- Vérification des documents par QR code pour les employeurs.
+- Vérification des documents par QR code pour les employeurs (tiers) — distinct du QR de consultation élève sur la landing.
 - Intégration complète avec un ERP institutionnel existant.
 - Passerelle Mobile Money réelle avec OTP, signature fournisseur et callback certifié, prévue pour une phase de production.
 - Notifications push natives navigateur ou mobile.
@@ -128,17 +138,7 @@ L’objectif général du projet est de concevoir et développer une application
 
 ### 3.3 — Acteurs et parties prenantes
 
-| Acteur / Rôle | Type | Responsabilités |
-|----------------|------|-----------------|
-| Administrateur | Interne | Gérer les utilisateurs, importer les données, consulter les statistiques, modifier les disponibilités (`PAS_DISPONIBLE` / `DISPONIBLE`), valider les dossiers de duplicata et enregistrer les retraits en antenne régionale. |
-| Service OBC | Interne | Gérer les documents relevant de l’OBC, notamment les diplômes et relevés du Baccalauréat et du Probatoire selon les règles métier. |
-| Service DECC | Interne | Gérer les documents relevant de la DECC, notamment les documents liés au BEPC. |
-| Antenne régionale OBC / DECC | Interne | Gérer les documents orientés vers une antenne régionale selon l'organisme, le diplôme et la région de composition de l'élève. |
-| Agent centre d'examen | Interne | Consulter uniquement les rendez-vous de retrait au centre d'examen (BEPC original, relevés BEPC, Probatoire, Baccalauréat) et confirmer le retrait physique effectué. |
-| Élève / Diplômé | Utilisateur final | Consulter ses documents, demander un relevé ou un duplicata, effectuer un paiement, réserver ou annuler un rendez-vous et consulter ses notifications. |
-| Système interne | Technique | Déclencher les notifications, confirmer certains paiements via webhook interne et journaliser les emails. |
-| Développeur / Stagiaire | Réalisateur | Développer, tester, maintenir et documenter l’application. |
-| Tuteur / Encadreur | Commanditaire | Valider les livrables, orienter les priorités et contrôler la conformité du projet. |
+> Le détail des acteurs, bénéficiaires et utilisateurs est développé au **§7 (section IV)**.
 
 ### 3.4 — Règles métier conservées
 
@@ -163,11 +163,42 @@ L’objectif général du projet est de concevoir et développer une application
 | Statut rendez-vous | Les statuts sont `PLANIFIE`, `CONFIRME`, `ANNULE` et `HONORE`. |
 | Statut paiement | Les statuts sont `EN_ATTENTE` et `EFFECTUE`. |
 | Statut notification | Les statuts sont `ENVOYEE`, `RECUE` et `LUE`. |
-| Périmètre administrateur | Un administrateur ne traite que les documents de son organisme et, pour l’OBC, de son antenne régionale lorsqu’elle est définie. |
+| Consultation publique | Toute personne peut saisir un matricule sur `/consultation` ; seuls les élèves **déjà en base et compte activé** (`authUserId`) voient leurs statuts. Aucune création d'élève ni de document depuis cette page. |
+| Import CSV élèves | Format OBC : Probatoire / Baccalauréat. Format DECC : BEPC uniquement. Pas de duplicata, pas de diplôme original Probatoire. Mot de passe **non** importé (activation via `/auth/register`). |
+| Import CSV disponibilisation | Une ligne = un document à passer en `DISPONIBLE` ; l'élève doit exister en base. Colonnes : matricule, diplôme, type de document, session. |
+| Matricule élève démo | Format seed : `DEMO2026` + 3 chiffres (ex. `DEMO2026002`). Fichiers démo : `docs/csv-demo/{region}/{obc|decc}/`. |
 
 ---
 
-## 4. BESOINS FONCTIONNELS
+# II. DÉFINITIONS DES CONCEPTS
+
+Cette section fixe le vocabulaire métier utilisé dans tout le document.
+
+| Concept | Définition |
+|---------|------------|
+| **Document scolaire** | Diplôme original, relevé de notes ou duplicata lié à un examen validé (BEPC, Probatoire, Baccalauréat). |
+| **Disponibilisation** | Action administrative qui fait passer un document de `PAS_DISPONIBLE` à `DISPONIBLE`, signalant qu'il peut être retiré selon les règles de routage. |
+| **Consultation rapide** | Service public sur `/consultation` : l'élève saisit son matricule et voit les statuts, sans connexion complète au dashboard. |
+| **QR code de consultation** | Code sur la landing page encodant l'URL de consultation publique ; distinct d'un futur QR de vérification pour employeurs. |
+| **Activation de compte** | Création du mot de passe Supabase Auth à partir d'un matricule et d'un email déjà enregistrés par l'administration. |
+| **OBC** | Office du Baccalauréat du Cameroun — organisme responsable du Probatoire et du Baccalauréat. |
+| **DECC** | Organisme responsable des documents liés au BEPC dans le périmètre du projet. |
+| **Antenne régionale** | Structure OBC ou DECC d'une région ; lieu de retrait pour certains documents (ex. duplicatas, Bac original). |
+| **Centre d'examen** | Lieu de composition de l'élève ; lieu de retrait pour BEPC original/relevé, relevés Probatoire et Bac selon les règles. |
+| **Rendez-vous (RDV)** | Créneau réservé par l'élève pour retirer physiquement un document disponible. |
+| **Duplicata** | Copie officielle d'un document perdu ou détérioré ; parcours payant avec justificatifs et validation admin. |
+| **Import élèves (CSV)** | Fichier admin créant ou mettant à jour élèves, examens et documents en statut initial `PAS_DISPONIBLE`. |
+| **Import disponibilisation (CSV)** | Fichier admin passant des documents existants au statut `DISPONIBLE`. |
+| **Matricule** | Identifiant unique de l'élève (ex. `DEMO2026002`) ; clé d'activation et de consultation. |
+| **MVP** | Version minimale utilisable couvrant le parcours principal sans toutes les intégrations de production. |
+
+---
+
+# III. BESOINS FONCTIONNELS & NON FONCTIONNELS
+
+> Les **exigences métier** détaillées (règles OBC/DECC, CSV, consultation) sont au **§3.4**. Les besoins ci-dessous en découlent.
+
+## 5. BESOINS FONCTIONNELS
 
 > Légende : 🔴 Obligatoire — 🟡 Important — 🟢 Optionnel
 
@@ -192,6 +223,22 @@ L’objectif général du projet est de concevoir et développer une application
 | F-10 | Demande de duplicata | Permettre une demande motivée de duplicata avec diplôme cible, session, centre d’examen, justificatif et paiement. | 🔴 |
 | F-11 | Ajout au calendrier | Prévoir un export calendrier ou un rappel afin de ne pas manquer la date du retrait. | 🟡 |
 
+> La **consultation rapide publique** (page `/consultation`, QR code sur la landing) est décrite au **§ 4.2 bis**.
+
+### 4.2 bis — Module Consultation rapide publique (landing et QR code)
+
+Ce module permet à un élève **déjà enregistré et ayant activé son compte** de vérifier rapidement l’état de ses documents **sans se connecter** au tableau de bord complet. Il répond au besoin de visibilité avant ou après activation, depuis un téléphone notamment.
+
+| ID | Fonctionnalité | Description détaillée | Priorité |
+|----|----------------|----------------------|----------|
+| F-35 | Page d'accueil publique (landing) | Présenter le portail DR-DOCSCOL, les parcours OBC/DECC et un accès visible à la consultation rapide. Interface bilingue FR / EN. | 🔴 |
+| F-36 | Consultation rapide par matricule | Page publique `/consultation` : saisie du matricule seul, affichage des statuts (`PAS_DISPONIBLE`, `DISPONIBLE`, `RETIRE`) et libellés des documents. **Aucune** création d'élève ni de document depuis cette page. | 🔴 |
+| F-37 | QR code de consultation | Section « Consultation rapide » sur la landing avec QR code encodant l'URL `/consultation` du site public (`NEXT_PUBLIC_SITE_URL` en production). Le scan depuis un téléphone ouvre la même page que le lien « Ouvrir la consultation ». | 🔴 |
+| F-38 | Contrôle d'accès consultation | Consultation autorisée uniquement si le matricule existe en base **et** que le compte élève est activé (`authUserId` renseigné). Sinon : message invitant à activer le compte via `/auth/register`. | 🔴 |
+| F-39 | Limites de la consultation rapide | Pas d'instructions de retrait détaillées, pas de prise de rendez-vous, pas de paiement, pas de demande de duplicata depuis la consultation publique (réservé à l'espace connecté `/dashboard`). | 🔴 |
+
+**Hors périmètre associé :** vérification des documents par QR code pour un **employeur** ou un **tiers** (authentification du document, lecture seule par un non-élève) — prévu en évolution future, distinct du QR élève sur la landing.
+
 ### 4.3 — Module Notifications
 
 | ID | Fonctionnalité | Description détaillée | Priorité |
@@ -208,7 +255,7 @@ L’objectif général du projet est de concevoir et développer une application
 | ID | Fonctionnalité | Description détaillée | Priorité |
 |----|----------------|----------------------|----------|
 | F-18 | Tableau de bord administratif | Afficher les statistiques principales : documents, rendez-vous, retraits, délais et volumes. | 🟡 |
-| F-19 | Import CSV | Importer en masse des élèves, examens validés, documents et rendez-vous depuis un fichier CSV. | 🔴 |
+| F-19 | Import CSV | Importer en masse des élèves, examens validés et documents (import élèves), puis disponibiliser des documents existants (import disponibilisation). Fichiers séparés OBC / DECC. | 🔴 |
 | F-20 | Gestion des élèves | Lister, rechercher et consulter les élèves dans le back-office. | 🔴 |
 | F-21 | Gestion des documents | Lister, filtrer et consulter les documents relevant du périmètre de l’administrateur. | 🔴 |
 | F-22 | Mise à jour des statuts | Modifier la disponibilité d’un document (`PAS_DISPONIBLE` / `DISPONIBLE`) et déclencher les notifications associées. Marquer `RETIRE` uniquement pour les retraits en antenne régionale. | 🔴 |
@@ -235,15 +282,16 @@ L’objectif général du projet est de concevoir et développer une application
 | Module | 🔴 Obligatoires | 🟡 Importants | 🟢 Optionnels |
 |--------|-----------------|----------------|----------------|
 | Authentification & Gestion des accès | 3 | 2 | 0 |
-| Consultation des Documents scolaires | 4 | 2 | 0 |
+| Consultation des Documents scolaires (connecté) | 4 | 2 | 0 |
+| Consultation rapide publique (landing / QR) | 5 | 0 | 0 |
 | Notifications | 2 | 3 | 1 |
 | Administration (Back-office) | 5 | 2 | 0 |
 | Rendez-vous & Paiements | 6 | 4 | 0 |
-| **TOTAL** | **20** | **13** | **1** |
+| **TOTAL** | **25** | **13** | **1** |
 
 ---
 
-## 5. BESOINS NON FONCTIONNELS
+## 6. BESOINS NON FONCTIONNELS
 
 | Catégorie | Exigence | Critère de satisfaction |
 |-----------|----------|------------------------|
@@ -266,9 +314,72 @@ L’objectif général du projet est de concevoir et développer une application
 
 ---
 
-## 6. ARCHITECTURE TECHNIQUE
+# IV. ACTEURS (BÉNÉFICIAIRES & UTILISATEURS)
 
-### 6.1 — Stack technique choisie
+## 7. ACTEURS DU SYSTÈME
+
+### 7.1 — Bénéficiaires du projet
+
+| Bénéficiaire | Gain attendu |
+|--------------|--------------|
+| Élèves et diplômés | Moins de déplacements inutiles, visibilité sur la disponibilité des documents, prise de RDV en ligne. |
+| Administration OBC / DECC | Centralisation des dossiers, imports CSV, traçabilité des retraits, réduction des erreurs manuelles. |
+| Agents centres d'examen | Liste claire des retraits à confirmer au centre, sans gérer les duplicatas ni le Bac original. |
+| Institutions (OBC, DECC) | Image de modernisation, statistiques et audit des opérations. |
+
+### 7.2 — Utilisateurs du système
+
+| Acteur / Rôle | Type | Responsabilités principales |
+|----------------|------|----------------------------|
+| Élève / Diplômé | Utilisateur final | Activer son compte, consulter ses documents, demander relevé/duplicata, payer, réserver un RDV, consulter les notifications. |
+| Administrateur OBC | Interne | Gérer élèves et documents Probatoire/Bac de son antenne ; imports CSV ; disponibilisation ; retraits en antenne. |
+| Administrateur DECC | Interne | Gérer élèves et documents BEPC de son antenne ; imports CSV ; validation duplicatas BEPC. |
+| Agent centre d'examen | Interne | Voir les RDV de retrait au centre et confirmer le retrait physique (BEPC, relevés, Probatoire, Bac relevé). |
+| Système (jobs / webhooks) | Technique | Rappels, confirmations de paiement internes, envoi d'emails, journalisation. |
+| Développeur / Stagiaire | Réalisateur | Conception, développement, tests, documentation, déploiement. |
+| Tuteur / Encadreur | Commanditaire | Validation des livrables, suivi académique, orientation des priorités. |
+
+### 7.3 — Matrice acteur / fonctionnalité (synthèse)
+
+| Fonctionnalité | Élève | Admin | Agent CE | Public |
+|----------------|-------|-------|----------|--------|
+| Consultation rapide (matricule) | — | — | — | Oui (compte activé) |
+| Dashboard documents | Oui | — | — | — |
+| Import CSV | — | Oui | — | — |
+| Disponibilisation | — | Oui | — | — |
+| Prise de RDV | Oui | Consultation | — | — |
+| Confirmation retrait centre | — | — | Oui | — |
+| Retrait antenne | — | Oui | — | — |
+
+---
+
+# V. ARCHITECTURE VISÉE
+
+L'architecture cible est une **application web full-stack monolithique** déployée en cloud, avec séparation logique des rôles et routage métier OBC/DECC, sans serveur backend distinct.
+
+## 8. ARCHITECTURE TECHNIQUE
+
+### 8.1 — Vue d'ensemble (architecture visée)
+
+```
+[ Navigateur élève / admin / agent ]
+           |
+           v
+[ Next.js 15 — Vercel ]  ----->  [ Supabase Auth ]
+           |                              |
+           v                              v
+[ API Routes + Server Actions ]    [ Sessions JWT ]
+           |
+           v
+[ Prisma ORM ]  ----->  [ PostgreSQL — Supabase ]
+           |
+           +----->  [ Nodemailer / SMTP ]  (notifications email)
+           +----->  [ Supabase Storage ]     (justificatifs duplicata)
+```
+
+**Principes :** un seul dépôt Git ; logique métier dans `lib/*` ; pages par rôle ; données sensibles hors du client ; HTTPS en production.
+
+### 8.2 — Stack technique choisie
 
 | Couche | Technologie | Justification du choix |
 |--------|-------------|------------------------|
@@ -282,13 +393,13 @@ L’objectif général du projet est de concevoir et développer une application
 | Versioning | Git + GitHub | Assure le suivi des modifications, l’historique et la collaboration. |
 | Hébergement | Vercel + Supabase Cloud | Vercel est adapté au déploiement Next.js et Supabase fournit la base PostgreSQL et l’authentification. |
 
-### 6.2 — Architecture logique (Pattern MVC)
+### 8.3 — Architecture logique (Pattern MVC)
 
 | MODÈLE (Model) | VUE (View) | CONTRÔLEUR (Controller) |
 |----------------|-----------|--------------------------|
 | Le modèle est représenté par `prisma/schema.prisma`, Prisma Client et les entités métier : `User`, `DocumentAcademique`, `RendezVous`, `Paiement`, `Recu`, `Notification`, `Organisme`, `AntenneRegionale`, `ExamenValide`, etc. | La vue est représentée par les pages et composants Next.js : `app/dashboard/*`, `app/admin/*`, `app/auth/*`, `app/account/*`. | Le contrôle est assuré par les Route Handlers `app/api/*`, les Server Actions `app/*/actions.ts` et les services métier dans `lib/*`. |
 
-### 6.3 — Contraintes du projet
+### 8.4 — Contraintes techniques du projet
 
 | Type de contrainte | Description |
 |--------------------|-------------|
@@ -299,24 +410,29 @@ L’objectif général du projet est de concevoir et développer une application
 | Institutionnelle | Les règles de retrait doivent rester conformes aux procédures OBC / DECC. |
 | Légale | Les données personnelles doivent être protégées et la conformité RGPD doit être formalisée. |
 
-### 6.4 — Organisation du code
+### 8.5 — Organisation du code
 
 | Zone | Rôle |
 |------|------|
 | `app/auth/*` | Pages et actions d’authentification. |
 | `app/dashboard/*` | Interface élève : documents, rendez-vous, paiements, notifications. |
 | `app/admin/*` | Back-office administrateur : documents, élèves, import, retraits, rendez-vous, statistiques. |
+| `app/` (racine) | Page d'accueil publique (`/`), consultation publique (`/consultation`). |
 | `app/account/*` | Consultation et modification du profil. |
 | `app/api/*` | Routes HTTP pour auth, documents, paiements, notifications, retraits et statistiques. |
-| `lib/auth.ts` | Récupération de l’utilisateur connecté et contrôle de rôle. |
+| `lib/auth.ts` | Récupération de l'utilisateur connecté et contrôle de rôle. |
+| `lib/public-consultation.ts` | Consultation publique par matricule (compte élève activé). |
+| `lib/admin-student-import.ts` | Import CSV élèves et documents initiaux. |
+| `lib/document-availability-import.ts` | Import CSV de disponibilisation. |
 | `lib/api-utils.ts` | Réponses JSON, erreurs API, pagination et protection des routes internes. |
 | `lib/appointment-service.ts` | Créneaux, quotas, jours fériés, titres de documents et lieux de retrait. |
 | `lib/document-routing.ts` | Règles OBC / DECC, antennes régionales, routage et périmètre admin. |
 | `lib/mail-service.ts` | Notifications email, création de notifications et journalisation des emails. |
 | `prisma/schema.prisma` | Schéma relationnel de référence. |
 | `scripts/*` | Seeds administrateur, élève test et données de diplômes. |
+| `docs/csv-demo/` | Jeux de données CSV de démonstration par région et organisme (OBC / DECC). |
 
-### 6.5 — Modèle de données actuel
+### 8.6 — Modèle de données actuel
 
 | Entité | Rôle dans le système |
 |--------|----------------------|
@@ -338,7 +454,127 @@ L’objectif général du projet est de concevoir et développer une application
 
 ---
 
-## 7. CONTRAINTES DU PROJET
+# VI. RESSOURCES
+
+## 9. RESSOURCES MATÉRIELLES, LOGICIELLES & HUMAINES
+
+### 9.1 — Ressources matérielles
+
+| Ressource | Usage | Remarque |
+|-----------|-------|----------|
+| Poste de développement | Codage, tests locaux, démonstrations | PC portable ou fixe, connexion Internet stable |
+| Serveur d'hébergement (Vercel) | Exécution de l'application Next.js en production et preview | Cloud managé, pas de serveur physique à administrer |
+| Base de données (Supabase) | PostgreSQL, Auth, Storage | Hébergement cloud région configurable |
+| Téléphone mobile | Tests responsive, scan QR code, consultation rapide | Optionnel mais recommandé pour la démo |
+
+### 9.2 — Ressources logicielles
+
+| Ressource | Rôle |
+|-----------|------|
+| Node.js 20+ | Runtime de développement et build |
+| Next.js 15, React, TypeScript | Framework frontend / full-stack |
+| Tailwind CSS | Interface utilisateur |
+| Prisma | ORM et migrations |
+| Supabase (Auth, PostgreSQL, Storage) | Authentification et persistance |
+| Nodemailer + SMTP (Gmail ou autre) | Envoi d'emails transactionnels |
+| Git + GitHub | Versionnement et sauvegarde du code |
+| Vercel CLI | Déploiement |
+| Cursor / VS Code | Environnement de développement |
+
+### 9.3 — Ressources humaines
+
+| Rôle | Contribution |
+|------|--------------|
+| Stagiaire / développeur | Analyse, conception, implémentation, tests, documentation, déploiement |
+| Encadreur académique | Validation du cahier des charges, suivi, préparation soutenance |
+| Utilisateurs pilotes (optionnel) | Admin OBC/DECC et agent centre pour retours sur la démo |
+| Jury / évaluateurs | Évaluation finale du projet |
+
+---
+
+# VII. PLANIFICATION
+
+## 10. PLANIFICATION DU PROJET
+
+| Phase | Période indicative | Livrables principaux |
+|-------|-------------------|----------------------|
+| 1. Analyse & cahier des charges | Fév. – Mars 2026 | Problématique, objectifs, acteurs, besoins |
+| 2. Conception | Mars – Avr. 2026 | MCD/MLD, diagrammes UML, architecture, maquettes |
+| 3. Implémentation cœur métier | Avr. – Mai 2026 | Auth, documents, routage OBC/DECC, admin |
+| 4. Parcours avancés | Mai 2026 | RDV, paiements simulés, imports CSV, agent centre |
+| 5. Finition & déploiement | Mai – Juin 2026 | Landing, consultation QR, i18n, Vercel, tests |
+| 6. Documentation & soutenance | Juin 2026 | Cahier des charges, dossier, démo, présentation |
+
+**Jalon critique :** démonstration fonctionnelle sur URL publique (`application-demande-document-academ.vercel.app`) avant la soutenance.
+
+---
+
+# VIII. BUDGET
+
+## 11. BUDGET PRÉVISIONNEL
+
+Estimation pour un **projet académique / MVP** (tarifs indicatifs, juin 2026) :
+
+| Poste | Coût estimé | Fréquence | Commentaire |
+|-------|-------------|-----------|-------------|
+| Hébergement Vercel (Hobby) | 0 FCFA | — | Offre gratuite suffisante pour la démo |
+| Base Supabase (Free) | 0 FCFA | — | Limites adaptées au prototype |
+| Nom de domaine personnalisé (optionnel) | 5 000 – 15 000 FCFA | / an | Non obligatoire (sous-domaine Vercel fourni) |
+| Connexion Internet | Variable | / mois | Déjà disponible côté développeur |
+| Poste de travail | — | — | Matériel existant |
+| SMS / Mobile Money réel (production) | Hors MVP | — | Phase ultérieure |
+| **Total MVP démo** | **≈ 0 FCFA** | — | Hors domaine optionnel et connexion |
+
+---
+
+# IX. CLAUSES JURIDIQUES
+
+## 12. CLAUSES JURIDIQUES & PROTECTION DES DONNÉES
+
+### 12.1 — Données personnelles
+
+L'application traite des données à caractère personnel : identité des élèves (nom, prénom, email, matricule, date de naissance), historique de documents et de retraits. Le traitement doit respecter les principes de **licéité**, **finalité**, **minimisation** et **sécurité**, en cohérence avec le cadre camerounais et les bonnes pratiques inspirées du RGPD.
+
+### 12.2 — Responsabilités
+
+- L'**administration** (OBC/DECC) reste responsable de la exactitude des données importées et de la disponibilisation des documents.
+- Le **développeur** fournit un outil conforme au cahier des charges ; la mise en production institutionnelle nécessite une validation formelle des services compétents.
+- L'**élève** est responsable de la confidentialité de ses identifiants de connexion.
+
+### 12.3 — Sécurité et accès
+
+- Mots de passe gérés par Supabase Auth (hachage, pas de stockage en clair dans Prisma).
+- Accès restreint par rôle et par périmètre régional / organisme.
+- Consultation publique limitée aux seuls statuts, sans exposition des données administratives sensibles.
+- Journalisation des emails (`mail_logs`) et des actions admin (audit).
+
+### 12.4 — Propriété intellectuelle
+
+Le code source, la documentation et les diagrammes réalisés dans le cadre du projet académique appartiennent au porteur du projet, sous réserve des éventuelles clauses de l'établissement d'accueil et du stage.
+
+### 12.5 — Limitation de responsabilité (MVP)
+
+La version MVP est fournie à des fins de **démonstration et d'évaluation académique**. Elle ne remplace pas, tant que les intégrations de production (paiement réel, SLA, support) ne sont pas finalisées, un système officiel de gestion institutionnelle.
+
+---
+
+# X. CONCLUSION
+
+## 13. CONCLUSION
+
+Le projet **DR-DOCSCOL** répond à un besoin réel de modernisation des retraits de documents scolaires au Cameroun, en respectant le découpage institutionnel **OBC / DECC**. Le cahier des charges définit un périmètre MVP réaliste : consultation et suivi pour l'élève, back-office pour l'administration, confirmation des retraits au centre d'examen, imports CSV et consultation rapide par matricule avec QR code.
+
+**Les objectifs principaux sont atteints** dans la version livrée : authentification, routage métier, statuts de documents, rendez-vous, notifications, déploiement cloud et documentation de soutenance.
+
+**Les limites assumées** du MVP sont : paiement Mobile Money non branché à un opérateur réel, évolution possible du stockage des justificatifs en production, et absence de vérification employeur par QR.
+
+**Perspectives :** intégration d'un prestataire de paiement, renforcement de la haute disponibilité Postgres, traduction/rectification de diplôme, et déploiement institutionnel pilote dans une antenne régionale.
+
+---
+
+# ANNEXES
+
+## 14. CONTRAINTES DU PROJET
 
 | Type de contrainte | Description |
 |--------------------|-------------|
@@ -353,11 +589,13 @@ L’objectif général du projet est de concevoir et développer une application
 | Sécurité | Les informations techniques sensibles ne doivent pas être exposées à l’utilisateur final. |
 | Paiement | Le paiement Mobile Money réel reste hors périmètre immédiat du MVP ; le cahier des charges prévoit toutefois une API de paiement réelle à brancher en phase de production. |
 | Documentation | Les anciens diagrammes image ont été retirés du dossier principal ; les images conformes détaillées dans `diagrammes-images/` font référence pour le MCD, le MLD et le diagramme de classes. |
-| Données | Le CSV d’import doit contenir les colonnes nécessaires : matricule, email, mot de passe, identité, diplôme, centre d’examen, région, document, statut et rendez-vous. |
+| Données | **Import élèves** : `eleve_matricule`, `eleve_email`, `eleve_nom`, `eleve_prenom`, `eleve_date_naissance`, `diplome_type`, `annee_session`, `centre_examen`, `region_composition`, `document_type`. **Import disponibilisation** : `eleve_matricule`, `diplome_type`, `document_type`, `annee_session`. Le mot de passe et les rendez-vous ne sont pas importés via CSV. |
 
 ---
 
-## 8. GLOSSAIRE
+## 15. GLOSSAIRE TECHNIQUE
+
+> Voir aussi les **définitions métier** au **§4 (section II)**.
 
 | Terme | Définition |
 |-------|-----------|
@@ -376,6 +614,7 @@ L’objectif général du projet est de concevoir et développer une application
 | Nodemailer | Bibliothèque Node.js utilisée pour envoyer des emails. |
 | SMTP | Simple Mail Transfer Protocol, protocole d’envoi d’emails. |
 | CSV | Comma-Separated Values, format de fichier tabulaire utilisé pour importer des données. |
+| `DEMO202600x` | Matricule élève de démonstration (ex. `DEMO2026002`), créé par `seed:soutenance-eleves` ou import CSV. |
 | OBC_SETTINGS_ID | Identifiant global utilisé pour les paramètres de rendez-vous. |
 | `ELEVE` | Rôle applicatif d’un élève ou diplômé. |
 | `ADMINISTRATEUR` | Rôle applicatif d’un agent administratif OBC / DECC. |
@@ -398,32 +637,35 @@ L’objectif général du projet est de concevoir et développer une application
 
 ---
 
-## 9. ETAT D'IMPLEMENTATION AU 02/06/2026
+## 16. ÉTAT D'IMPLÉMENTATION (juin 2026)
 
 Le coeur fonctionnel de l'application est implemente.
 
 ### Fonctionnalites couvertes
 
 - Authentification Supabase Auth.
-- Activation des comptes eleves.
+- Activation des comptes eleves (matricule + email deja en base).
 - Connexion differenciee eleve, admin OBC, admin DECC et agent centre d'examen.
+- Page d'accueil publique et consultation rapide par matricule (`/consultation`, QR code landing).
 - Routage OBC / DECC par diplome et region.
-- Gestion des documents, statuts, rendez-vous, paiements, recus, notifications et audit logs.
-- Import CSV.
+- Gestion des documents, statuts, rendez-vous, paiements simules, recus, notifications et audit logs.
+- Import CSV en deux flux (eleves + disponibilisation), fichiers demo dans `docs/csv-demo/`.
 - Comptes de test regionaux OBC, DECC et centres d'examen.
-- 5 eleves demo soutenance via `npm run seed:soutenance-eleves` (`docs/test-data-soutenance-eleves.csv`).
+- 5 eleves demo soutenance (`DEMO2026001`–`005`) via `npm run seed:soutenance-eleves` ; export liste dans `docs/test-data-soutenance-eleves.csv`.
+- Interface bilingue FR / EN sur la landing et la consultation publique.
 
 ### Points restants avant production
 
 - Stabiliser la connexion Prisma/Postgres Supabase.
-- Brancher un vrai prestataire de paiement.
+- Brancher un vrai prestataire de paiement (Mobile Money / carte).
 - Ajouter les demandes de traduction de diplôme.
 - Ajouter les demandes de rectification de diplôme.
-- Stocker les justificatifs de duplicata dans un stockage fichier.
+- Stocker les justificatifs de duplicata dans un stockage fichier (Supabase Storage).
+- Verification employeur par QR code (tiers).
 - Regenerer les documents Word et images UML si une version non-Markdown doit etre remise.
 
-Voir aussi `ETAT_FINAL_PROJET.md`.
+Voir aussi `ETAT_FINAL_PROJET.md`, `docs/csv-demo/README.md` et `docs/demo/KIT_DEMO_COMPLET.md`.
 
 ---
 
-*Document genere le 27/05/2026, mis a jour le 02/06/2026 - Version 2.1*
+*Document généré le 27/05/2026, mis à jour le 19/06/2026 — Version 3.0 (structure TP GoFind I–X)*
