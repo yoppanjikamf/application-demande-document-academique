@@ -1,0 +1,22 @@
+%% Admin — Mettre à jour statut relevé de notes
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Admin as Admin OBC/DECC
+    participant UI as /admin/documents
+    participant Action as updateDocumentStatusAction
+    participant Trans as document-status-transition
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Mail as mail-service
+
+    Admin->>UI: Filtrer RELEVE_NOTES (BEPC / scope DECC)
+    Admin->>UI: Changer statut → DISPONIBLE
+    UI->>Action: updateDocumentStatusAction
+    Action->>DB: Vérifier document RELEVE_NOTES dans périmètre admin
+    Action->>Trans: applyDocumentStatusTransition(DISPONIBLE)
+    Trans->>DB: UPDATE statut document
+    Trans->>Mail: notifyDocumentAvailable → élève concerné
+    Trans->>DB: INSERT audit_logs (CHANGE_STATUS)
+    UI-->>Admin: Élève notifié, peut prendre RDV

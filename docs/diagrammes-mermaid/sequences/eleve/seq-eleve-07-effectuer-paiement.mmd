@@ -1,0 +1,24 @@
+%% Élève — Effectuer paiement duplicata
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Eleve as Élève
+    participant UI as Formulaire duplicata
+    participant Action as submitDuplicataRequestAction
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Webhook as API webhook<br/>/api/payments/webhook
+
+    Note over Eleve,Webhook: Dans le MVP, le paiement est simulé à la soumission du dossier
+
+    Eleve->>UI: Choisir mode paiement (Orange/MTN/Carte)
+    UI->>Action: modePaiement + pièces jointes
+    Action->>DB: Calculer montant (10 000 relevé / 15 000 original)
+    Action->>DB: INSERT paiements (statut=EFFECTUE, modePaiment)
+    Action->>DB: INSERT recus (numero REC-..., montant)
+    alt Intégration PSP externe (évolution)
+        Webhook->>DB: PATCH paiement statut=EFFECTUE + upsert recu
+    end
+    Action-->>UI: Paiement enregistré
+    UI-->>Eleve: Accès au reçu depuis Paiements

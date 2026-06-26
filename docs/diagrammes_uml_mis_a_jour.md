@@ -34,15 +34,12 @@ Important: pour les livrables Word/PDF, utiliser les images finales ci-dessus pl
 
 Le document de reference final est `ETAT_FINAL_PROJET.md`.
 
-Mise a jour du 05/06/2026 — diagrammes de sequence **v3 soutenance** :
+Mise a jour du 05/06/2026 — diagrammes de sequence **v3 soutenance** *(remplaces)* :
 
-- Sources : `docs/diagrammes-mermaid/sequence-*-v3-soutenance.mmd`
-- Images PNG/SVG : `docs/diagrammes-images/sequence-*-v3-soutenance.{png,svg}`
-- Structure : Acteur → Systeme DR-DOCSCOL → Base de donnees, avec `alt` Donnees valides / invalides
-- Regeneration : `npm run diagrams:export-v3`
-- Cas supplementaires par rapport a la v2 : ajout eleves admin (SEQ-09), demande releve/diplome par l eleve (SEQ-10)
+> **Remplacement (juin 2026)** : les sequences v3 (`sequence-*-v3-soutenance.png`, SEQ-01…SEQ-10) sont **remplacees** par les sequences par acteur dans `diagrammes-images/sequences/{eleve,admin,agent}/`. Reference documentaire : cahier de conception §3.7, cahier d'analyse §5.5, index `SEQUENCES_PAR_CAS_UTILISATION.md`. Regeneration : `npm run diagrams:sequences-acteurs`.
 
-Pour la soutenance, preferer les images v3 ; la section 3 ci-dessous conserve les diagrammes v2 detailles (composants API, Supabase, etc.).
+- Sources historiques v3 : `docs/diagrammes-mermaid/sequence-*-v3-soutenance.mmd`
+- Images historiques : `docs/diagrammes-images/sequence-*-v3-soutenance.{png,svg}`
 
 ---
 

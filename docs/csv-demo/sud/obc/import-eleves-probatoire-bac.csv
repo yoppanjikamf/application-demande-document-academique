@@ -1,3 +1,0 @@
-eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
-DEMO20260906,demo20260906@example.com,NDONGO,Alice,2005-03-14,PROBATOIRE,2025,Centre d'examen Sud,Sud,RELEVE_NOTES
-DEMO20260907,demo20260907@example.com,ESSOMBA,Paul,2004-07-22,BACCALAUREAT,2025,Centre d'examen Sud,Sud,RELEVE_NOTES

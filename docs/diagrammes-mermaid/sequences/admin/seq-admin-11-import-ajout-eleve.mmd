@@ -1,0 +1,23 @@
+%% Admin — Import ajout élève (CSV)
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Admin as Admin OBC/DECC
+    participant UI as /admin/students
+    participant Action as importTestDataAction
+    participant Svc as importTestDataFromCsv
+    participant DB as PostgreSQL<br/>(Prisma)
+
+    Admin->>UI: Uploader CSV élèves + examens
+    UI->>Action: importTestDataAction (fichier CSV)
+    Action->>Svc: importTestDataFromCsv (scope organisme/région)
+    loop Pour chaque élève
+        Svc->>DB: UPSERT users (role=ELEVE, matricule)
+        Svc->>DB: UPSERT examens_valides
+        Svc->>DB: UPSERT documents (statut initial)
+    end
+    Svc-->>Action: ImportCsvResult (créés, mis à jour, erreurs)
+    Action-->>UI: redirect avec rapport import
+    UI-->>Admin: Élèves enregistrés dans le périmètre régional

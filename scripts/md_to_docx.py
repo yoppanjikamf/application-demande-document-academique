@@ -66,6 +66,28 @@ def para(inner, ppr=""):
     return f"<w:p>{ppr}{inner}</w:p>"
 
 
+def figure_title(text):
+    """Titre de figure centré (obligatoire avant chaque image)."""
+    ppr = (
+        '<w:pPr><w:jc w:val="center"/>'
+        '<w:spacing w:before="180" w:after="80"/>'
+        '<w:keepNext/></w:pPr>'
+    )
+    return para(runs_for(text, size=24, bold_all=True, color="1F2937"), ppr)
+
+
+def is_figure_title_line(line):
+    return re.match(r"^\*\*Figure\s+", line.strip()) is not None
+
+
+def parse_figure_title(line):
+    m = re.match(r"^\*\*(Figure .+?)\*\*(.*)$", line.strip())
+    if m:
+        suffix = m.group(2).strip()
+        return m.group(1) + (f" {suffix}" if suffix else "")
+    return re.sub(r"^\*\*|\*\*$", "", line.strip())
+
+
 def heading(text, level):
     size = {1: 40, 2: 30, 3: 26}.get(level, 24)
     color = {1: "1F2937", 2: "334155", 3: "475569"}.get(level, "475569")
@@ -107,20 +129,34 @@ def table(header, rows):
         )
         + "</w:tblBorders>"
     )
-    tblpr = f'<w:tblPr><w:tblW w:w="5000" w:type="pct"/>{borders}</w:tblPr>'
+    ncols = max(len(header), 1)
+    col_pct = 5000 // ncols
+    grid = "".join(f'<w:gridCol w:w="{col_pct}"/>' for _ in range(ncols))
+    tblpr = (
+        f'<w:tblPr><w:tblW w:w="5000" w:type="pct"/>'
+        f'<w:tblLayout w:type="fixed"/>'
+        f"{borders}</w:tblPr>"
+        f"<w:tblGrid>{grid}</w:tblGrid>"
+    )
 
     def cell(text, head=False):
         shd = '<w:shd w:val="clear" w:color="auto" w:fill="F0F0F0"/>' if head else ""
-        tcpr = f"<w:tcPr>{shd}</w:tcPr>"
-        body = para(runs_for(text, size=20, bold_all=head))
+        tcpr = (
+            f"<w:tcPr>"
+            f'<w:tcW w:w="{col_pct}" w:type="pct"/>'
+            f'<w:vAlign w:val="top"/>'
+            f"{shd}</w:tcPr>"
+        )
+        ppr = '<w:pPr><w:spacing w:after="40"/></w:pPr>'
+        body = para(runs_for(text, size=18, bold_all=head), ppr)
         return f"<w:tc>{tcpr}{body}</w:tc>"
 
     out = [f"<w:tbl>{tblpr}"]
     out.append("<w:tr>" + "".join(cell(c, head=True) for c in header) + "</w:tr>")
     for r in rows:
-        out.append("<w:tr>" + "".join(cell(c) for c in r) + "</w:tr>")
+        padded = r + [""] * (ncols - len(r))
+        out.append("<w:tr>" + "".join(cell(c) for c in padded[:ncols]) + "</w:tr>")
     out.append("</w:tbl>")
-    # un paragraphe vide apres le tableau (exigence Word)
     out.append(para(""))
     return "".join(out)
 
@@ -177,32 +213,54 @@ def image_media_info(path):
     return "png", "image/png"
 
 
-def scale_to_max_width(width_px, height_px, max_emu=5486400):
-    """Redimensionne pour tenir dans ~6 pouces de large (EMU)."""
+# Largeur max affichée en portrait (EMU ≈ 15 cm). Hauteur libre : le texte suit juste en dessous.
+PORTRAIT_MAX_W = 5900000
+
+
+def scale_to_page_width(width_px, height_px, max_w_emu=PORTRAIT_MAX_W):
+    """Ajuste uniquement la largeur d'affichage ; conserve l'image source en pleine résolution."""
     px_to_emu = 914400 / 96
     cx = int(width_px * px_to_emu)
     cy = int(height_px * px_to_emu)
-    if cx <= max_emu:
+    if cx <= max_w_emu:
         return cx, cy
-    ratio = max_emu / cx
+    ratio = max_w_emu / cx
     return int(cx * ratio), int(cy * ratio)
+
+
+def page_break():
+    return f'<w:p><w:r><w:br w:type="page"/></w:r></w:p>'
+
+
+def section_break(landscape=False):
+    if landscape:
+        pg_sz = '<w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/>'
+    else:
+        pg_sz = '<w:pgSz w:w="11906" w:h="16838"/>'
+    return (
+        f"<w:p><w:pPr><w:sectPr>{pg_sz}"
+        '<w:pgMar w:top="567" w:right="567" w:bottom="567" w:left="567" '
+        'w:header="720" w:footer="720" w:gutter="0"/>'
+        "</w:sectPr></w:pPr></w:p>"
+    )
 
 
 class ImageRegistry:
     def __init__(self):
-        self.items = []
+        self.items: list[str] = []
 
-    def add(self, path):
-        for idx, existing in enumerate(self.items, start=1):
-            if existing == path:
+    def add(self, source_path):
+        for idx, path in enumerate(self.items, start=1):
+            if path == source_path:
                 return f"rId{idx}"
-        self.items.append(path)
+        self.items.append(source_path)
         return f"rId{len(self.items)}"
 
 
 def image_paragraph(rid, cx, cy, docpr_id, name="Image"):
     return (
-        "<w:p><w:pPr><w:jc w:val=\"center\"/></w:pPr><w:r><w:drawing>"
+        "<w:p><w:pPr><w:jc w:val=\"center\"/>"
+        "<w:spacing w:before=\"40\" w:after=\"100\"/></w:pPr><w:r><w:drawing>"
         '<wp:inline distT="0" distB="0" distL="0" distR="0" '
         'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">'
         f'<wp:extent cx="{cx}" cy="{cy}"/>'
@@ -234,7 +292,7 @@ def image_paragraph(rid, cx, cy, docpr_id, name="Image"):
 
 
 def caption_para(text):
-    ppr = '<w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>'
+    ppr = '<w:pPr><w:jc w:val="center"/><w:spacing w:before="40" w:after="80"/></w:pPr>'
     return para(runs_for(text, size=20, color="555555"), ppr)
 
 
@@ -264,6 +322,14 @@ def convert(md_path, out_dir):
         if not line.strip():
             i += 1
             continue
+        comment = line.strip()
+        if comment == "<!-- pagebreak -->":
+            body.append(page_break())
+            i += 1
+            continue
+        if comment in ("<!-- pagebreak landscape -->", "<!-- pagebreak portrait -->"):
+            i += 1
+            continue
         img_match = re.match(r"^!\[([^\]]*)\]\(([^)]+)\)\s*$", line.strip())
         if img_match:
             alt = img_match.group(1).strip() or "Figure"
@@ -271,11 +337,10 @@ def convert(md_path, out_dir):
             abs_path = rel_path if os.path.isabs(rel_path) else os.path.normpath(os.path.join(md_dir, rel_path))
             if os.path.isfile(abs_path) and abs_path.lower().endswith((".png", ".jpg", ".jpeg")):
                 w_px, h_px = image_dimensions(abs_path)
-                cx, cy = scale_to_max_width(w_px, h_px)
+                cx, cy = scale_to_page_width(w_px, h_px)
                 rid = images.add(abs_path)
                 docpr_id += 1
                 body.append(image_paragraph(rid, cx, cy, docpr_id, alt))
-                body.append(caption_para(alt))
             else:
                 body.append(image_placeholder(alt, rel_path))
             i += 1
@@ -313,6 +378,10 @@ def convert(md_path, out_dir):
             while i < n and re.match(r"^\s*[-*]\s+", lines[i]):
                 body.append(bullet(re.sub(r"^\s*[-*]\s+", "", lines[i])))
                 i += 1
+            continue
+        if is_figure_title_line(line):
+            body.append(figure_title(parse_figure_title(line)))
+            i += 1
             continue
         body.append(para(runs_for(line, size=22)))
         i += 1

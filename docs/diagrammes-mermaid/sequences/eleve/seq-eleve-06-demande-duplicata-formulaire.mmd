@@ -1,0 +1,29 @@
+%% Élève — Demande duplicata (remplir formulaire + pièces)
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Eleve as Élève
+    participant UI as Dashboard documents<br/>formulaire duplicata
+    participant Action as Server Action<br/>submitDuplicataRequestAction
+    participant Storage as Supabase Storage
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Mail as mail-service
+
+    Eleve->>UI: Remplir motif, session, centre, type cible
+    Eleve->>UI: Joindre 4 pièces obligatoires (CNI, perte, etc.)
+    UI->>Action: FormData (fichiers + métadonnées)
+    Action->>Action: Valider examen + cooldown duplicata 1 an
+    Action->>Storage: uploadDuplicataPiece (×4)
+    Storage-->>Action: bucket + path
+    Action->>DB: BEGIN TRANSACTION
+    Action->>DB: UPSERT DocumentAcademique DUPLICATA
+    Action->>DB: INSERT Duplicata (statutValidation=SOUMISE)
+    Action->>DB: INSERT PieceDuplicata (×4)
+    Action->>DB: INSERT Paiement (statut=EFFECTUE)
+    Action->>DB: INSERT Recu (numero, montant)
+    Action->>DB: COMMIT
+    Action->>Mail: notifyDuplicataRequestRegistered + notifyPaymentConfirmed
+    Action-->>UI: revalidatePath /dashboard/documents
+    UI-->>Eleve: Dossier soumis, en analyse admin

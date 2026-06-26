@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="932" viewBox="0 0 760 932">
+    <defs><style>
+    .title { fill: #1F2937; font: 700 16px Arial, Helvetica, sans-serif; }
+    .act { fill: #111827; font: 12px Arial, Helvetica, sans-serif; text-anchor: middle; }
+    .dec { fill: #111827; font: 11px Arial, Helvetica, sans-serif; text-anchor: middle; }
+    .guard { fill: #374151; font: 10px Arial, Helvetica, sans-serif; font-style: italic; }
+    .swim { fill: #059669; font: 700 13px Arial, Helvetica, sans-serif; }
+    .note { fill: #64748B; font: 10px Arial, Helvetica, sans-serif; text-anchor: middle; }
+  </style></defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <polygon points="0,0 8,4 0,8" fill="#374151"/>
+    </marker>
+    <rect width="760" height="932" fill="#FFFFFF"/>
+    <text x="380" y="26" text-anchor="middle" class="title">Diagramme d'activité — Duplicata</text>
+    <text x="380" y="44" text-anchor="middle" class="note">Processus 3 (§5.2) — paiement à la soumission, retrait en antenne</text>
+    <rect x="32" y="48" width="696" height="876" fill="#F0FDF4" fill-opacity="0.35" stroke="#059669" stroke-width="1.5"/>
+    <text x="44" y="70" class="swim">Élève · Administrateur antenne OBC/DECC</text>
+    
+    <circle cx="380" cy="58" r="8" fill="#111827"/>
+<rect x="280" y="98" width="200" height="46" rx="10" ry="10" fill="#F8FAFC" stroke="#111827" stroke-width="1.6"/><text x="380" y="118" class="act">Élève remplit le</text><text x="380" y="132" class="act">formulaire duplicata</text>
+<rect x="280" y="176" width="200" height="46" rx="10" ry="10" fill="#F8FAFC" stroke="#111827" stroke-width="1.6"/><text x="380" y="196" class="act">Téléversement des</text><text x="380" y="210" class="act">pièces (Storage)</text>
+<rect x="280" y="254" width="200" height="46" rx="10" ry="10" fill="#F8FAFC" stroke="#111827" stroke-width="1.6"/><text x="380" y="274" class="act">Paiement simulé + reçu</text><text x="380" y="288" class="act">(même opération)</text>
+<rect x="280" y="332" width="200" height="46" rx="10" ry="10" fill="#F8FAFC" stroke="#111827" stroke-width="1.6"/><text x="380" y="352" class="act">Dossier SOUMISE —</text><text x="380" y="366" class="act">notification élève</text>
+<rect x="280" y="410" width="200" height="60" rx="10" ry="10" fill="#F8FAFC" stroke="#111827" stroke-width="1.6"/><text x="380" y="430" class="act">Admin analyse les</text><text x="380" y="444" class="act">pièces (traiter</text><text x="380" y="458" class="act">dossier)</text>
+<polygon points="380,498 430,548 380,598 330,548" fill="#FFFBEB" stroke="#111827" stroke-width="1.6"/><text x="380" y="546" class="dec">Dossier</text><text x="380" y="558" class="dec">validable ?</text>
+<rect x="280" y="630" width="200" height="46" rx="10" ry="10" fill="#F8FAFC" stroke="#111827" stroke-width="1.6"/><text x="380" y="650" class="act">Admin valide le</text><text x="380" y="664" class="act">dossier</text>
+<rect x="115" y="630" width="200" height="46" rx="10" ry="10" fill="#F8FAFC" stroke="#111827" stroke-width="1.6"/><text x="215" y="650" class="act">Admin rejette —</text><text x="215" y="664" class="act">dossier REJETEE</text>
+<rect x="280" y="708" width="200" height="46" rx="10" ry="10" fill="#F8FAFC" stroke="#111827" stroke-width="1.6"/><text x="380" y="728" class="act">Document duplicata</text><text x="380" y="742" class="act">DISPONIBLE (antenne)</text>
+<rect x="280" y="786" width="200" height="46" rx="10" ry="10" fill="#F8FAFC" stroke="#111827" stroke-width="1.6"/><text x="380" y="806" class="act">Admin antenne confirme</text><text x="380" y="820" class="act">retrait → RETIRE</text>
+<circle cx="380" cy="874" r="10" fill="none" stroke="#111827" stroke-width="1.8"/><circle cx="380" cy="874" r="6" fill="#111827"/>
+<circle cx="215" cy="718" r="10" fill="none" stroke="#111827" stroke-width="1.8"/><circle cx="215" cy="718" r="6" fill="#111827"/>
+    <line x1="380" y1="68" x2="380" y2="96" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/>
+<line x1="380" y1="146" x2="380" y2="174" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/>
+<line x1="380" y1="224" x2="380" y2="252" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/>
+<line x1="380" y1="302" x2="380" y2="330" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/>
+<line x1="380" y1="380" x2="380" y2="408" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/>
+<line x1="380" y1="472" x2="380" y2="496" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/>
+<polyline points="380,598 380,630" fill="none" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/><text x="386" y="594" class="guard">[oui]</text>
+<polyline points="330,548 215,548 215,630" fill="none" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/><text x="221" y="544" class="guard">[non]</text>
+<line x1="380" y1="678" x2="380" y2="706" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/>
+<line x1="380" y1="756" x2="380" y2="784" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/>
+<line x1="380" y1="834" x2="380" y2="862" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/>
+<line x1="215" y1="678" x2="215" y2="706" stroke="#374151" stroke-width="1.4" marker-end="url(#arrow)"/>
+  </svg>

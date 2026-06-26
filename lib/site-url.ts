@@ -1,3 +1,27 @@
+/** URL canonique de l'application (emails, reset password, liens absolus). */
+export function getAppBaseUrl(fallbackOrigin?: string) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (siteUrl) {
+    return siteUrl;
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+  if (appUrl) {
+    return appUrl;
+  }
+
+  const vercelUrl = process.env.VERCEL_URL?.replace(/\/$/, "");
+  if (vercelUrl) {
+    return vercelUrl.startsWith("http") ? vercelUrl : `https://${vercelUrl}`;
+  }
+
+  if (fallbackOrigin) {
+    return fallbackOrigin.replace(/\/$/, "");
+  }
+
+  return "";
+}
+
 export function resolveConsultationUrl(headersList: Headers) {
   const host = headersList.get("x-forwarded-host") ?? headersList.get("host") ?? "localhost:3000";
   const hostname = host.split(":")[0] ?? host;
@@ -10,7 +34,7 @@ export function resolveConsultationUrl(headersList: Headers) {
     }
   }
 
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  const configuredSiteUrl = getAppBaseUrl();
   if (configuredSiteUrl) {
     return `${configuredSiteUrl}/consultation`;
   }
@@ -32,7 +56,7 @@ export function resolveConsultationUrl(headersList: Headers) {
 
 /** URL du QR : priorite au site public (Vercel) pour que le scan telephone fonctionne toujours. */
 export function resolveConsultationQrUrl(fallback: string) {
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  const configuredSiteUrl = getAppBaseUrl();
   if (configuredSiteUrl) {
     return `${configuredSiteUrl}/consultation`;
   }
@@ -56,7 +80,7 @@ export function resolveConsultationUrlClient(fallback: string) {
     }
   }
 
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  const configuredSiteUrl = getAppBaseUrl();
   if (configuredSiteUrl) {
     return `${configuredSiteUrl}/consultation`;
   }

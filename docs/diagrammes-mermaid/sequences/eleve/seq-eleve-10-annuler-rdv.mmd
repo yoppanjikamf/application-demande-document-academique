@@ -1,0 +1,23 @@
+%% Élève — Annuler rendez-vous
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Eleve as Élève
+    participant UI as Page<br/>/dashboard/rendez-vous
+    participant API as API Route<br/>PATCH .../appointments/:id/cancel
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Notif as notification-service
+
+    Eleve->>UI: Cliquer « Annuler » sur RDV PLANIFIE/CONFIRME
+    UI->>API: PATCH /api/students/me/appointments/{id}/cancel
+    API->>DB: findFirst rendez_vous (eleveId, statut actif)
+    alt RDV introuvable ou déjà honoré
+        API-->>UI: 409 Erreur
+    else Annulation autorisée
+        API->>DB: UPDATE rendez_vous statut=ANNULE
+        API->>Notif: createNotification(ANNULATION_RDV)
+        API-->>UI: 200 OK
+    end
+    UI-->>Eleve: RDV annulé, créneau libéré

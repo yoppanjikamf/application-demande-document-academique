@@ -23,7 +23,7 @@ Voir `ETAT_FINAL_PROJET.md` pour le verdict detaille.
 | `ETAT_FINAL_PROJET.md` | Audit final du projet, points termines et restes a faire |
 | `cahier_analyse.md` | Cahier d'analyse (contexte, besoins, contraintes, risques) |
 | `cahier_conception.md` | Cahier de conception (architecture, technique, deploiement) |
-| `cahier_des_charges_mis_a_jour.md` | Cahier des charges aligne avec le code actuel |
+| `cahier_des_charges.md` | Cahier des charges (version 3.0) |
 | `guide_api_mis_a_jour.md` | Guide API + statut des routes implementees |
 | `GUIDE_TEST_FONCTIONNEL.md` | Guide de test fonctionnel aligne avec les parcours actuels |
 | `GUIDE_SOUTENANCE_COMPLET_NIVEAU_DEBUTANT.md` | Guide exhaustif soutenance : backend, frontend, methodologie, glossaire, Q&R jury |

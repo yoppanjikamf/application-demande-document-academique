@@ -1,0 +1,26 @@
+%% Élève — Prendre rendez-vous de retrait
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Eleve as Élève
+    participant UI as Dialog RDV<br/>/dashboard/documents
+    participant Slots as API<br/>GET /api/appointments/slots
+    participant Action as reserverDisponibiliteAction
+    participant Appt as appointment-service
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Mail as mail-service
+
+    Eleve->>UI: Choisir date + créneau pour document DISPONIBLE
+    UI->>Slots: GET slots?documentId&date
+    Slots->>Appt: getAvailableSlots (quota, fériés, week-end)
+    Appt->>DB: Compter RDV du jour + lire parametres_rendez_vous
+    Slots-->>UI: Créneaux libres
+    UI->>Action: documentId, dateRdv, heureRdv
+    Action->>DB: Vérifier document DISPONIBLE + pas de RDV actif
+    Action->>Appt: Contrôler quota journalier
+    Action->>DB: INSERT rendez_vous (statut=PLANIFIE, lieu, adminId)
+    Action->>Mail: notifyAppointmentConfirmed (email + notification)
+    Action-->>UI: redirect /dashboard/rendez-vous
+    UI-->>Eleve: RDV confirmé (date, heure, lieu)

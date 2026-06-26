@@ -2,9 +2,8 @@
 
 import { z } from "zod";
 
-import { getCurrentUser, getHomePathForRole } from "@/lib/auth";
+import { adminMissingRegionMessage, getHomePathForRole } from "@/lib/auth";
 import {
-  getAntenneByAccessKey,
   getOrganismeNameById,
   ORGANISME_IDS,
   type OrganismeName,
@@ -13,7 +12,7 @@ import { notifyAccountActivated } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { adminRegionAccessSchema, signInSchema, signUpSchema } from "@/lib/validations";
+import { signInSchema, signUpSchema } from "@/lib/validations";
 
 function normalizeMatricule(matricule: string) {
   return matricule.trim().toUpperCase();
@@ -299,6 +298,10 @@ export async function signInAction(
     };
   }
 
+  if (dbUser.role === "ADMINISTRATEUR" && !dbUser.antenneRegionaleId) {
+    return { ok: false as const, error: adminMissingRegionMessage() };
+  }
+
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     return { ok: false as const, error: "Configuration Supabase manquante." };
@@ -361,12 +364,9 @@ export async function signInAction(
 
       return {
         ok: true as const,
-        redirectTo:
-          dbUser.role === "ADMINISTRATEUR" && !dbUser.antenneRegionaleId
-            ? `/auth/admin-region?next=${encodeURIComponent(safeAdminNextPath(input.next))}`
-            : input.next
-              ? safeNextPathForRole(dbUser.role, input.next)
-              : getHomePathForRole(dbUser.role),
+        redirectTo: input.next
+          ? safeNextPathForRole(dbUser.role, input.next)
+          : getHomePathForRole(dbUser.role),
       };
     } catch (adminError) {
       return {
@@ -484,44 +484,9 @@ export async function signInAction(
 
   return {
     ok: true as const,
-    redirectTo:
-      dbUser.role === "ADMINISTRATEUR" && !dbUser.antenneRegionaleId
-        ? `/auth/admin-region?next=${encodeURIComponent(safeAdminNextPath(input.next))}`
-        : input.next
-          ? safeNextPathForRole(dbUser.role, input.next)
-          : getHomePathForRole(dbUser.role),
-  };
-}
-
-export async function unlockAdminRegionAction(input: { accessKey: string; next?: string }) {
-  const parsed = adminRegionAccessSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false as const, error: "Cle invalide." };
-  }
-
-  const user = await getCurrentUser();
-
-  if (!user || user.role !== "ADMINISTRATEUR" || !user.organismeId) {
-    return { ok: false as const, error: "Acces refuse." };
-  }
-
-  const antenna = getAntenneByAccessKey(parsed.data.accessKey);
-
-  if (!antenna || antenna.organismeId !== user.organismeId) {
-    return { ok: false as const, error: "Cle incorrecte pour votre organisme." };
-  }
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      antenneRegionaleId: antenna.id,
-      nomService: antenna.nom,
-    },
-  });
-
-  return {
-    ok: true as const,
-    redirectTo: input.next ? safeAdminNextPath(input.next) : "/admin",
+    redirectTo: input.next
+      ? safeNextPathForRole(dbUser.role, input.next)
+      : getHomePathForRole(dbUser.role),
   };
 }
 

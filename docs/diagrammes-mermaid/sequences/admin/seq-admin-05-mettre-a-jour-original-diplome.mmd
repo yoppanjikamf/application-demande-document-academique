@@ -1,0 +1,24 @@
+%% Admin — Mettre à jour statut original diplôme
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Admin as Admin OBC/DECC
+    participant UI as /admin/documents
+    participant Action as updateDocumentStatusAction
+    participant Trans as document-status-transition
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Mail as mail-service
+
+    Admin->>UI: Sélectionner document ORIGINAL + nouveau statut
+    UI->>Action: documentId, statut=DISPONIBLE ou RETIRE
+    Action->>DB: findFirst document (scope admin OBC/DECC)
+    Action->>Trans: applyDocumentStatusTransition
+    Trans->>DB: UPDATE documents statut
+    alt Passage à DISPONIBLE
+        Trans->>Mail: notifyDocumentAvailable (email + notification élève)
+    end
+    Trans->>DB: INSERT audit_logs
+    Action-->>UI: revalidatePath
+    UI-->>Admin: Statut original mis à jour

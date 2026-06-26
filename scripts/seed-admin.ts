@@ -80,7 +80,6 @@ async function ensureOrganismesAndAntennes() {
         nom: antenne.nom,
         region: antenne.region,
         ville: antenne.ville,
-        accessKey: antenne.accessKey,
         organismeId: antenne.organismeId,
       },
       create: {
@@ -88,7 +87,6 @@ async function ensureOrganismesAndAntennes() {
         nom: antenne.nom,
         region: antenne.region,
         ville: antenne.ville,
-        accessKey: antenne.accessKey,
         organismeId: antenne.organismeId,
       },
     });

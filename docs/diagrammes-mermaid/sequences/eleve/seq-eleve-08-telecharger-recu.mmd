@@ -1,0 +1,24 @@
+%% Élève — Télécharger reçu de paiement
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Eleve as Élève
+    participant UI as Dashboard<br/>/dashboard/payments
+    participant API as API Route<br/>GET .../payments/:id/receipt
+    participant DB as PostgreSQL<br/>(Prisma)
+
+    Eleve->>UI: Ouvrir Mes paiements
+    UI->>DB: SELECT paiements + recus (eleveId)
+    DB-->>UI: Liste avec numero recu
+    Eleve->>UI: Cliquer « Télécharger » (?download=1)
+    UI->>API: GET /api/students/me/payments/{paymentId}/receipt?download=1
+    API->>DB: findFirst paiement (scope élève) + recu
+    alt Aucun reçu
+        API-->>UI: 404 « Aucun reçu disponible »
+    else Reçu existant
+        API->>API: Générer HTML reçu (numero, montant, date, document)
+        API-->>UI: Content-Disposition attachment recu-XXX.html
+    end
+    UI-->>Eleve: Fichier reçu téléchargé

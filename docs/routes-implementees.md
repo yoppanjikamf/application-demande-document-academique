@@ -30,7 +30,6 @@ Ce document liste les routes actuellement presentes dans le projet Next.js App R
 | `/auth/login/decc` | `app/auth/login/decc/page.tsx` | Admin DECC |
 | `/auth/login/centre-examen` | `app/auth/login/centre-examen/page.tsx` | Agent centre d'examen |
 | `/auth/register` | `app/auth/register/page.tsx` | Eleve a activer |
-| `/auth/admin-region` | `app/auth/admin-region/page.tsx` | Admin sans antenne |
 | `/auth/password/forgot` | `app/auth/password/forgot/page.tsx` | Public |
 | `/auth/password/reset` | `app/auth/password/reset/page.tsx` | Session recovery Supabase |
 

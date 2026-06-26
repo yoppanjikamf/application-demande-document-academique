@@ -1,0 +1,22 @@
+%% Élève — Demande retrait original diplôme
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Eleve as Élève
+    participant UI as Dashboard documents
+    participant Action as Server Action<br/>submitDocumentRequestAction
+    participant Route as document-routing
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Notif as notification-service
+
+    Eleve->>UI: Choisir diplôme + Demander original
+    UI->>Action: POST typeDocument=ORIGINAL, diplomeType
+    Action->>DB: Vérifier ExamenValide + document existant
+    Action->>Route: isDocumentRequestAllowed(BAC/PROBATOIRE original)
+    Route-->>Action: Autorisé (OBC, centre ou antenne)
+    Action->>DB: UPSERT DocumentAcademique (statut=PAS_DISPONIBLE, demandeSoumiseAt)
+    Action->>Notif: createNotification(DEMANDE_ENREGISTREE)
+    Action-->>UI: Succès + revalidatePath
+    UI-->>Eleve: Message « Demande enregistrée, suivi par l'administration »

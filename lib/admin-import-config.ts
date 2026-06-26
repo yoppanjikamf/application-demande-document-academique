@@ -49,7 +49,7 @@ export function getAdminImportPresentation(user: AuthenticatedUser): AdminImport
   }
 
   const regionSlug = getRegionSlug(user);
-  const demoCsvBasePath = `docs/csv-demo/${regionSlug}/${organismeName.toLowerCase()}`;
+  const demoCsvBasePath = `docs/imports/centre/${organismeName.toLowerCase()}`;
   const regionLabel = getAdminScopeLabel(user)?.split(" - ")[1] ?? "Centre";
 
   if (organismeName === "OBC") {
@@ -68,7 +68,7 @@ export function getAdminImportPresentation(user: AuthenticatedUser): AdminImport
           "Statut initial des documents : Pas disponible",
         ],
         templateUrl: "/templates/obc/import-eleves.csv",
-        demoFileHint: `${demoCsvBasePath}/import-eleves-probatoire-bac.csv`,
+        demoFileHint: `${demoCsvBasePath}/import-ajout-eleves.csv`,
         csvHeader: STUDENT_IMPORT_CSV_HEADER,
       },
       availabilityImport: {
@@ -81,7 +81,7 @@ export function getAdminImportPresentation(user: AuthenticatedUser): AdminImport
           "Notification automatique après chaque passage à Disponible",
         ],
         templateUrl: "/templates/obc/import-disponibilisation.csv",
-        demoFileHint: `${demoCsvBasePath}/import-disponibilisation-probatoire-bac.csv`,
+        demoFileHint: `${demoCsvBasePath}/import-disponibilisation.csv`,
         csvHeader: AVAILABILITY_IMPORT_CSV_HEADER,
       },
     };
@@ -102,7 +102,7 @@ export function getAdminImportPresentation(user: AuthenticatedUser): AdminImport
         `region_composition : « ${regionLabel} »`,
       ],
       templateUrl: "/templates/decc/import-eleves.csv",
-      demoFileHint: `${demoCsvBasePath}/import-eleves-bepc.csv`,
+      demoFileHint: `${demoCsvBasePath}/import-ajout-eleves.csv`,
       csvHeader: STUDENT_IMPORT_CSV_HEADER,
     },
     availabilityImport: {
@@ -115,7 +115,7 @@ export function getAdminImportPresentation(user: AuthenticatedUser): AdminImport
         "Notification automatique après disponibilisation",
       ],
       templateUrl: "/templates/decc/import-disponibilisation.csv",
-      demoFileHint: `${demoCsvBasePath}/import-disponibilisation-bepc.csv`,
+      demoFileHint: `${demoCsvBasePath}/import-disponibilisation.csv`,
       csvHeader: AVAILABILITY_IMPORT_CSV_HEADER,
     },
   };

@@ -1,0 +1,18 @@
+%% Admin — Consulter journal audit
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Admin as Admin OBC/DECC
+    participant UI as Page<br/>/admin/audit-logs
+    participant Page as Server Component
+    participant DB as PostgreSQL<br/>(Prisma)
+
+    Admin->>UI: Ouvrir Journal d'audit
+    UI->>Page: requireRole ADMINISTRATEUR
+    Page->>DB: SELECT audit_logs ORDER BY createdAt DESC
+    DB-->>Page: Logs (LOGIN, QUOTA_CHANGED, WITHDRAWAL, etc.)
+    Page->>DB: JOIN users pour nom admin
+    Page-->>UI: Table paginée (action, ressource, date, détails)
+    UI-->>Admin: Consultation lecture seule de la traçabilité

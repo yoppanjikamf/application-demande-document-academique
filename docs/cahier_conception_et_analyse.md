@@ -11,8 +11,21 @@ Export **PDF uniquement** dans `documents-word/` (pas de fichiers Word conservé
 
 | Type | Fichier |
 | --- | --- |
-| Cas d'utilisation | `cas utilisation.jpeg` |
-| Classes | `class.drawio.png` |
-| Séquences | `sequence-01-inscription-v3-soutenance.png` … `sequence-10-demande-document-v3-soutenance.png` |
+| **Cas d'utilisation général (3 acteurs)** | `cas-utilisation-general.png` |
+| Cas d'utilisation Élève | `cas-utilisation-eleve.drawio.png` |
+| Cas d'utilisation Admin OBC/DECC | `cas-utilisation-admin-obc-decc.drawio.png` |
+| Cas d'utilisation Agent centre | `cas-utilisation-agent-centre.drawio.png` |
+| Classes (vue simplifiée) | `diagramme-classes-simplifie.png` |
+| Séquences phares Élève | `sequences/eleve/seq-eleve-*.png` (01, 02, 03, 05–07, 09, 10) |
+| Séquences phares Admin | `sequences/admin/seq-admin-*.png` (01, 02, 06, 08, 10, 11) |
+| Séquences phares Agent | `sequences/agent/seq-agent-*.png` (01, 02, 03) |
+| Activités (flux métier) | `activites/act-*.png` (4 diagrammes — `npm run diagrams:activites`) |
 
-Les cahiers Markdown référencent ces images directement — **ne pas régénérer** via Kroki si vos fichiers sont déjà en place.
+**Sources draw.io (cas d'utilisation)** — dossier `diagramme cas utilisation/` à la racine du dépôt :
+`Image collée.png` (général), `cas utilisation eleve .drawio.png`, `vivi.drawio.png`, `agent centre.drawio.png`.
+
+Index complet des 24 séquences : `SEQUENCES_PAR_CAS_UTILISATION.md`.
+
+Les cahiers Markdown référencent ces images directement. Mise à jour des figures UC : recopier les exports draw.io vers `diagrammes-images/`. Variante vectorielle programmatique : `npm run diagrams:cas-utilisation`. Régénération PDF : `npm run export:docs-pdf` ou conversion ciblée via `scripts/md_to_docx.py`.
+
+Les anciens fichiers `sequence-*-v3-soutenance.png` et `cas utilisation.jpeg` ne sont plus référencés dans les cahiers.

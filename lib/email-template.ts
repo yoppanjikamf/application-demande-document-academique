@@ -1,3 +1,5 @@
+import { getAppBaseUrl } from "@/lib/site-url";
+
 type EmailTone = "default" | "success" | "warning" | "danger" | "info";
 
 type DetailItem = {
@@ -42,7 +44,7 @@ function resolveEmailHref(href: string) {
     return href;
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+  const appUrl = getAppBaseUrl();
   return appUrl ? `${appUrl}${href}` : href;
 }
 

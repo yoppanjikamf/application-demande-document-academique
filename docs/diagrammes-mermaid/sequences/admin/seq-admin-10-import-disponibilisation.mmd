@@ -1,0 +1,23 @@
+%% Admin — Import disponibilisation (CSV)
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Admin as Admin OBC/DECC
+    participant UI as /admin/documents<br/>import CSV
+    participant Action as importDocumentAvailabilityAction
+    participant CSV as admin-import-config
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Mail as mail-service
+
+    Admin->>UI: Télécharger modèle + uploader CSV disponibilisation
+    UI->>Action: importDocumentAvailabilityAction(formData)
+    Action->>CSV: Parser lignes (matricule, diplome, statut)
+    loop Pour chaque ligne valide
+        Action->>DB: UPDATE documents statut=DISPONIBLE
+        Action->>Mail: notifyDocumentAvailable (si changement)
+    end
+    Action->>DB: INSERT audit_logs (IMPORT)
+    Action-->>UI: Rapport succès / erreurs par ligne
+    UI-->>Admin: Documents disponibles publiés

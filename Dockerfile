@@ -48,6 +48,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+COPY --from=builder /app/package.json ./package.json
 
 # Copy node_modules with Prisma Client
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
@@ -69,4 +73,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start the application
-CMD ["node", "server.js"]
+ENTRYPOINT ["sh", "scripts/docker-entrypoint.sh"]

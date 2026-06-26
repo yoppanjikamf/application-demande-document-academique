@@ -1,0 +1,24 @@
+%% Agent centre — Confirmer retrait effectué
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Agent as Agent centre d'examen
+    participant UI as centre-appointments-panel
+    participant API as PATCH .../confirm-withdrawal
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Mail as mail-service
+
+    Agent->>UI: Vérifier identité élève sur place
+    Agent->>UI: Cliquer « Confirmer le retrait »
+    UI->>API: PATCH /api/centre-examen/appointments/{id}/confirm-withdrawal
+    API->>DB: BEGIN TRANSACTION (Serializable)
+    API->>DB: Vérifier RDV PLANIFIE/CONFIRME + document centre
+    API->>DB: UPDATE rendez_vous statut=HONORE, retraitConfirmeParId
+    API->>DB: UPDATE documents statut=RETIRE
+    API->>DB: INSERT audit_logs WITHDRAWAL_CONFIRMED_BY_CENTER_AGENT
+    API->>DB: COMMIT
+    API->>Mail: notifyDocumentRetired → élève
+    API-->>UI: 200 OK
+    UI-->>Agent: Retrait confirmé, document marqué RETIRE

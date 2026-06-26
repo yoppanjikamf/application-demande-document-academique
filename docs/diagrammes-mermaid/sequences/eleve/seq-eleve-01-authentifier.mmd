@@ -1,0 +1,24 @@
+%% Élève — Authentifier
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Eleve as Élève
+    participant UI as Interface Web<br/>/auth/login
+    participant Action as Server Action<br/>signInAction
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Auth as Supabase Auth
+    participant Audit as Journal audit
+
+    Eleve->>UI: Saisir matricule, email, mot de passe
+    UI->>Action: Soumettre formulaire de connexion
+    Action->>DB: Rechercher User par matricule
+    DB-->>Action: Profil élève (role=ELEVE)
+    Action->>Action: Vérifier email + rôle élève
+    Action->>Auth: signInWithPassword(email, password)
+    Auth-->>Action: Session JWT + cookies
+    Action->>DB: Mettre à jour derniereConnexion, authUserId
+    Action->>Audit: INSERT audit_logs (action=LOGIN)
+    Action-->>UI: redirectTo /dashboard
+    UI-->>Eleve: Afficher tableau de bord élève

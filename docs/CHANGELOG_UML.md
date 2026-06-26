@@ -1,8 +1,29 @@
 # Changelog UML et documentation
 
+## 21/06/2026 - Diagramme UC général et réorganisation cahier de conception
+
+### Résumé
+
+Alignement sur les diagrammes draw.io du dossier `diagramme cas utilisation/` : diagramme **général** (3 acteurs), exports **Élève / Admin / Agent** recopiés dans `diagrammes-images/`, chapitre **classes** placé après les UC détaillés.
+
+### Ajouts
+
+- Dossier `diagramme cas utilisation/` — sources draw.io (général, élève, admin, agent).
+- `scripts/generate-cas-utilisation-all.mjs` — variante vectorielle programmatique (`npm run diagrams:cas-utilisation`).
+- `scripts/restructure-cahier-conception-ch4.py` — échange ch.4 (données/classes) et ch.5 (technique).
+- §3.0 du cahier de conception : Figure 3.0 diagramme général.
+- Commande npm : `npm run diagrams:cas-utilisation`.
+
+### Points alignés
+
+- Consultation publique (`consulter-via-QRcode`) rattachée à l'acteur **élève** sur le général et le diagramme PKG-ELEVE.
+- Méthode documentée : contexte → MVC → packages → UC général → (par package : UC → fiche → activité → séquence) → classes.
+
+---
+
 ## 02/06/2026 - Audit final projet et documentation
 
-### Resume
+### Résumé
 
 La documentation a ete resynchronisee avec l'etat actuel du code apres ajout des admins DECC regionaux, des agents centres d'examen, des routes centre d'examen et des corrections de rattachement OBC / DECC.
 
@@ -83,7 +104,7 @@ La documentation a ete alignee avec l'etat reel de l'application Next.js/Supabas
 ### Diagrammes sources crees
 
 - `diagrammes_uml_mis_a_jour.md`
-- `cahier_des_charges_mis_a_jour.md`
+- `cahier_des_charges.md`
 - `guide_api_mis_a_jour.md`
 
 ## 18/05/2026 - Eleves et rendez-vous

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ORGANISME_IDS } from "@/lib/document-routing";
 import type { Role } from "@/lib/generated/prisma/client";
 
 export type AuthenticatedUser = {
@@ -18,6 +19,22 @@ export type AuthenticatedUser = {
   centreExamenId: string | null;
   dateNaissance: Date | null;
 };
+
+export function getAdminLoginPath(organismeId: string | null) {
+  if (organismeId === ORGANISME_IDS.DECC) {
+    return "/auth/login/decc";
+  }
+
+  if (organismeId === ORGANISME_IDS.OBC) {
+    return "/auth/login/obc";
+  }
+
+  return "/auth/login";
+}
+
+export function adminMissingRegionMessage() {
+  return "Ce compte administrateur n'est rattache a aucune antenne regionale. Contactez l'administration.";
+}
 
 export function getHomePathForRole(role: Role) {
   if (role === "ADMINISTRATEUR") {
@@ -81,13 +98,9 @@ export async function requireRole(role: Role, nextPath: string) {
     redirect(getHomePathForRole(user.role));
   }
 
-  if (
-    user.role === "ADMINISTRATEUR" &&
-    user.organismeId &&
-    !user.antenneRegionaleId &&
-    nextPath !== "/auth/admin-region"
-  ) {
-    redirect(`/auth/admin-region?next=${encodeURIComponent(nextPath)}`);
+  if (user.role === "ADMINISTRATEUR" && user.organismeId && !user.antenneRegionaleId) {
+    const loginPath = getAdminLoginPath(user.organismeId);
+    redirect(`${loginPath}?error=admin-sans-antenne`);
   }
 
   return user;

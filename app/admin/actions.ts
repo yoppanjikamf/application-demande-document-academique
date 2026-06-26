@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { OBC_SETTINGS_ID } from "@/lib/appointment-service";
+import { assertAdminRegionalScope, getAdminRegionalScope } from "@/lib/admin-scope";
 import { getCurrentUser } from "@/lib/auth";
 import {
   ORGANISME_IDS,
@@ -400,10 +401,7 @@ function getAdminDuplicataScope(user: {
   organismeId: string | null;
   antenneRegionaleId: string | null;
 }) {
-  return {
-    ...(user.organismeId ? { organismeId: user.organismeId } : {}),
-    ...(user.antenneRegionaleId ? { antenneRegionaleId: user.antenneRegionaleId } : {}),
-  };
+  return getAdminRegionalScope(user);
 }
 
 export async function updateAdminQuotaAction(formData: FormData) {
@@ -648,6 +646,7 @@ export async function updateDuplicataPieceReviewAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
+  assertAdminRegionalScope(user);
 
   const pieceId = String(formData.get("pieceId") ?? "");
   const statut = String(formData.get("statut") ?? "");
@@ -716,6 +715,7 @@ export async function validateDuplicataRequestAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
+  assertAdminRegionalScope(user);
 
   const duplicataId = String(formData.get("duplicataId") ?? "");
   if (!duplicataId) {
@@ -784,6 +784,7 @@ export async function rejectDuplicataRequestAction(formData: FormData) {
   if (!user || user.role !== "ADMINISTRATEUR") {
     throw new Error("Accès refusé.");
   }
+  assertAdminRegionalScope(user);
 
   const duplicataId = String(formData.get("duplicataId") ?? "");
   const motifRejet = String(formData.get("motifRejet") ?? "").trim();

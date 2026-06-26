@@ -1,0 +1,21 @@
+%% Agent centre — Consulter les RDV transmis
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Agent as Agent centre d'examen
+    participant UI as /centre-examen
+    participant API as GET /api/centre-examen/appointments
+    participant Svc as centre-examen-service
+    participant DB as PostgreSQL<br/>(Prisma)
+
+    Agent->>UI: Ouvrir espace retraits
+    UI->>API: GET appointments (filtre date/créneau)
+    API->>Svc: getAgentCentreExamen(user)
+    Svc->>DB: SELECT centre_examen par centreExamenId
+    API->>Svc: getCentreExamenAppointmentWhere (documents centre only)
+    Svc->>DB: SELECT rendez_vous + eleve + document
+    DB-->>API: RDV PLANIFIE/CONFIRME/HONORE du centre
+    API-->>UI: Liste (matricule, document, heure, statut)
+    UI-->>Agent: Afficher RDV du jour et à venir

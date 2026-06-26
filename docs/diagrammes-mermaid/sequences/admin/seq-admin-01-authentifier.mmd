@@ -1,0 +1,24 @@
+%% Admin OBC/DECC — Authentifier
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Admin as Admin OBC/DECC
+    participant UI as Portail login<br/>/auth/login/obc ou /decc
+    participant Action as signInAction
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Auth as Supabase Auth
+
+    Admin->>UI: Saisir matricule, email, mot de passe
+    UI->>Action: loginOrganisme=OBC ou DECC
+    Action->>DB: findUnique User par matricule
+    Action->>Action: Vérifier email, organismeId, antenneRegionaleId
+    alt Compte sans antenne régionale
+        Action-->>UI: Erreur — compte incomplet
+    else Compte valide
+        Action->>Auth: signInWithPassword
+        Auth-->>Action: Session admin
+        Action->>DB: UPDATE derniereConnexion + audit LOGIN
+        UI-->>Admin: Accès /admin (scope régional du matricule)
+    end

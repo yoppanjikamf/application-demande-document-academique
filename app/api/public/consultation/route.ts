@@ -2,24 +2,19 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { lookupPublicConsultationByMatricule } from "@/lib/public-consultation";
-import { checkRateLimit } from "@/lib/simple-rate-limit";
+import { checkRateLimit, getClientKeyFromRequest } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   matricule: z.string().min(3).max(40),
 });
 
 function getClientKey(request: Request) {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() ?? "unknown";
-  }
-
-  return request.headers.get("x-real-ip") ?? "unknown";
+  return getClientKeyFromRequest(request);
 }
 
 export async function POST(request: Request) {
   const clientKey = getClientKey(request);
-  const rateLimit = checkRateLimit(`consultation:${clientKey}`);
+  const rateLimit = await checkRateLimit(`consultation:${clientKey}`);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(

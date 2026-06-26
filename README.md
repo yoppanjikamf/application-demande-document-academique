@@ -36,22 +36,24 @@ Consultation publique (sans compte) : `/consultation` (matricule).
 
 | Commande | Usage |
 |----------|--------|
-| `npm run seed:soutenance-eleves` | 5 élèves démo `DEMO2026001`–`005` (région Centre) |
-| `npm run seed:regional-admins` | Admins OBC régionaux |
-| `npm run seed:decc-admins` | Admins DECC régionaux |
-| `npm run seed:centre-agents` | Agents centres d'examen |
-| `npm run generate:demo-csv` | Régénère les CSV par région OBC/DECC |
+| `npm run seed:soutenance-eleves` | 5 élèves réels `DEMO2026001`–`005` (région Centre) |
+| `npm run reset:imports` | Nettoie la base + régénère les CSV d'import |
 | `npm run export:disponibilisation-csv` | Export CSV disponibilisation depuis la base |
 | `npm run lint` · `npm run build` | Qualité et build |
 
-## Données démo (CSV)
+## Imports CSV
 
-Fichiers **par région et organisme** : [`docs/csv-demo/README.md`](docs/csv-demo/README.md)
+Guide : [`docs/imports/README.md`](docs/imports/README.md)
 
-Exemple région **Centre** :
+| Fichier | Usage |
+|---------|--------|
+| `docs/imports/centre/obc/import-disponibilisation.csv` | Disponibiliser les documents des élèves **déjà en base** |
+| `docs/imports/centre/obc/import-ajout-eleves.csv` | Ajouter de **nouveaux** élèves (`DEMO2026006+`) |
+| `docs/imports/eleves-en-base.csv` | Liste de référence des 5 élèves réels |
 
-- OBC : `docs/csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv`
-- DECC : `docs/csv-demo/centre/decc/import-disponibilisation-bepc.csv`
+```bash
+npm run reset:imports   # remet tout à Pas disponible + régénère les CSV
+```
 
 Identifiants de test : [`docs/connexions-tests-completes.md`](docs/connexions-tests-completes.md).
 

@@ -1,0 +1,21 @@
+%% Élève — Vérifier disponibilité document
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Eleve as Élève
+    participant UI as Dashboard<br/>/dashboard/documents
+    participant Page as Server Component
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Route as Service<br/>document-routing
+
+    Eleve->>UI: Ouvrir Mes documents
+    UI->>Page: Charger page (session élève)
+    Page->>DB: SELECT documents + duplicatas + examens par eleveId
+    DB-->>Page: Liste documents par diplôme
+    Page->>Route: resolveDocumentRoute(diplomeType, typeDocument)
+    Route-->>Page: organisme, lieu retrait, requiresAppointment
+    Page->>Page: Calculer libellé statut (PAS_DISPONIBLE, DISPONIBLE, RETIRE)
+    Page-->>UI: Afficher cartes par examen (original, relevé, duplicata)
+    UI-->>Eleve: Indiquer si document disponible, en attente ou retiré

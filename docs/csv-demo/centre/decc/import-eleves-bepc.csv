@@ -1,6 +1,0 @@
-eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
-DEMO2026009,demo2026009@example.com,EBOGO,Judith,2005-06-11,BEPC,2025,Centre d'examen Centre,Centre,ORIGINAL
-DEMO2026009,demo2026009@example.com,EBOGO,Judith,2005-06-11,BEPC,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
-DEMO2026010,demo2026010@example.com,MENGUE,Patrick,2004-10-03,BEPC,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
-DEMO2026011,demo2026011@example.com,ONGA,Berthe,2005-01-25,BEPC,2025,Centre d'examen Centre,Centre,ORIGINAL
-DEMO2026011,demo2026011@example.com,ONGA,Berthe,2005-01-25,BEPC,2025,Centre d'examen Centre,Centre,RELEVE_NOTES

@@ -1,4 +1,6 @@
+import { getAppBaseUrl } from "@/lib/site-url";
 import { handleApiError, json, parseJson } from "@/lib/api-utils";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { renderBrandedEmail } from "@/lib/email-template";
 import { sendTrackedMail } from "@/lib/mail-service";
 import { prisma } from "@/lib/prisma";
@@ -7,6 +9,11 @@ import { passwordForgotSchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
   try {
+    const limited = await enforceRateLimit(request, "auth-forgot", { maxRequests: 8 });
+    if (limited.response) {
+      return limited.response;
+    }
+
     const input = await parseJson(request, passwordForgotSchema);
 
     // Vérifier que l'utilisateur existe
@@ -26,7 +33,7 @@ export async function POST(request: Request) {
       return json({ error: "Configuration Supabase manquante." }, 503);
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
+    const appUrl = getAppBaseUrl(new URL(request.url).origin);
     const { error } = await supabase.auth.resetPasswordForEmail(input.email, {
       redirectTo: `${appUrl}/auth/callback?next=/auth/password/reset`,
     });

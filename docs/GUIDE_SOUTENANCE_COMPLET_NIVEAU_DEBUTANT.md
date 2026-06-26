@@ -51,7 +51,7 @@ Le projet suit une démarche **proche du cycle en V simplifié**, adaptée à un
 
 | Phase | Contenu | Livrables dans le repo |
 |-------|---------|------------------------|
-| Analyse des besoins | Cahier des charges, acteurs, règles OBC/DECC | `docs/cahier_des_charges_mis_a_jour.md` |
+| Analyse des besoins | Cahier des charges, acteurs, règles OBC/DECC | `docs/cahier_des_charges.md` |
 | Conception | Diagrammes UML (cas d’utilisation, classes, séquences, MCD/MLD) | `docs/diagrammes_uml_mis_a_jour.md`, `docs/diagrammes-images/` |
 | Implémentation | Code Next.js + Prisma + Supabase | `app/`, `lib/`, `prisma/` |
 | Tests | Tests manuels, scripts seed, guides curl | `docs/GUIDE_TEST_FONCTIONNEL.md`, `docs/CURL_TEST_EXAMPLES.md` |
@@ -529,7 +529,7 @@ Chaque **dossier** = une URL. Fichier **`page.tsx`** = la page affichée.
 **R :** Pour valider la compréhension du métier avec le encadrant, fixer le vocabulaire (acteurs, entités) et guider le schéma Prisma. Les diagrammes de séquence aident à expliquer les flux à la soutenance.
 
 **Q3 : Comment avez-vous géré les exigences changeantes ?**  
-**R :** Le cahier des charges a été versionné (`cahier_des_charges_mis_a_jour.md`). Les règles OBC/DECC sont centralisées dans `document-routing.ts` pour limiter l’impact des changements.
+**R :** Le cahier des charges a été versionné (`cahier_des_charges.md`). Les règles OBC/DECC sont centralisées dans `document-routing.ts` pour limiter l’impact des changements.
 
 **Q4 : Quels livrables produisez-vous ?**  
 **R :** Code source, migrations BDD, documentation technique, guides de test, diagrammes, scripts seed, guide de soutenance.

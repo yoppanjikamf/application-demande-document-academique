@@ -1,0 +1,21 @@
+%% Agent centre — Authentifier
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Agent as Agent centre d'examen
+    participant UI as /auth/login/centre-examen
+    participant Action as signInAction
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Auth as Supabase Auth
+
+    Agent->>UI: Saisir matricule, email, mot de passe
+    UI->>Action: loginRole=AGENT_CENTRE_EXAMEN
+    Action->>DB: findUnique User (role=AGENT_CENTRE_EXAMEN)
+    Action->>Action: Vérifier centreExamenId renseigné
+    Action->>Auth: signInWithPassword
+    Auth-->>Action: Session agent
+    Action->>DB: UPDATE derniereConnexion + audit LOGIN
+    Action-->>UI: redirect /centre-examen
+    UI-->>Agent: Espace agent chargé

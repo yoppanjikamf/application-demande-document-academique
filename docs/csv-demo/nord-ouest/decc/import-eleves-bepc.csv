@@ -1,3 +1,0 @@
-eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
-DEMO20260709,demo20260709@example.com,MBALLA,Sylvie,2005-05-01,BEPC,2025,Centre d'examen Nord-Ouest,Nord-Ouest,ORIGINAL
-DEMO20260709,demo20260709@example.com,MBALLA,Sylvie,2005-05-01,BEPC,2025,Centre d'examen Nord-Ouest,Nord-Ouest,RELEVE_NOTES

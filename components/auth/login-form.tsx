@@ -36,6 +36,14 @@ export function LoginForm({
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? undefined;
 
+  React.useEffect(() => {
+    if (searchParams.get("error") === "admin-sans-antenne") {
+      toast.error(
+        "Ce compte administrateur n'est rattache a aucune antenne regionale. Contactez l'administration.",
+      );
+    }
+  }, [searchParams]);
+
   const form = useForm<Values>({
     resolver: zodResolver(signInSchema),
     defaultValues: { matricule: "", email: "", password: "" },

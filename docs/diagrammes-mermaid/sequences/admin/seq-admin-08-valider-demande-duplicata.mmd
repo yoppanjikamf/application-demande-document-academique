@@ -1,0 +1,20 @@
+%% Admin — Valider demande duplicata
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Admin as Admin OBC/DECC
+    participant UI as /admin/documents
+    participant Action as validateDuplicataRequestAction
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Mail as mail-service
+
+    Admin->>UI: Cliquer « Valider le dossier »
+    UI->>Action: validateDuplicataRequestAction(duplicataId)
+    Action->>DB: Vérifier toutes pièces VALIDEE
+    Action->>DB: UPDATE duplicata statutValidation=VALIDEE, statut=DISPONIBLE
+    Action->>DB: SYNC DocumentAcademique DUPLICATA → DISPONIBLE
+    Action->>Mail: notifyDocumentAvailable
+    Action->>DB: INSERT audit_logs
+    UI-->>Admin: Duplicata prêt → élève peut prendre RDV

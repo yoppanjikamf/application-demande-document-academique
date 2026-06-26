@@ -85,7 +85,7 @@ const EXAMS: Array<{ diplomeType: DiplomePrincipal; anneeSession: number }> = [
   { diplomeType: "BACCALAUREAT", anneeSession: 2022 },
 ];
 
-const CSV_PATH = path.join(process.cwd(), "docs", "test-data-soutenance-eleves.csv");
+const CSV_PATH = path.join(process.cwd(), "docs", "imports", "eleves-en-base.csv");
 
 function formatDate(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -118,7 +118,6 @@ async function ensureOrganismesAndAntennes() {
         nom: antenne.nom,
         region: antenne.region,
         ville: antenne.ville,
-        accessKey: antenne.accessKey,
         organismeId: antenne.organismeId,
       },
       create: {
@@ -126,7 +125,6 @@ async function ensureOrganismesAndAntennes() {
         nom: antenne.nom,
         region: antenne.region,
         ville: antenne.ville,
-        accessKey: antenne.accessKey,
         organismeId: antenne.organismeId,
       },
     });

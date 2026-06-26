@@ -113,7 +113,6 @@ model AntenneRegionale {
   nom       String
   region    String
   ville     String?
-  accessKey String?
 
   organismeId String
   organisme   Organisme @relation(fields: [organismeId], references: [id])
@@ -561,4 +560,13 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ==================== RATE LIMIT (serverless) ====================
+model RateLimitBucket {
+  key     String   @id
+  count   Int      @default(1)
+  resetAt DateTime
+
+  @@map("rate_limit_buckets")
 }

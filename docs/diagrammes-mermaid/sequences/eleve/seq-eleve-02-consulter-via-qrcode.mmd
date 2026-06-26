@@ -1,0 +1,29 @@
+%% Élève — Consulter via QR code (consultation publique)
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Eleve as Élève / Visiteur
+    participant Mobile as Téléphone<br/>(scan QR)
+    participant UI as Page publique<br/>/consultation
+    participant API as API Route<br/>POST /api/public/consultation
+    participant Svc as Service<br/>lookupPublicConsultationByMatricule
+    participant DB as PostgreSQL<br/>(Prisma)
+
+    Eleve->>Mobile: Scanner le QR code (URL /consultation)
+    Mobile->>UI: Ouvrir la page consultation rapide
+    Eleve->>UI: Saisir son matricule
+    UI->>API: POST { matricule }
+    API->>API: Contrôle rate-limit par IP
+    API->>Svc: lookupPublicConsultationByMatricule(matricule)
+    Svc->>DB: SELECT User + examens + documents (hors duplicata)
+    DB-->>Svc: Données élève
+    alt Compte non activé (authUserId null)
+        Svc-->>API: { found:true, activated:false, prenom }
+        API-->>UI: Invitation à activer via /auth/register
+    else Compte activé
+        Svc-->>API: { found:true, activated:true, documents[] }
+        API-->>UI: Statuts PAS_DISPONIBLE / DISPONIBLE / RETIRE
+    end
+    UI-->>Eleve: Afficher synthèse lecture seule (sans RDV ni paiement)

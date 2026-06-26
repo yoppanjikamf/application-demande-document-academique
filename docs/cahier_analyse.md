@@ -17,12 +17,9 @@
 2. Contexte et problématique
 3. Analyse de l'existant
 4. Acteurs, parties prenantes et périmètre
-5. Analyse des besoins fonctionnels
-6. Analyse des besoins non fonctionnels
-7. Contraintes, hypothèses et règles métier identifiées
-8. Analyse des enjeux et des risques
-9. Synthèse de l'analyse et recommandations
-10. Glossaire et références
+5. Cas d'utilisation *(syntaxe générale + synthèse par acteur)*
+6. Synthèse de l'analyse
+7. Glossaire
 
 ---
 
@@ -34,18 +31,17 @@ Le présent **cahier d'analyse** décrit l'étude préalable à la réalisation 
 
 - Quel est le contexte et la problématique ?
 - Comment fonctionne la situation actuelle (« sans portail ») ?
-- Quels sont les besoins des acteurs ?
-- Quelles contraintes et règles métier encadrent la solution ?
-- Quels enjeux et risques doivent être pris en compte ?
+- Qui sont les acteurs et quel est le périmètre retenu ?
+- Quels cas d'utilisation couvre la solution, en résumé ?
 
-Ce document **ne décrit pas** l'architecture technique ni les choix de conception détaillés : ceux-ci figurent dans le **cahier de conception** distinct.
+Ce document est une **synthèse métier volontairement courte**. Il **ne reprend pas** les besoins détaillés (BF/BNF), les contraintes, le routage, les enjeux, l'architecture ni les diagrammes dynamiques : ceux-ci figurent dans le **cahier des charges** (expression du besoin) et le **cahier de conception** (traduction technique complète).
 
 ### 1.2 — Méthode d'analyse
 
 L'analyse s'appuie sur :
 
-- le cahier des charges fonctionnel v2.1 (`docs/cahier_des_charges_mis_a_jour.md`) ;
-- les entretiens implicites avec le domaine OBC/DECC (règles de retrait, antennes, centres) ;
+- le cahier des charges v3.0 (`docs/cahier_des_charges.md`) ;
+- les règles métier OBC/DECC (retrait, antennes, centres) ;
 - l'observation des dysfonctionnements du processus manuel ;
 - la validation progressive par l'implémentation du dépôt source.
 
@@ -164,189 +160,100 @@ La digitalisation permet de :
 
 ---
 
-## 5. ANALYSE DES BESOINS FONCTIONNELS
+## 5. CAS D'UTILISATION *(SYNTAXE GÉNÉRALE + SYNTHÈSE PAR ACTEUR)*
 
-### 5.1 — Besoins exprimés
+### 5.0 — Syntaxe de modélisation retenue
 
-| ID | Besoin | Acteur | Priorité |
-| --- | --- | --- | --- |
-| BF-01 | Consulter la disponibilité d'un document | Élève, visiteur | Critique |
-| BF-02 | Activer un compte à partir d'un matricule connu | Élève | Critique |
-| BF-03 | Demander un relevé de notes | Élève | Haute |
-| BF-04 | Demander un duplicata | Élève | Haute |
-| BF-05 | Payer un duplicata et obtenir un reçu | Élève | Haute |
-| BF-06 | Prendre rendez-vous de retrait | Élève | Haute |
-| BF-07 | Recevoir notifications (app + email) | Élève | Moyenne |
-| BF-08 | Enregistrer de nouveaux élèves (CSV) | Admin | Critique |
-| BF-09 | Disponibiliser documents (liste OBC) | Admin | Critique |
-| BF-10 | Gérer statuts document | Admin | Critique |
-| BF-11 | Valider dossier duplicata | Admin | Haute |
-| BF-12 | Confirmer retrait physique | Agent / Admin | Critique |
-| BF-13 | Consulter journaux d'audit | Admin | Moyenne |
-| BF-14 | Consulter statistiques | Admin | Moyenne |
+La modélisation UML des cas d'utilisation suit **trois niveaux**, dans cet ordre :
 
-### 5.2 — Besoins par processus métier
-
-#### Processus 1 — Enregistrement et activation
-
-1. L'administration enregistre l'élève (manuel ou Import B).
-2. Les documents sont créés en statut **Pas disponible**.
-3. L'élève active son compte avec matricule + email déjà en base.
-
-#### Processus 2 — Disponibilisation
-
-1. L'OBC/DECC publie une liste de documents prêts (Import A ou action manuelle).
-2. Chaque ligne met **un** document à **Disponible**.
-3. L'élève est notifié automatiquement.
-
-#### Processus 3 — Demande et paiement (duplicata)
-
-1. L'élève soumet une demande avec pièces justificatives.
-2. L'admin analyse et valide le dossier.
-3. Paiement puis disponibilisation en antenne régionale.
-
-#### Processus 4 — Retrait physique
-
-1. L'élève consulte les instructions (centre ou antenne selon routage).
-2. Rendez-vous si nécessaire.
-3. Confirmation sur place → statut **Retiré**.
-
-### 5.3 — Matrice besoin / solution retenue
-
-| Besoin | Solution analysée et retenue |
-| --- | --- |
-| BF-01 | Espace élève + page `/consultation` (matricule seul) |
-| BF-08 | Import B CSV — statut initial toujours Pas disponible |
-| BF-09 | Import A CSV — une ligne = un document à Disponible |
-| BF-12 | Agent (centre) ou admin (antenne) selon routage |
-
-### 5.4 — Figure : diagramme de cas d'utilisation (vue analyse)
-
-![Figure 5.1 — Diagramme de cas d'utilisation (vue métier / analyse des besoins)](diagrammes-images/cas utilisation.jpeg)
-
-| Lien besoin → cas d'utilisation | Exemples |
-| --- | --- |
-| BF-01 Consultation disponibilité | Consulter documents, consultation matricule |
-| BF-02 Activation compte | Activer son compte |
-| BF-03 / BF-04 Demandes | Demander relevé, demander duplicata |
-| BF-06 Rendez-vous | Prendre rendez-vous |
-| BF-08 / BF-09 Imports admin | Import élèves, disponibilisation |
-| BF-12 Retrait | Confirmer retrait (agent ou admin) |
-
----
-
-## 6. ANALYSE DES BESOINS NON FONCTIONNELS
-
-| ID | Catégorie | Exigence | Critère de satisfaction |
-| --- | --- | --- | --- |
-| BNF-01 | Sécurité | Authentification robuste | Supabase Auth, sessions sécurisées |
-| BNF-02 | Sécurité | Contrôle d'accès par rôle | Middleware + guards serveur |
-| BNF-03 | Disponibilité | Service accessible en ligne | Hébergement cloud (Vercel) |
-| BNF-04 | Performance | Temps de réponse acceptable | Pages SSR/Server Components |
-| BNF-05 | Ergonomie | Usage mobile | Interface responsive |
-| BNF-06 | Traçabilité | Journalisation des actions | AuditLog, MailLog |
-| BNF-07 | Maintenabilité | Code typé et modulaire | TypeScript, Prisma, services `lib/` |
-| BNF-08 | Confidentialité | Données personnelles protégées | Pas de création d'élève via consultation publique |
-| BNF-09 | Exploitabilité | Imports batch admin | CSV avec retours d'erreur par ligne |
-
----
-
-## 7. CONTRAINTES, HYPOTHÈSES ET RÈGLES MÉTIER IDENTIFIÉES
-
-### 7.1 — Contraintes réglementaires et métier
-
-| Contrainte | Description |
-| --- | --- |
-| C-01 | Le Probatoire ne donne pas lieu à un diplôme original |
-| C-02 | Tous les duplicatas se retirent en antenne régionale |
-| C-03 | L'original du Bac se retire en antenne ; le relevé au centre |
-| C-04 | Le BEPC relève de la DECC ; Probatoire et Bac de l'OBC |
-| C-05 | Un élève doit exister en base avant activation ou disponibilisation |
-| C-06 | L'Import A ne traite pas les duplicatas |
-| C-07 | Le retrait centre est confirmé par l'agent, pas par l'admin |
-
-### 7.2 — Hypothèses de travail
-
-| Hypothèse | Justification |
-| --- | --- |
-| H-01 | Matricule et email sont pré-enregistrés par l'administration | Contrôle de l'identité à l'activation |
-| H-02 | La disponibilisation est pilotée par listes OBC/DECC | Processus métier existant conservé |
-| H-03 | Le retrait reste physique | Pas de dématérialisation du document papier |
-| H-04 | Dix régions couvrent le territoire | Modèle antennes régionales |
-| H-05 | Paiement réel différé | MVP avec simulation, API prête pour branchement |
-
-### 7.3 — Règles de routage identifiées (synthèse)
-
-| Document | Organisme | Lieu de retrait |
+| Niveau | Artefact | Rôle |
 | --- | --- | --- |
-| BEPC original / relevé | DECC | Centre d'examen |
-| BEPC duplicata | DECC | Antenne régionale |
-| Probatoire relevé | OBC | Centre d'examen |
-| Probatoire duplicata | OBC | Antenne régionale |
-| Bac relevé | OBC | Centre d'examen |
-| Bac original / duplicata | OBC | Antenne régionale |
+| **1 — Vue d'ensemble** | **Diagramme général** des cas d'utilisation | Regroupe les **trois acteurs** (élève, admin OBC/DECC, agent centre) et l'ensemble des cas |
+| **2 — Package / acteur** | **Diagramme de cas d'utilisation par package** | Zoom sur un acteur : PKG-ÉLÈVE, PKG-ADMIN ou PKG-AGENT |
+| **3 — Module** | **Fiche descriptive → diagramme d'activité → diagramme de séquence** | Pour **3 à 4 modules phares** par package, détail d'un cas précis |
 
----
+> **Règle de présentation** — Chaque figure (diagramme ou capture) est introduite par un **titre** (`Figure N — …`) placé **immédiatement au-dessus** de l'image ; le **texte ou le tableau explicatif** reprend **directement en dessous**, sans page blanche intercalée.
 
-## 8. ANALYSE DES ENJEUX ET DES RISQUES
+Le présent cahier d'analyse couvre les **niveaux 1 et 2** (figures 5.0 à 5.3). Le **niveau 3** (fiches, activités, séquences par module) est développé intégralement dans le **cahier de conception** (§3.0 bis, §3.2 à §3.4).
 
-### 8.1 — Enjeux stratégiques
+### 5.1 — Niveau 1 : diagramme général (trois acteurs)
 
-| Enjeu | Description |
+**Figure 5.0 — Diagramme général des cas d'utilisation DR-DOCSCOL**
+
+![Figure 5.0 — Diagramme général des cas d'utilisation DR-DOCSCOL (analyse)](diagrammes-images/cas-utilisation-general.png)
+
+| Acteur | Cas principaux (vue générale) |
 | --- | --- |
-| E-01 | Réduction des files d'attente et des déplacements inutiles |
-| E-02 | Transparence pour l'usager |
-| E-03 | Modernisation de l'administration OBC/DECC |
-| E-04 | Traçabilité et lutte contre la fraude |
-| E-05 | Acceptabilité par les agents et admins sur le terrain |
+| Élève | consulter-via-QRcode, authentifier, effectuer-demande-retrait, prendre-rdv, annuler-rdv |
+| Administrateur OBC / DECC | authentifier, METTRE-A-JOUR, EFFECTUER-IMPORT, DEFINIR-QUOTA-JOURNALIER, CONSULTER-JOURNAL-AUDIT |
+| Agent centre d'examen | authentifier, consulter-les-rdv, confirmer-les-retraits-effectuer |
 
-### 8.2 — Analyse des risques
+### 5.2 — Niveau 2 : package Élève (PKG-ELEVE / PKG-PUBLIC)
 
-| Risque | Probabilité | Impact | Mesure d'atténuation analysée |
-| --- | --- | --- | --- |
-| R-01 | Résistance au changement | Moyenne | Formation, interfaces claires |
-| R-02 | Erreur d'import CSV | Moyenne | Validation ligne par ligne, messages d'erreur |
-| R-03 | Fuite de données | Faible | Auth, rate limiting consultation publique |
-| R-04 | Indisponibilité base | Faible | Supabase managé, monitoring |
-| R-05 | Paiement non sécurisé (MVP) | Élevée | Limitation MVP, branchement prestataire prévu |
-| R-06 | Règles métier mal appliquées | Moyenne | Service central `document-routing.ts` |
+**Figure 5.1 — Diagramme de cas d'utilisation — package Élève**
 
----
+![Figure 5.1 — Cas d'utilisation Élève (analyse)](diagrammes-images/cas-utilisation-eleve.drawio.png)
 
-## 9. SYNTHÈSE DE L'ANALYSE ET RECOMMANDATIONS
-
-### 9.1 — Synthèse
-
-L'analyse confirme un **besoin fort** de portail unifié pour :
-
-- la **visibilité** (consultation statuts, notifications) ;
-- l'**organisation** (rendez-vous, routage centre/antenne) ;
-- la **traçabilité** (audit, confirmation retrait) ;
-- l'**automatisation admin** (imports CSV distincts élèves / disponibilisation).
-
-La solution retenue doit respecter strictement le **découpage OBC/DECC** et ne pas créer d'élève via la consultation publique.
-
-### 9.2 — Recommandations issues de l'analyse
-
-| N° | Recommandation |
+| Cas | Rôle dans le diagramme |
 | --- | --- |
-| REC-01 | Séparer Import B (élèves) et Import A (disponibilisation) |
-| REC-02 | Proposer une consultation publique limitée (matricule, statuts uniquement) |
-| REC-03 | Centraliser le routage documentaire dans un service unique |
-| REC-04 | Prévoir notifications à chaque disponibilisation |
-| REC-05 | Journaliser toutes les actions sensibles |
-| REC-06 | Prévoir une évolution vers paiement Mobile Money réel |
-| REC-07 | Concevoir l'interface mobile-first pour les élèves |
+| authentifier | Point d'entrée ; inclut consulter-via-QRcode |
+| effectuer-demande-retrait | Demande de retrait ; inclut authentifier ; généralise original-diplome, releve, duplicata |
+| verifier-disponibilite | Extension optionnelle de effectuer-demande-retrait |
+| duplicata | Inclut remplir-formulaire et effectuer-payement (qui inclut telecharger-recu) |
+| prendre-rdv | Prise de rendez-vous de retrait ; annuler-rdv en extension |
 
-### 9.3 — Lien avec le cahier de conception
+**Modules phares documentés en conception (niveau 3)** — consultation publique & auth (§3.2.1–3.2.3), Mes documents (§3.2.4), demande relevé/diplôme (§3.2.5), duplicata & paiement (§3.2.6), rendez-vous (§3.2.7).
 
-Les recommandations ci-dessus sont traduites en **choix de conception** dans le document `docs/cahier_conception.md` (architecture, modèle de données, API, interfaces, déploiement).
+### 5.3 — Niveau 2 : package Administrateur OBC / DECC (PKG-ADMIN)
+
+**Figure 5.2 — Diagramme de cas d'utilisation — package Administrateur OBC / DECC**
+
+![Figure 5.2 — Cas d'utilisation Admin OBC/DECC (analyse)](diagrammes-images/cas-utilisation-admin-obc-decc.drawio.png)
+
+| Cas | Rôle dans le diagramme |
+| --- | --- |
+| authentifier | Point d'entrée ; inclut METTRE-A-JOUR |
+| METTRE-A-JOUR | Généralise original-diplome, releve, duplicata |
+| duplicata | Inclut TRAITER-LA-DEMANDE → valider ou rejeter |
+| EFFECTUER-IMPORT | Généralise import-disponibilisation et import-ajout-élève |
+| DEFINIR-QUOTA-JOURNALIER | Inclut définir les jours fériés |
+| CONSULTER-JOURNAL-AUDIT | Consultation du journal d'audit |
+
+**Modules phares documentés en conception (niveau 3)** — imports CSV (§3.3.2–3.3.3), mise à jour statuts (§3.3.4), validation duplicata (§3.3.5), quota RDV (§3.3.6).
+
+### 5.4 — Niveau 2 : package Agent centre d'examen (PKG-AGENT)
+
+**Figure 5.3 — Diagramme de cas d'utilisation — package Agent centre d'examen**
+
+![Figure 5.3 — Cas d'utilisation Agent centre (analyse)](diagrammes-images/cas-utilisation-agent-centre.drawio.png)
+
+| Cas | Rôle dans le diagramme |
+| --- | --- |
+| authentifier | Point d'entrée ; inclut consulter-les-rdv |
+| consulter-les-rdv | Consultation des rendez-vous transmis au centre |
+| confirmer-les-retraits-effectuer | Extension : confirmation du retrait physique |
+
+**Modules phares documentés en conception (niveau 3)** — authentification agent (§3.4.1), consultation RDV et confirmation retrait (§3.4.2).
+
+> **Compléments UML et techniques** — voir `docs/cahier_conception.md` : §2.1 contexte, §2.4 packages, §3.0 UC général, §3.2–3.4 fiches / activités / séquences par package, **ch. 4 diagramme de classes (Figure 4.1)**.  
+> **Besoins, contraintes, routage, enjeux** — voir `docs/cahier_des_charges.md` et chapitres 3 à 7 du cahier de conception.
 
 ---
 
-## 10. GLOSSAIRE ET RÉFÉRENCES
+## 6. SYNTHÈSE DE L'ANALYSE
 
-### 10.1 — Glossaire
+L'étude de l'existant met en évidence un **besoin fort** de portail unifié pour :
+
+- **Informer** l'usager avant tout déplacement (consultation par matricule, notifications) ;
+- **Organiser** les retraits (rendez-vous, routage centre / antenne OBC/DECC) ;
+- **Tracer** les opérations sensibles (disponibilisation, validation duplicata, confirmation de retrait) ;
+- **Alléger** le travail administratif (imports CSV, back-office, espace agent).
+
+La solution **DR-DOCSCOL** retenue répond à cette problématique en respectant le découpage institutionnel **OBC / DECC** et en séparant clairement les rôles élève, administrateur et agent centre. Le détail des besoins, règles métier, architecture, modèle de données et choix techniques est documenté dans le **cahier des charges** et le **cahier de conception**, sans duplication dans le présent document.
+
+---
+
+## 7. GLOSSAIRE
 
 | Terme | Définition |
 | --- | --- |
@@ -355,18 +262,10 @@ Les recommandations ci-dessus sont traduites en **choix de conception** dans le 
 | Antenne régionale | Structure de retrait par région |
 | Centre d'examen | Lieu de composition et de retrait pour certains documents |
 | Disponibilisation | Passage d'un document au statut Disponible |
-| Import A | Import CSV de disponibilisation (liste OBC) |
+| Import A | Import CSV de disponibilisation (liste OBC/DECC) |
 | Import B | Import CSV de nouveaux élèves |
 | Duplicata | Copie certifiée d'un document perdu ou détérioré |
-
-### 10.2 — Références
-
-| Document | Chemin |
-| --- | --- |
-| Cahier des charges v2.1 | `docs/cahier_des_charges_mis_a_jour.md` |
-| Cahier de conception | `docs/cahier_conception.md` |
-| État final du projet | `docs/ETAT_FINAL_PROJET.md` |
-| Connexions de test | `docs/connexions-tests-completes.md` |
+| DR-DOCSCOL | Application web de gestion des retraits de documents scolaires |
 
 ---
 

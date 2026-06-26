@@ -1,0 +1,22 @@
+%% Élève — Demande retrait relevé de notes
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Eleve as Élève
+    participant UI as Dashboard documents
+    participant Action as Server Action<br/>submitDocumentRequestAction
+    participant Route as document-routing
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Notif as notification-service
+
+    Eleve->>UI: Choisir examen BEPC + Demander relevé
+    UI->>Action: POST typeDocument=RELEVE_NOTES, diplomeType=BEPC
+    Action->>DB: Vérifier ExamenValide BEPC
+    Action->>Route: isDocumentRequestAllowed(BEPC relevé)
+    Route-->>Action: Autorisé (DECC)
+    Action->>DB: UPSERT DocumentAcademique RELEVE_NOTES (PAS_DISPONIBLE)
+    Action->>Notif: createNotification(DEMANDE_ENREGISTREE)
+    Action-->>UI: Confirmation
+    UI-->>Eleve: Demande relevé en attente de traitement admin

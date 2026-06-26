@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { signInAction } from "@/app/auth/actions";
 import { handleApiError, json, parseJson } from "@/lib/api-utils";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { signInSchema } from "@/lib/validations";
 
 const apiSignInSchema = signInSchema.extend({
@@ -11,6 +12,11 @@ const apiSignInSchema = signInSchema.extend({
 
 export async function POST(request: Request) {
   try {
+    const limited = await enforceRateLimit(request, "auth-login", { maxRequests: 15 });
+    if (limited.response) {
+      return limited.response;
+    }
+
     const input = await parseJson(request, apiSignInSchema);
     const result = await signInAction(input);
 

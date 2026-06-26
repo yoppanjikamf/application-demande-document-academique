@@ -9,15 +9,17 @@
 **Version :** 1.0 — Juin 2026  
 **Document associé :** Cahier d'analyse (`docs/cahier_analyse.md`)
 
+> **Impression** : pour limiter le volume (~20–25 pages), utiliser **`docs/cahier_conception_soutenance.md`** (généré par `python3 scripts/build-cahier-conception-soutenance.py`). Le présent fichier reste la **version intégrale** (toutes les figures activité/séquence par cas).
+
 ---
 
 ## TABLE DES MATIÈRES
 
 1. Introduction et objet du cahier de conception
-2. Architecture générale de la solution
-3. Conception fonctionnelle *(tableau UC §3.2, fiches §3.6, séquences §3.7)*
-4. Conception technique
-5. Conception du modèle de données
+2. Architecture générale de la solution *(§2.1 contexte ; §2.2–2.3 MVC ; §2.4 packages ; §2.5 modules)*
+3. Conception fonctionnelle *(§3.0 UC général → §3.2 package Élève + modules → §3.3 package Admin + modules → §3.4 package Agent + modules → §3.5 compléments)*
+4. Conception du modèle de données *(diagramme de classes après les cas d'utilisation détaillés)*
+5. Conception technique
 6. Conception de l'interface utilisateur
 7. Conception de la sécurité
 8. Conception des imports et flux batch
@@ -26,18 +28,15 @@
 11. Conclusion et perspectives
 12. Glossaire et références techniques
 
----
-
 ## 1. INTRODUCTION ET OBJET DU CAHIER DE CONCEPTION
 
 ### 1.1 — Objet
 
 Le présent **cahier de conception** traduit les résultats du **cahier d'analyse** en choix de conception concrets pour l'application **DR-DOCSCOL**. Il décrit :
 
-- l'architecture globale retenue ;
-- la conception fonctionnelle (cas d'utilisation, fiches descriptives, flux, routage) ;
-- la conception technique (stack, services, API) ;
-- le modèle de données (entités Prisma, énumérations, transitions) ;
+- l'architecture globale retenue (contexte, packages, MVC) ;
+- le **diagramme général des cas d'utilisation** (3 acteurs) puis le détail **par package** (UC → fiche → activité → séquence) ;
+- le **modèle de données** (diagramme de classes) une fois les cas d'utilisation documentés ;
 - les interfaces, la sécurité, les tests et le déploiement.
 
 ### 1.2 — Prérequis
@@ -52,34 +51,83 @@ La conception décrite correspond à l'**implémentation réelle** du dépôt so
 
 ## 2. ARCHITECTURE GÉNÉRALE DE LA SOLUTION
 
-### 2.1 — Vue d'ensemble
+### 2.1 — Diagramme de contexte
 
-```
-┌─────────────┐     HTTPS      ┌──────────────────────┐
-│  Navigateur │ ──────────────►│  Vercel (Next.js 15) │
-│  (React 19) │ ◄──────────────│  App Router + API      │
-└─────────────┘                └──────────┬───────────┘
-                                          │
-                    ┌─────────────────────┼─────────────────────┐
-                    ▼                     ▼                     ▼
-            ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-            │ Supabase Auth│    │ PostgreSQL   │    │ SMTP         │
-            │ (sessions)   │    │ (Prisma ORM) │    │ (Nodemailer) │
-            └──────────────┘    └──────────────┘    └──────────────┘
-```
+Le **diagramme de contexte** situe le système **DR-DOCSCOL** dans son environnement : acteurs métier à l'extérieur, services transverses en aval. Il précise la **frontière du système** (ce qui est dans le portail web) sans détailler la structure interne — celle-ci est modélisée au §2.4 (packages) et à la Figure 2.2 (couches MVC).
 
-### 2.2 — Pattern architectural
+**Figure 2.1 — Diagramme de contexte**
 
-Organisation **MVC adaptée à Next.js App Router** :
+![Figure 2.1 — Diagramme de contexte DR-DOCSCOL](diagrammes-images/diagramme-contexte-dr-docscol.png)
 
-| Couche | Emplacement | Rôle |
+| Élément externe | Interaction principale |
+| --- | --- |
+| **Élève** | Consultation, demandes, RDV, paiements duplicata, notifications |
+| **Administrateur OBC/DECC** | Imports CSV, disponibilisation, statuts, validation duplicatas |
+| **Agent centre d'examen** | Consultation RDV transmis, confirmation retrait physique |
+| **Visiteur** | Consultation publique par matricule (QR / page dédiée) |
+| **Services externes** | Authentification, persistance, courriel, stockage des pièces |
+
+Régénération : `npm run diagrams:contexte-packages`.
+
+### 2.2 — Architecture logique en couches (MVC)
+
+L'architecture interne est **logique** : elle décrit les couches du système **sans nommer les technologies** (framework, base, hébergeur). Le choix des outils concrets est documenté au **chapitre 5 — Conception technique**.
+
+**Principes retenus**
+
+- Application web accessible par navigateur (élève, admin, agent, visiteur).
+- Système central **DR-DOCSCOL** organisé en **couches MVC**.
+- Séparation **présentation / contrôle / métier / données**.
+- Appels vers des **services transverses** : authentification, persistance, courriel, stockage des pièces.
+
+**Figure 2.2 — Architecture générale de la solution (vue logique MVC)**
+
+![Figure 2.2 — Architecture générale logique DR-DOCSCOL](diagrammes-images/architecture-generale-solution.png)
+
+| Élément | Rôle |
+| --- | --- |
+| **Interface web** | Point d'accès unique : pages publiques, espace élève, back-office, portail agent |
+| **Couche présentation** | Affichage des écrans et formulaires |
+| **Couche contrôle** | Réception des actions utilisateur, validation, orchestration |
+| **Couche métier** | Règles OBC/DECC, routage documents, rendez-vous, duplicatas, imports |
+| **Couche accès aux données** | Lecture et écriture des entités métier |
+| **Services externes** | Authentification, base de données, envoi de courriels, stockage des justificatifs |
+
+Régénération : `npm run diagrams:architecture`.
+
+### 2.3 — Pattern architectural MVC
+
+Organisation **MVC** (Modèle – Vue – Contrôleur), adaptée à une application web en couches :
+
+| Couche MVC | Rôle dans DR-DOCSCOL |
+| --- | --- |
+| **Vue** | Interfaces utilisateur : consultation, dashboard, administration, centre d'examen |
+| **Contrôleur** | Traitement des requêtes et des actions utilisateur |
+| **Modèle** | Données persistées : élèves, documents, rendez-vous, paiements, notifications |
+| **Services métier** | Règles métier centralisées (routage OBC/DECC, statuts, rendez-vous, duplicatas) |
+
+La correspondance avec l'organisation du code source figure au §2.5 et au chapitre 5.
+
+### 2.4 — Diagramme de packages
+
+Le **diagramme de packages** découpe DR-DOCSCOL en **modules métier cohérents**. Chaque package regroupe des cas d'utilisation et des composants de présentation ; le package **PKG-CORE** centralise les règles transverses (`lib/*`).
+
+**Figure 2.3 — Diagramme de packages**
+
+![Figure 2.3 — Diagramme de packages DR-DOCSCOL](diagrammes-images/diagramme-packages-dr-docscol.png)
+
+| Package | Dossiers / composants | Cas d'utilisation (§3.2) |
 | --- | --- | --- |
-| Vue | `app/**/page.tsx`, `components/` | Rendu UI |
-| Contrôleur | `app/api/**`, `app/**/actions.ts` | Entrées HTTP et Server Actions |
-| Modèle | `prisma/schema.prisma` | Persistance relationnelle |
-| Services métier | `lib/*.ts` | Règles métier centralisées |
+| **PKG-PUBLIC** | `app/consultation/`, landing `#consultation` | UC-03 |
+| **PKG-AUTH** | `app/auth/`, `lib/auth.ts`, `lib/supabase/` | UC-01, authentifier (élève, admin, agent) |
+| **PKG-ELEVE** | `app/dashboard/`, `components/dashboard/` | UC-02, UC-04, UC-05, UC-06 |
+| **PKG-ADMIN** | `app/admin/`, `components/admin/` | UC-07, UC-08, UC-09, UC-10, quota RDV |
+| **PKG-AGENT** | `app/centre-examen/`, `lib/centre-examen-service.ts` | UC-11 |
+| **PKG-CORE** | `lib/document-routing.ts`, `lib/appointment-service.ts`, imports, mail… | UC-12 (notifications système), services partagés |
 
-### 2.3 — Découpage modulaire
+Pour **chaque package métier** (PKG-PUBLIC à PKG-AGENT), le chapitre 3 présente : **diagramme UC du package** → **fiche** → **activité** → **séquence**, après le **diagramme général** (§3.0).
+
+### 2.5 — Découpage modulaire (implémentation)
 
 | Module | Dossiers principaux |
 | --- | --- |
@@ -97,7 +145,94 @@ Organisation **MVC adaptée à Next.js App Router** :
 
 ## 3. CONCEPTION FONCTIONNELLE
 
-### 3.1 — Acteurs et rôles implémentés
+> **Ordre de présentation (syntaxe générale)**  
+> 1. **Diagramme de cas d'utilisation général** (Figure 3.0 — trois acteurs)  
+> 2. **Package Élève** (Figure 3.1) → pour chaque **module phare** : *fiche descriptive → diagramme d'activité → diagramme de séquence* (§3.2)  
+> 3. **Package Administrateur OBC / DECC** (Figure 3.2) → idem (§3.3)  
+> 4. **Package Agent centre d'examen** (Figure 3.3) → idem (§3.4)  
+> 5. **Diagramme de classes** — chapitre 4, **après** tous les cas d'utilisation détaillés  
+
+### 3.0 — Diagramme général des cas d'utilisation
+
+Le **diagramme général** (Figure 3.0) regroupe les **trois acteurs** et reprend **l'intégralité** des cas, relations `<<include>>`, `<<extend>>` et généralisations des diagrammes par acteur (Fig. 3.1 à 3.3).
+
+La **consultation publique** (`consulter-via-QRcode`) est rattachée à l'**élève** (accès avant connexion).
+
+Les figures UC sont des **exports draw.io** (dossier source `diagramme cas utilisation/`, copies dans `diagrammes-images/`). Chaque figure est insérée à **pleine résolution** ; le texte et les tableaux reprennent **directement en dessous**.
+
+**Figure 3.0 — Diagramme général des cas d'utilisation**
+
+![Figure 3.0 — Diagramme général des cas d'utilisation DR-DOCSCOL](diagrammes-images/cas-utilisation-general.png)
+
+| Colonne | Acteur | Cas principaux (vue générale) |
+| --- | --- | --- |
+| Gauche | Élève | consulter-via-QRcode, authentifier, effectuer-demande-retrait, prendre-rdv, annuler-rdv |
+| Centre | Administrateur OBC/DECC | authentifier, METTRE-A-JOUR, EFFECTUER-IMPORT, DEFINIR-QUOTA-JOURNALIER, CONSULTER-JOURNAL-AUDIT |
+| Droite | Agent centre | authentifier, consulter-les-rdv, confirmer-les-retraits-effectuer |
+
+Sources draw.io : `diagramme cas utilisation/` (`Image collée.png`, `cas utilisation eleve .drawio.png`, `vivi.drawio.png`, `agent centre.drawio.png`). Mise à jour des figures : recopier vers `diagrammes-images/cas-utilisation-*.png`. Variante vectorielle programmatique : `npm run diagrams:cas-utilisation`.
+
+### 3.0 bis — Syntaxe générale de modélisation (3 niveaux)
+
+Chaque cas d'utilisation ou module est documenté selon la **syntaxe générale** suivante, **dans cet ordre** :
+
+```
+Niveau 1 — Diagramme général des cas d'utilisation (3 acteurs)
+    ↓
+Niveau 2 — Diagramme de cas d'utilisation du package (par acteur : Élève, Admin, Agent)
+    ↓
+Niveau 3 — Pour 3 à 4 modules phares du package :
+              fiche descriptive → diagramme d'activité → diagramme de séquence
+```
+
+| Niveau | Artefact | Figures (exemple package élève) |
+| --- | --- | --- |
+| **1 — Général** | Diagramme UC **global** (3 acteurs) | Figure 3.0 |
+| **2 — Package** | Diagramme UC **complet du package** | Figure 3.1 (élève), 3.2 (admin), 3.3 (agent) |
+| **3 — Module** | **Fiche** → **Activité** → **Séquence** | §3.2.1–3.2.7 (ex. UC-03 : fiche §3.2.3, Fig. 3.7 activité, Fig. 3.8 séquence) |
+
+> **Règle de présentation** — **Titre de figure** (`Figure N — …`) **obligatoire immédiatement au-dessus** de chaque diagramme ou capture ; le **texte reprend directement en dessous** (fiche, tableau ou commentaire), sans page vide.
+
+À partir du **diagramme de packages** (§2.4), la conception fonctionnelle suit **deux niveaux détaillés** (2 et 3 ci-dessus) :
+
+| Niveau | Artefact | Exemple (package élève) |
+| --- | --- | --- |
+| **1. Package** | Un **diagramme de cas d'utilisation** couvrant **tout le package** | Figure 3.1 — tous les cas de l'espace élève |
+| **2. Module** (sous-ensemble fonctionnel du package) | Pour **chaque module** : **fiche descriptive** → **diagramme d'activité** → **diagramme de séquence** | Module *Authentification* : §3.2.1 + §3.2.2 ; module *Duplicata* : §3.2.6 ; etc. |
+
+**Modules du package élève (PKG-ELEVE / PKG-PUBLIC)** — détail en §3.2 :
+
+| Module | Cas / UC | Fiche | Activité | Séquence |
+| --- | --- | --- | --- | --- |
+| Consultation publique & authentification | UC-03, authentifier, UC-01 | §3.2.1–3.2.3 | ACT-UC-03, ACT-AUTH-ELEVE | SEQ-ELEVE-01, 02 |
+| Mes documents | UC-02 | §3.2.4 | ACT-UC-02 | SEQ-ELEVE-03 |
+| Demande relevé / diplôme | UC-04 | §3.2.5 | ACT-UC-04 | SEQ-ELEVE-05 |
+| Duplicata & paiement | UC-05 | §3.2.6 | ACT-02 | SEQ-ELEVE-06, 07, 08 |
+| Rendez-vous de retrait | UC-06 | §3.2.7 | ACT-UC-06 | SEQ-ELEVE-09, 10 |
+
+**Modules du package administrateur (PKG-ADMIN)** — détail en §3.3 : imports (§3.3.2–3.3.3), mise à jour statuts (§3.3.4), validation duplicata (§3.3.5), quota RDV (§3.3.6).
+
+**Module du package agent (PKG-AGENT)** — détail en §3.4 : consultation RDV et confirmation retrait (§3.4.2).
+
+Une fois **tous les modules de tous les packages** documentés (fiche → activité → séquence), le **diagramme de classes** est présenté au **chapitre 4**.
+
+### 3.1 — Acteurs, inventaire UC et rôles implémentés
+
+| UC | Package | Acteur | Description | Route / action |
+| --- | --- | --- | --- | --- |
+| UC-01 | PKG-AUTH | Élève | Activer compte | `/auth/register` |
+| — | PKG-AUTH | Élève / Admin / Agent | Authentifier | `/auth/login/*` |
+| UC-03 | PKG-PUBLIC | Visiteur | Consultation matricule | `/consultation` |
+| UC-02 | PKG-ELEVE | Élève | Consulter documents | `/dashboard/documents` |
+| UC-04 | PKG-ELEVE | Élève | Demander relevé | `app/dashboard/actions.ts` |
+| UC-05 | PKG-ELEVE | Élève | Demander duplicata + payer | Dashboard + `Paiement`, `Recu` |
+| UC-06 | PKG-ELEVE | Élève | Réserver RDV | `/dashboard/rendez-vous` |
+| UC-07 | PKG-ADMIN | Admin | Import élèves (B) | `/admin/students` |
+| UC-08 | PKG-ADMIN | Admin | Disponibilisation (A) | `importDocumentAvailabilityAction` |
+| UC-09 | PKG-ADMIN | Admin | Changer statut | `/admin/documents` |
+| UC-10 | PKG-ADMIN | Admin | Valider duplicata | `updateDuplicataPieceReviewAction` |
+| UC-11 | PKG-AGENT | Agent | Confirmer retrait | `confirm-withdrawal` API |
+| UC-12 | PKG-CORE | Système | Notifier disponibilité | `applyDocumentStatusTransition` |
 
 | Rôle Prisma | Espace | Fichier garde |
 | --- | --- | --- |
@@ -107,28 +242,597 @@ Organisation **MVC adaptée à Next.js App Router** :
 
 **Sous-profils admin :** connexion séparée OBC (`/auth/login/obc`) et DECC (`/auth/login/decc`).
 
-### 3.2 — Diagramme de cas d'utilisation (synthèse)
+**Packages transverses (sans diagramme UC dédié)** — PKG-PUBLIC (consultation matricule, cas sur Fig. 3.1), PKG-AUTH (authentification par acteur), PKG-CORE (règles `lib/*`, notifications UC-12).
 
-| UC | Acteur | Description | Route / action |
-| --- | --- | --- | --- |
-| UC-01 | Élève | Activer compte | `/auth/register` |
-| UC-02 | Élève | Consulter documents | `/dashboard/documents` |
-| UC-03 | Visiteur | Consultation matricule | `/consultation`, `POST /api/public/consultation` |
-| UC-04 | Élève | Demander relevé | `app/dashboard/actions.ts` |
-| UC-05 | Élève | Demander duplicata + payer | Dashboard + `Paiement`, `Recu` |
-| UC-06 | Élève | Réserver RDV | `/dashboard/rendez-vous` |
-| UC-07 | Admin | Import élèves (B) | `/admin/students`, `importTestDataFromCsv` |
-| UC-08 | Admin | Disponibilisation (A) | `importDocumentAvailabilityAction` |
-| UC-09 | Admin | Changer statut | `/admin/documents`, `updateDocumentStatusAction` |
-| UC-10 | Admin | Valider duplicata | `updateDuplicataPieceReviewAction` |
-| UC-11 | Agent | Confirmer retrait | `confirm-withdrawal` API |
-| UC-12 | Système | Notifier disponibilité | `applyDocumentStatusTransition` |
+---
 
-**Figure 3.1 — Diagramme de cas d'utilisation**
+## 3.2 — Package Élève *(diagramme UC + modules phares)*
 
-![Figure 3.1 — Diagramme de cas d'utilisation DR-DOCSCOL](diagrammes-images/cas utilisation.jpeg)
+Après la vue générale (§3.0), on détaille le **parcours élève** : consultation publique, authentification, documents, demandes, duplicata, rendez-vous.
 
-### 3.3 — Flux métier conçus
+**Figure 3.1 — Diagramme de cas d'utilisation — package Élève**
+
+![Figure 3.1 — Cas d'utilisation package élève](diagrammes-images/cas-utilisation-eleve.drawio.png)
+
+| Module phare | Cas / UC | Sections |
+| --- | --- | --- |
+| **Authentification** | UC-01, authentifier | §3.2.1, §3.2.2 |
+| **Consultation publique** | UC-03 | §3.2.3 |
+| **Mes documents** | UC-02 | §3.2.4 |
+| **Demande relevé / diplôme** | UC-04 | §3.2.5 |
+| **Duplicata & paiement** | UC-05 | §3.2.6 |
+| **Rendez-vous de retrait** | UC-06 | §3.2.7 |
+
+Pour **chaque module** ci-dessous : **fiche descriptive** → **diagramme d'activité** (description) → **diagramme de séquence** (description).
+
+### 3.2.1 — Module Authentification — UC-01 : Activer son compte élève
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-01 |
+| **Nom** | Activer son compte élève |
+| **Acteur principal** | Élève (non connecté) |
+| **Objectif** | Créer les identifiants à partir d'un matricule pré-enregistré |
+| **Route / implémentation** | `/auth/register` — `signUpAction()` |
+
+**Préconditions** — Élève en base (Import B) ; rôle `ELEVE` ; `authUserId` vide ; Supabase Auth configuré.
+
+**Scénario nominal**
+
+1. Accès à `/auth/register`.
+2. Saisie matricule, email, mot de passe.
+3. Vérification matricule + email en Prisma.
+4. Création Supabase Auth (`email_confirm: true`) et liaison `authUserId`.
+5. Email de bienvenue ; redirection `/dashboard`.
+
+**Postconditions** — Compte activé ; session ouverte.
+
+**Scénarios alternatifs** — A1 matricule/email inconnu ; A2 compte déjà activé ; A3 matricule admin ; A4 formulaire invalide ; A5 échec connexion auto post-activation.
+
+#### Diagramme d'activité
+
+**Figure 3.4 — Activité UC-01 : activation de compte**
+
+![Figure 3.4 — Activité UC-01](diagrammes-images/activites/act-uc-01-activer-compte.png)
+
+#### Diagramme de séquence
+
+L'activation suit la même logique que la connexion (Prisma + Supabase Auth). Voir **§3.2.2 SEQ-ELEVE-01** pour le schéma d'échanges ; la différence est l'étape `signUp` au lieu de `signInWithPassword`.
+
+---
+
+### 3.2.2 — Module Authentification — Authentifier (connexion élève)
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | — *(cas sur diagramme Élève)* |
+| **Nom** | Authentifier |
+| **Acteur principal** | Élève |
+| **Objectif** | Ouvrir une session sécurisée sur l'espace `/dashboard` |
+| **Route / implémentation** | `/auth/login` — `signInAction()` |
+
+**Préconditions** — Compte activé (`authUserId` renseigné) ; identifiants valides.
+
+**Scénario nominal** — Saisie matricule, email, mot de passe → contrôle rôle `ELEVE` en Prisma → `signInWithPassword` → audit `LOGIN` → redirection `/dashboard`.
+
+**Scénarios alternatifs** — Matricule inconnu ; rôle incorrect ; mot de passe invalide ; email ne correspond pas au matricule.
+
+#### Diagramme d'activité
+
+**Figure 3.5 — Activité : authentification élève**
+
+![Figure 3.5 — Activité authentification élève](diagrammes-images/activites/act-uc-auth-eleve.png)
+
+#### Diagramme de séquence
+
+**SEQ-ELEVE-01** — Barrière métier Prisma avant Supabase ; trace `audit_logs` pour la soutenance.
+
+**Figure 3.6 — SEQ-ELEVE-01 : connexion élève**
+
+![Figure 3.6 — Séquence authentification élève](diagrammes-images/sequences/eleve/seq-eleve-01-authentifier.png)
+
+---
+
+### 3.2.3 — Module Consultation publique — UC-03
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-03 |
+| **Nom** | Consultation publique par matricule |
+| **Acteur principal** | Visiteur |
+| **Objectif** | Vérifier l'état des documents sans compte |
+| **Route / implémentation** | `/consultation`, landing `#consultation` |
+
+**Préconditions** — Aucune auth ; matricule 3–40 car. ; rate-limit IP non dépassé.
+
+**Scénario nominal** — Saisie matricule → recherche élève → si activé : statuts documents (hors duplicatas) ; sinon prénom + lien activation.
+
+**Postconditions** — Lecture seule ; aucune modification en base.
+
+**Scénarios alternatifs** — A1 matricule inconnu (message générique) ; A2 compte non activé ; A3 matricule invalide ; A4 HTTP 429.
+
+#### Diagramme d'activité
+
+**Figure 3.7 — Activité UC-03 : consultation publique**
+
+![Figure 3.7 — Activité UC-03](diagrammes-images/activites/act-uc-03-consultation-publique.png)
+
+#### Diagramme de séquence
+
+**SEQ-ELEVE-02** — `POST /api/public/consultation` ; branche compte non activé sans fuite documentaire.
+
+**Figure 3.8 — SEQ-ELEVE-02 : consultation QR / matricule**
+
+![Figure 3.8 — Séquence consultation publique](diagrammes-images/sequences/eleve/seq-eleve-02-consulter-via-qrcode.png)
+
+---
+
+### 3.2.4 — Module Mes documents — UC-02
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-02 |
+| **Nom** | Consulter ses documents scolaires |
+| **Acteur principal** | Élève connecté |
+| **Objectif** | Visualiser statuts, lieux de retrait et actions possibles par diplôme |
+| **Route / implémentation** | `/dashboard/documents` |
+
+**Préconditions** — Session élève valide.
+
+**Scénario nominal**
+
+1. Chargement documents, duplicatas, examens validés.
+2. `resolveDocumentRoute` pour chaque document (organisme, centre/antenne, `requiresAppointment`).
+3. Affichage cartes par examen avec libellés de statut et boutons (Demander, RDV, Duplicata…).
+
+**Postconditions** — Aucune mutation (consultation connectée).
+
+**Scénarios alternatifs** — Session expirée → redirection login ; liste vide si aucun examen validé.
+
+#### Diagramme d'activité
+
+**Figure 3.9 — Activité UC-02 : Mes documents**
+
+![Figure 3.9 — Activité UC-02](diagrammes-images/activites/act-uc-02-mes-documents.png)
+
+#### Diagramme de séquence
+
+**SEQ-ELEVE-03** — Server Component ; routage OBC/DECC côté serveur.
+
+**Figure 3.10 — SEQ-ELEVE-03 : vérifier disponibilité**
+
+![Figure 3.10 — Séquence Mes documents](diagrammes-images/sequences/eleve/seq-eleve-03-verifier-disponibilite.png)
+
+---
+
+### 3.2.5 — Module Demande relevé / diplôme — UC-04
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-04 |
+| **Nom** | Enregistrer une demande de relevé ou de diplôme |
+| **Acteur principal** | Élève connecté |
+| **Objectif** | Soumettre officiellement une demande avant disponibilisation admin |
+| **Route / implémentation** | `registerSchoolDocumentRequest()` |
+
+**Préconditions** — Examen validé ; type autorisé ; pas de demande existante (`demandeSoumiseAt` vide).
+
+**Scénario nominal** — Choix examen → Demander → routage → création/màj `DocumentAcademique` `PAS_DISPONIBLE` + notification.
+
+**Postconditions** — `demandeSoumiseAt` renseigné ; attente action admin (UC-08/UC-09).
+
+**Scénarios alternatifs** — A1 demande déjà enregistrée ; A2 type non autorisé ; A3 examen introuvable.
+
+#### Diagramme d'activité
+
+**Figure 3.11 — Activité UC-04 : demande relevé / diplôme**
+
+![Figure 3.11 — Activité UC-04](diagrammes-images/activites/act-uc-04-demande-releve.png)
+
+#### Diagramme de séquence
+
+**SEQ-ELEVE-05** (relevé) — Le diplôme original suit **SEQ-ELEVE-04** avec contrôles de routage différents (ex. Bac original → antenne OBC).
+
+**Figure 3.12 — SEQ-ELEVE-05 : demande relevé**
+
+![Figure 3.12 — Séquence demande relevé](diagrammes-images/sequences/eleve/seq-eleve-05-demande-releve.png)
+
+**Figure 3.13 — SEQ-ELEVE-04 : demande diplôme original** *(variante routage)*
+
+![Figure 3.13 — Séquence demande original](diagrammes-images/sequences/eleve/seq-eleve-04-demande-original-diplome.png)
+
+---
+
+### 3.2.6 — Module Duplicata & paiement — UC-05
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-05 |
+| **Nom** | Soumettre duplicata avec pièces et paiement |
+| **Acteur principal** | Élève connecté |
+| **Objectif** | Initier dossier duplicata + règlement simulé |
+| **Route / implémentation** | `submitDuplicataRequestAction()` |
+
+**Préconditions** — Duplicata autorisé ; pas de dossier actif ; cooldown 1 an respecté ; 4 pièces obligatoires.
+
+**Scénario nominal** — Formulaire → upload Storage → barème (10 000 / 15 000 FCFA) → transaction Prisma (`Duplicata`, `Paiement`, `Recu`) → notifications.
+
+**Postconditions** — Dossier `SOUMISE` ; attente analyse admin (UC-10).
+
+**Scénarios alternatifs** — A1 demande en cours ; A2 déjà disponible ; A3 cooldown ; A4 pièce manquante ; A5 formulaire invalide.
+
+#### Diagramme d'activité
+
+Vue **processus complet duplicata** (soumission → validation admin → retrait antenne) :
+
+**Figure 3.14 — Activité UC-05 / processus duplicata (ACT-02)**
+
+![Figure 3.14 — Activité duplicata](diagrammes-images/activites/act-eleve-demande-duplicata.png)
+
+#### Diagrammes de séquence
+
+**SEQ-ELEVE-06** — Formulaire et pièces. **SEQ-ELEVE-07** — Paiement. **SEQ-ELEVE-08** — Téléchargement reçu.
+
+**Figure 3.15 — SEQ-ELEVE-06 : formulaire duplicata**
+
+![Figure 3.15 — Séquence formulaire duplicata](diagrammes-images/sequences/eleve/seq-eleve-06-demande-duplicata-formulaire.png)
+
+**Figure 3.16 — SEQ-ELEVE-07 : paiement duplicata**
+
+![Figure 3.16 — Séquence paiement](diagrammes-images/sequences/eleve/seq-eleve-07-effectuer-paiement.png)
+
+**Figure 3.17 — SEQ-ELEVE-08 : télécharger reçu**
+
+![Figure 3.17 — Séquence reçu](diagrammes-images/sequences/eleve/seq-eleve-08-telecharger-recu.png)
+
+---
+
+### 3.2.7 — Module Rendez-vous de retrait — UC-06
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-06 |
+| **Nom** | Réserver ou annuler un créneau au centre d'examen |
+| **Acteur principal** | Élève connecté |
+| **Objectif** | Planifier le retrait physique au centre |
+| **Route / implémentation** | `/dashboard/rendez-vous`, `createRendezVousAction()` |
+
+**Préconditions** — Document `DISPONIBLE` ; routage centre (`requiresAppointment`) ; pas de RDV actif ; date ≥ lendemain, ouvrable, quota OK.
+
+**Scénario nominal (prise)** — Choix date → créneaux `getAvailableSlots` → réservation `PLANIFIE` → notification.
+
+**Scénario nominal (annulation)** — Annulation depuis `/dashboard/rendez-vous` → statut `ANNULE` → quota libéré.
+
+**Postconditions** — RDV actif ou annulé ; agent informé via son espace (UC-11).
+
+**Scénarios alternatifs** — Document non disponible ; retrait antenne ; date/quota invalides ; RDV déjà existant.
+
+#### Diagramme d'activité
+
+**Figure 3.18 — Activité UC-06 : rendez-vous de retrait**
+
+![Figure 3.18 — Activité UC-06](diagrammes-images/activites/act-uc-06-rdv-retrait.png)
+
+#### Diagrammes de séquence
+
+**Figure 3.19 — SEQ-ELEVE-09 : prise de rendez-vous**
+
+![Figure 3.19 — Séquence prise RDV](diagrammes-images/sequences/eleve/seq-eleve-09-prendre-rdv.png)
+
+**Figure 3.20 — SEQ-ELEVE-10 : annulation RDV**
+
+![Figure 3.20 — Séquence annulation RDV](diagrammes-images/sequences/eleve/seq-eleve-10-annuler-rdv.png)
+
+---
+
+## 3.3 — Package Administrateur OBC / DECC *(diagramme UC + modules phares)*
+
+**Figure 3.2 — Diagramme de cas d'utilisation — package Administrateur OBC / DECC**
+
+![Figure 3.2 — Cas d'utilisation Admin OBC/DECC (PKG-ADMIN)](diagrammes-images/cas-utilisation-admin-obc-decc.drawio.png)
+
+| Module phare | Cas / UC | Section |
+| --- | --- | --- |
+| **Authentification admin** | authentifier | §3.3.1 |
+| **Import élèves** | UC-07 | §3.3.2 |
+| **Disponibilisation** | UC-08 | §3.3.3 |
+| **Mise à jour statuts** | UC-09 | §3.3.4 |
+| **Validation duplicata** | UC-10 | §3.3.5 |
+| **Quota rendez-vous** | paramètres RDV | §3.3.6 |
+
+### 3.3.1 — Module Authentification — Admin OBC / DECC
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Nom** | Authentifier |
+| **Acteur** | Administrateur OBC ou DECC |
+| **Objectif** | Accéder au back-office `/admin` dans son périmètre |
+| **Route** | `/auth/login/obc` ou `/auth/login/decc` |
+
+**Scénario nominal** — Identifiants → rôle `ADMINISTRATEUR` → session → redirection `/admin` → audit `LOGIN`.
+
+#### Diagramme d'activité
+
+**Figure 3.21 — Activité : authentification admin**
+
+![Figure 3.21 — Activité auth admin](diagrammes-images/activites/act-uc-auth-admin.png)
+
+#### Diagramme de séquence
+
+**Figure 3.22 — SEQ-ADMIN-01 : connexion administrateur**
+
+![Figure 3.22 — Séquence auth admin](diagrammes-images/sequences/admin/seq-admin-01-authentifier.png)
+
+---
+
+### 3.3.2 — Module Import élèves — UC-07
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-07 |
+| **Nom** | Import ajout élève (CSV) |
+| **Acteur** | Administrateur |
+| **Objectif** | Pré-enregistrer matricules pour activation UC-01 |
+| **Route** | `/admin/students` — `importTestDataFromCsv` |
+
+**Préconditions** — Admin authentifié ; CSV conforme `STUDENT_IMPORT_CSV_HEADER` ; périmètre organisme/région.
+
+**Scénario nominal** — Upload CSV → traitement ligne par ligne → UPSERT `User` (`ELEVE`), `ExamenValide`, documents `PAS_DISPONIBLE` → rapport.
+
+**Postconditions** — Élèves créés/mis à jour ; documents initiaux **Pas disponible**.
+
+**Scénarios alternatifs** — Ligne hors périmètre ; matricule invalide ; diplôme inconnu.
+
+#### Diagramme d'activité
+
+**Figure 3.23 — Activité UC-07 : Import B**
+
+![Figure 3.23 — Activité UC-07](diagrammes-images/activites/act-uc-07-import-eleves.png)
+
+#### Diagramme de séquence
+
+**Figure 3.24 — SEQ-ADMIN-11 : import élèves CSV**
+
+![Figure 3.24 — Séquence Import B](diagrammes-images/sequences/admin/seq-admin-11-import-ajout-eleve.png)
+
+---
+
+### 3.3.3 — Module Disponibilisation — UC-08
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-08 |
+| **Nom** | Mettre un document à disposition |
+| **Acteur** | Administrateur |
+| **Objectif** | Passer **Pas disponible** → **Disponible** + notifier |
+| **Route** | Import A ou `/admin/documents` |
+
+**Préconditions** — Périmètre admin ; duplicata : dossier `VALIDEE` ; pas de duplicata dans Import A.
+
+**Scénario nominal** — Import CSV ou action unitaire → `applyDocumentStatusTransition` → notification + audit.
+
+**Postconditions** — Document `DISPONIBLE` ; élève informé (UC-06 si centre).
+
+**Scénarios alternatifs** — Hors périmètre ; duplicata non validé ; ligne CSV duplicata ; déjà disponible.
+
+#### Diagramme d'activité
+
+**Figure 3.25 — Activité UC-08 / disponibilisation (ACT-03)**
+
+![Figure 3.25 — Activité disponibilisation](diagrammes-images/activites/act-admin-disponibilisation.png)
+
+#### Diagramme de séquence
+
+**Figure 3.26 — SEQ-ADMIN-10 : import disponibilisation**
+
+![Figure 3.26 — Séquence Import A](diagrammes-images/sequences/admin/seq-admin-10-import-disponibilisation.png)
+
+---
+
+### 3.3.4 — Module Mise à jour statut — UC-09
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-09 |
+| **Nom** | Changer le statut document (action unitaire) |
+| **Acteur** | Administrateur |
+| **Objectif** | Gérer cas par cas (dispo, retrait antenne) |
+| **Route** | `/admin/documents` — `updateDocumentStatusAction` |
+
+**Préconditions** — Document dans périmètre ; transitions autorisées (`document-status-transition.ts`).
+
+**Scénario nominal** — Sélection document → nouveau statut → `assertAdminCanManageDocument` → transition → notification si `DISPONIBLE` → audit.
+
+**Postconditions** — Statut mis à jour ; retrait antenne : `RETIRE` par admin (pas agent).
+
+**Scénarios alternatifs** — Transition interdite ; duplicata non validé ; document hors scope.
+
+#### Diagramme d'activité
+
+**Figure 3.27 — Activité UC-09 : mise à jour statut**
+
+![Figure 3.27 — Activité UC-09](diagrammes-images/activites/act-uc-09-maj-statut.png)
+
+#### Diagramme de séquence
+
+**Figure 3.28 — SEQ-ADMIN-06 : MAJ statut relevé**
+
+![Figure 3.28 — Séquence MAJ statut](diagrammes-images/sequences/admin/seq-admin-06-mettre-a-jour-releve.png)
+
+---
+
+### 3.3.5 — Module Validation duplicata — UC-10
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-10 |
+| **Nom** | Valider ou rejeter un dossier duplicata |
+| **Acteur** | Administrateur antenne |
+| **Objectif** | Autoriser la disponibilisation du duplicata |
+| **Route** | `validateDuplicataRequestAction`, `updateDuplicataPieceReviewAction` |
+
+**Préconditions** — Dossier `SOUMISE` ou `EN_ANALYSE` ; pièces téléversées.
+
+**Scénario nominal** — Analyse pièces → validation individuelle → si toutes `VALIDEE` : dossier `VALIDEE` → sync document DUPLICATA.
+
+**Postconditions** — Dossier validé ; admin peut disponibiliser (UC-08) ; retrait en antenne.
+
+**Scénarios alternatifs** — Pièce rejetée → dossier `REJETEE` ; pièces manquantes.
+
+#### Diagramme d'activité
+
+**Figure 3.29 — Activité UC-10 : validation duplicata**
+
+![Figure 3.29 — Activité UC-10](diagrammes-images/activites/act-uc-10-valider-duplicata.png)
+
+#### Diagramme de séquence
+
+**Figure 3.30 — SEQ-ADMIN-08 : valider demande duplicata**
+
+![Figure 3.30 — Séquence validation duplicata](diagrammes-images/sequences/admin/seq-admin-08-valider-demande-duplicata.png)
+
+*Séquences complémentaires : SEQ-ADMIN-07 (traiter pièces), SEQ-ADMIN-09 (rejeter).*
+
+---
+
+### 3.3.6 — Module Quota journalier RDV
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Nom** | Définir quota journalier RDV |
+| **Acteur** | Administrateur |
+| **Objectif** | Limiter la charge des centres d'examen |
+| **Route** | `/admin/rdv-disponibilites` |
+
+**Scénario nominal** — Modification quota → persistance `parametres_rendez_vous` → impact immédiat sur `getAvailableSlots` (UC-06).
+
+#### Diagramme de séquence
+
+**Figure 3.31 — SEQ-ADMIN-02 : quota journalier**
+
+![Figure 3.31 — Séquence quota RDV](diagrammes-images/sequences/admin/seq-admin-02-definir-quota-journalier.png)
+
+---
+
+## 3.4 — Package Agent centre d'examen *(diagramme UC + modules phares)*
+
+**Figure 3.3 — Diagramme de cas d'utilisation — package Agent centre**
+
+![Figure 3.3 — Cas d'utilisation Agent centre (PKG-AGENT)](diagrammes-images/cas-utilisation-agent-centre.drawio.png)
+
+| Module phare | Cas / UC | Section |
+| --- | --- | --- |
+| **Authentification agent** | authentifier | §3.4.1 |
+| **Consultation RDV & retrait** | UC-11 | §3.4.2 |
+
+### 3.4.1 — Module Authentification — Agent centre
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Nom** | Authentifier |
+| **Acteur** | Agent centre d'examen |
+| **Objectif** | Accéder à `/centre-examen` |
+| **Route** | `/auth/login/centre-examen` |
+
+**Scénario nominal** — Identifiants → rôle `AGENT_CENTRE_EXAMEN` → redirection espace agent.
+
+#### Diagramme d'activité
+
+**Figure 3.32 — Activité : authentification agent**
+
+![Figure 3.32 — Activité auth agent](diagrammes-images/activites/act-uc-auth-agent.png)
+
+#### Diagramme de séquence
+
+**Figure 3.33 — SEQ-AGENT-01 : connexion agent**
+
+![Figure 3.33 — Séquence auth agent](diagrammes-images/sequences/agent/seq-agent-01-authentifier.png)
+
+---
+
+### 3.4.2 — Module Consultation RDV et confirmation retrait — UC-11
+
+#### Fiche descriptive
+
+| Élément | Description |
+| --- | --- |
+| **Identifiant** | UC-11 |
+| **Nom** | Confirmer le retrait au centre d'examen |
+| **Acteur** | Agent centre |
+| **Objectif** | Clôturer le parcours physique (centre uniquement) |
+| **Route** | `/centre-examen`, `confirm-withdrawal` |
+
+**Préconditions** — Agent authentifié ; RDV `PLANIFIE`/`CONFIRME` ; document éligible centre ; pas déjà `RETIRE`.
+
+**Scénario nominal**
+
+1. Consulter RDV transmis (région/centre).
+2. Vérifier identité élève sur place.
+3. Confirmer retrait → RDV `HONORE`, document `RETIRE`, notifications.
+
+**Postconditions** — Document **Retiré** ; cooldown duplicata 1 an si applicable.
+
+**Scénarios alternatifs** — RDV hors centre (403) ; déjà confirmé (409) ; retrait antenne réservé à l'admin.
+
+**Note** — Retraits **antenne** (Bac original, duplicatas) : administrateur via UC-09.
+
+#### Diagramme d'activité — consultation RDV
+
+**Figure 3.34 — Activité UC-11a : consulter RDV transmis**
+
+![Figure 3.34 — Activité consulter RDV](diagrammes-images/activites/act-uc-11-consulter-rdv.png)
+
+#### Diagramme de séquence — consultation
+
+**Figure 3.35 — SEQ-AGENT-02 : consulter RDV**
+
+![Figure 3.35 — Séquence consulter RDV](diagrammes-images/sequences/agent/seq-agent-02-consulter-les-rdv.png)
+
+#### Diagramme d'activité — confirmation retrait
+
+**Figure 3.36 — Activité UC-11b / confirmation retrait (ACT-04)**
+
+![Figure 3.36 — Activité confirmation retrait](diagrammes-images/activites/act-agent-confirmation-retrait.png)
+
+#### Diagramme de séquence — confirmation
+
+**Figure 3.37 — SEQ-AGENT-03 : confirmer retrait effectué**
+
+![Figure 3.37 — Séquence confirmation retrait](diagrammes-images/sequences/agent/seq-agent-03-confirmer-retrait-effectue.png)
+
+---
+
+## 3.5 — Compléments métier *(flux, routage, traçabilité, processus globaux)*
+
+### 3.5.1 — Flux métier conçus
 
 #### Flux 1 — Parcours élève complet
 
@@ -155,7 +859,7 @@ Retrait confirmé → RETIRE
 | Actions | Liens Activer mon compte / Me connecter |
 | Sécurité | Rate limiting par IP |
 
-### 3.4 — Matrice de routage (conception métier)
+### 3.5.2 — Matrice de routage (conception métier)
 
 Implémentée dans `lib/document-routing.ts` :
 
@@ -170,458 +874,68 @@ Implémentée dans `lib/document-routing.ts` :
 | Bac original | OBC | Antenne | Admin |
 | Bac duplicata | OBC | Antenne | Admin |
 
-### 3.5 — Inventaire des pages
+### 3.5.3 — Tableau de traçabilité (fiche → activité → séquence)
 
-| Zone | Routes |
-| --- | --- |
-| Public | `/`, `/consultation` |
-| Auth | `/auth/login`, `/auth/register`, `/auth/login/obc`, `/auth/login/decc`, `/auth/login/centre-examen` |
-| Élève | `/dashboard`, `/dashboard/documents`, `/dashboard/rendez-vous`, `/dashboard/payments`, `/dashboard/notifications` |
-| Admin | `/admin`, `/admin/documents`, `/admin/students`, `/admin/payments`, `/admin/appointments`, `/admin/rdv-disponibilites`, `/admin/audit-logs` |
-| Agent | `/centre-examen` |
+| UC / cas | Package | Acteur | Fiche | Activité | Séquence(s) |
+| --- | --- | --- | --- | --- | --- |
+| UC-01 | PKG-AUTH | Élève | §3.2.1 | ACT-UC-01 | — |
+| Authentifier | PKG-AUTH | Élève | §3.2.2 | ACT-AUTH-ELEVE | SEQ-ELEVE-01 |
+| UC-03 | PKG-PUBLIC | Visiteur | §3.2.3 | ACT-UC-03 | SEQ-ELEVE-02 |
+| UC-02 | PKG-ELEVE | Élève | §3.2.4 | ACT-UC-02 | SEQ-ELEVE-03 |
+| UC-04 | PKG-ELEVE | Élève | §3.2.5 | ACT-UC-04 | SEQ-ELEVE-05 |
+| UC-05 | PKG-ELEVE | Élève | §3.2.6 | ACT-02 | SEQ-ELEVE-06–08 |
+| UC-06 | PKG-ELEVE | Élève | §3.2.7 | ACT-UC-06 | SEQ-ELEVE-09, 10 |
+| Authentifier | PKG-AUTH | Admin | §3.3.1 | ACT-AUTH-ADMIN | SEQ-ADMIN-01 |
+| UC-07 | PKG-ADMIN | Admin | §3.3.2 | ACT-UC-07 | SEQ-ADMIN-11 |
+| UC-08 | PKG-ADMIN | Admin | §3.3.3 | ACT-03 | SEQ-ADMIN-10 |
+| UC-09 | PKG-ADMIN | Admin | §3.3.4 | ACT-UC-09 | SEQ-ADMIN-06 |
+| UC-10 | PKG-ADMIN | Admin | §3.3.5 | ACT-UC-10 | SEQ-ADMIN-08 |
+| Quota RDV | PKG-ADMIN | Admin | §3.3.6 | — | SEQ-ADMIN-02 |
+| Authentifier | PKG-AUTH | Agent | §3.4.1 | ACT-AUTH-AGENT | SEQ-AGENT-01 |
+| UC-11 | PKG-AGENT | Agent | §3.4.2 | ACT-UC-11 | SEQ-AGENT-02, 03 |
 
-Référence complète : `docs/routes-implementees.md`
+Index complet : `docs/SEQUENCES_PAR_CAS_UTILISATION.md`.
 
-### 3.6 — Fiches descriptives des cas d'utilisation
+### 3.5.4 — Vue d'ensemble : diagrammes d'activité des processus globaux
 
-Les fiches ci-dessous détaillent les cas d'utilisation principaux (voir §3.2). Chaque fiche suit le formalisme UML : **préconditions**, **scénario nominal**, **postconditions** et **scénarios alternatifs**. Les diagrammes de séquence correspondants figurent en §3.7.
+Ils complètent les blocs §3.2 à §3.4 pour la soutenance lorsque le jury demande une **vue processus bout en bout**.
 
----
+| Réf. | Processus | Cas couverts | Fichier |
+| --- | --- | --- | --- |
+| ACT-01 | Retrait relevé / diplôme | UC-01, 02, 04, 06, 08, 09, 11 | `act-eleve-parcours-retrait-document.png` |
+| ACT-02 | Duplicata complet | UC-05, 10, 08, 09 | `act-eleve-demande-duplicata.png` |
+| ACT-03 | Disponibilisation | UC-08, 09 | `act-admin-disponibilisation.png` |
+| ACT-04 | Retrait centre | UC-06, 11 | `act-agent-confirmation-retrait.png` |
 
-#### Fiche UC-01 — Activer son compte élève
+**Figure 3.38 — ACT-01 : parcours retrait relevé / diplôme**
 
-| Élément | Description |
-| --- | --- |
-| **Identifiant** | UC-01 |
-| **Nom** | Activer son compte élève |
-| **Acteur principal** | Élève (non encore connecté) |
-| **Objectif** | Créer les identifiants de connexion à partir d'un matricule déjà enregistré par l'administration |
-| **Route / implémentation** | `/auth/register` — `signUpAction()` dans `app/auth/actions.ts` |
+![Figure 3.38 — ACT-01 parcours retrait](diagrammes-images/activites/act-eleve-parcours-retrait-document.png)
 
-**Préconditions**
+**Figure 3.39 — ACT-02 : processus duplicata**
 
-- L'élève a été préalablement enregistré en base (Import B ou saisie admin) avec matricule et email.
-- Le rôle associé au matricule est `ELEVE`.
-- Le champ `authUserId` est vide (compte non encore activé).
-- Supabase Auth est configuré et accessible.
+![Figure 3.39 — ACT-02 duplicata](diagrammes-images/activites/act-eleve-demande-duplicata.png)
 
-**Scénario nominal**
+**Figure 3.40 — ACT-03 : disponibilisation admin**
 
-1. L'élève accède à la page d'activation (`/auth/register`).
-2. Il saisit matricule, email, mot de passe et confirmation.
-3. Le système normalise le matricule et vérifie la correspondance matricule + email en base.
-4. Le système crée ou met à jour l'utilisateur Supabase Auth (`email_confirm: true`).
-5. Le système enregistre `authUserId` sur le profil Prisma et ouvre une session.
-6. Le système envoie un email de bienvenue (`notifyAccountActivated`).
-7. L'élève est redirigé vers `/dashboard`.
+![Figure 3.40 — ACT-03 disponibilisation](diagrammes-images/activites/act-admin-disponibilisation.png)
 
-**Postconditions (succès)**
+**Figure 3.41 — ACT-04 : confirmation retrait agent**
 
-- Le compte est activé (`authUserId` renseigné).
-- Une session élève est ouverte.
-- L'élève peut consulter ses documents en statut initial **Pas disponible** ou **Demande non effectuée**.
+![Figure 3.41 — ACT-04 retrait centre](diagrammes-images/activites/act-agent-confirmation-retrait.png)
 
-**Scénarios alternatifs**
+Régénération : `npm run diagrams:activites`.
 
-| Code | Condition | Résultat |
-| --- | --- | --- |
-| A1 | Matricule ou email non reconnus | Message : « Aucun élève ne correspond à ce matricule et à cet email. » |
-| A2 | Compte déjà activé (`authUserId` présent) | Message : « Ce compte est déjà activé. Connectez-vous directement. » |
-| A3 | Matricule d'un administrateur | Message : « Les comptes administrateurs sont créés manuellement. » |
-| A4 | Données de formulaire invalides (Zod) | Message : « Informations d'inscription invalides. » |
-| A5 | Échec connexion automatique après activation | Compte activé ; message invitant à se connecter manuellement |
+Une fois l'ensemble des cas d'utilisation documentés (fiches, activités, séquences), le **modèle de données** et le **diagramme de classes** sont présentés au **chapitre 4**.
 
 ---
 
-#### Fiche UC-03 — Consulter la disponibilité par matricule (public)
+## 4. CONCEPTION DU MODÈLE DE DONNÉES
 
-| Élément | Description |
-| --- | --- |
-| **Identifiant** | UC-03 |
-| **Nom** | Consultation publique par matricule |
-| **Acteur principal** | Visiteur (élève ou tiers) |
-| **Objectif** | Vérifier l'état des documents scolaires sans créer de compte |
-| **Route / implémentation** | `/consultation`, landing `#consultation` — `lookupPublicConsultationByMatricule()` |
-
-**Préconditions**
-
-- Aucune authentification requise.
-- Le matricule saisi respecte la longueur autorisée (3 à 40 caractères).
-- Le rate limiting par IP n'est pas dépassé (`lib/simple-rate-limit.ts`).
-
-**Scénario nominal**
-
-1. Le visiteur saisit son matricule sur la page de consultation.
-2. Le système recherche l'élève en base (`role = ELEVE`).
-3. Si le compte est activé, le système construit la liste des documents (hors duplicatas) avec libellés de statut.
-4. Le système affiche le prénom de l'élève et les statuts (Pas disponible, Disponible, Retiré, Demande non effectuée).
-5. Des liens vers « Activer mon compte » ou « Me connecter » sont proposés selon l'état d'activation.
-
-**Postconditions (succès)**
-
-- Aucune modification en base (consultation en lecture seule).
-- Le visiteur dispose d'une vision synthétique de la disponibilité.
-
-**Scénarios alternatifs**
-
-| Code | Condition | Résultat |
-| --- | --- | --- |
-| A1 | Matricule inconnu ou rôle ≠ élève | Message générique : aucune information personnelle divulguée (`found: false`) |
-| A2 | Élève trouvé mais compte non activé | Affichage du prénom + invitation à activer le compte (pas de détail documentaire) |
-| A3 | Matricule invalide (longueur) | Aucun résultat (`found: false`) |
-| A4 | Trop de requêtes depuis la même IP | Réponse HTTP 429 |
-
----
-
-#### Fiche UC-04 — Demander un relevé de notes (ou diplôme original)
-
-| Élément | Description |
-| --- | --- |
-| **Identifiant** | UC-04 |
-| **Nom** | Enregistrer une demande de relevé ou de diplôme |
-| **Acteur principal** | Élève connecté |
-| **Objectif** | Soumettre officiellement une demande auprès de l'administration |
-| **Route / implémentation** | `/dashboard/documents` — `registerSchoolDocumentRequest()` dans `app/dashboard/actions.ts` |
-
-**Préconditions**
-
-- L'élève est authentifié (`role = ELEVE`).
-- Un examen validé existe pour le diplôme concerné (`ExamenValide`).
-- Le type de document est autorisé pour ce diplôme (`isDocumentRequestAllowed` — ex. pas d'original Probatoire).
-- Aucune demande n'a déjà été enregistrée pour ce couple diplôme / type (`demandeSoumiseAt` vide).
-
-**Scénario nominal**
-
-1. L'élève ouvre « Mes documents » et choisit l'examen (BEPC, Probatoire, Bac).
-2. Il clique sur « Demander » pour un relevé ou un diplôme original éligible.
-3. Le système résout le routage OBC/DECC et l'antenne (`resolveDocumentRoute`).
-4. Le système crée ou met à jour le `DocumentAcademique` avec `demandeSoumiseAt` et statut **Pas disponible**.
-5. Une notification in-app est créée (type `DEMANDE_RELEVE` ou `DEMANDE_DIPLOME`).
-6. L'interface affiche la demande comme enregistrée, en attente de disponibilisation admin.
-
-**Postconditions (succès)**
-
-- Le document porte `demandeSoumiseAt` renseigné et reste **Pas disponible** jusqu'à action admin (UC-08/UC-09).
-- Le lieu de retrait futur est déterminé par le routage (centre ou antenne).
-
-**Scénarios alternatifs**
-
-| Code | Condition | Résultat |
-| --- | --- | --- |
-| A1 | Demande déjà enregistrée | Erreur : « Une demande est déjà enregistrée pour ce document. » |
-| A2 | Type non autorisé (ex. original Probatoire) | Erreur métier |
-| A3 | Examen introuvable | Erreur : « Examen introuvable pour cet élève. » |
-
----
-
-#### Fiche UC-05 — Demander un duplicata et payer
-
-| Élément | Description |
-| --- | --- |
-| **Identifiant** | UC-05 |
-| **Nom** | Soumettre une demande de duplicata avec pièces et paiement |
-| **Acteur principal** | Élève connecté |
-| **Objectif** | Initier un dossier de duplicata (relevé ou diplôme) avec justificatifs et règlement |
-| **Route / implémentation** | `/dashboard/documents` — `submitDuplicataRequestAction()` |
-
-**Préconditions**
-
-- L'élève est authentifié.
-- Le duplicata cible est autorisé pour le diplôme (cible `ORIGINAL` ou `RELEVE_NOTES`).
-- Aucune autre demande de duplicata active pour le même document.
-- Le délai de carence d'un an est respecté si un duplicata du même type a déjà été retiré (`getDuplicataRequestAvailability`).
-- Les pièces justificatives obligatoires sont fournies.
-
-**Scénario nominal**
-
-1. L'élève ouvre le formulaire duplicata (session, centre d'examen, motif, mode de paiement).
-2. Il téléverse les pièces requises (`DUPLICATA_REQUIRED_PIECES`).
-3. Le système calcule les frais (10 000 FCFA relevé / 15 000 FCFA diplôme).
-4. Le système enregistre le `Duplicata`, les `PieceDuplicata`, le `Paiement` simulé et le `Recu`.
-5. Le document `DUPLICATA` associé est créé ou mis à jour en **Pas disponible**, dossier en statut `SOUMISE`.
-6. Notification in-app et email de confirmation sont envoyés.
-
-**Postconditions (succès)**
-
-- Dossier duplicata créé, en attente d'analyse admin (UC-10).
-- Paiement enregistré (simulation) avec reçu consultable dans `/dashboard/payments`.
-- Le duplicata ne peut pas être disponibilisé tant que le dossier n'est pas `VALIDEE`.
-
-**Scénarios alternatifs**
-
-| Code | Condition | Résultat |
-| --- | --- | --- |
-| A1 | Demande déjà en cours | Erreur : demande en traitement |
-| A2 | Duplicata déjà prêt (`DISPONIBLE`) | Erreur invitant à prendre RDV |
-| A3 | Cooldown d'un an non écoulé | Erreur avec date de prochaine demande possible |
-| A4 | Pièce manquante ou upload échoué | Erreur sur la pièce concernée |
-| A5 | Formulaire invalide (Zod) | Erreur : formulaire invalide |
-
----
-
-#### Fiche UC-06 — Prendre rendez-vous de retrait
-
-| Élément | Description |
-| --- | --- |
-| **Identifiant** | UC-06 |
-| **Nom** | Réserver un créneau de retrait au centre d'examen |
-| **Acteur principal** | Élève connecté |
-| **Objectif** | Planifier le retrait physique d'un document disponible au centre |
-| **Route / implémentation** | `/dashboard/rendez-vous` — `createRendezVousAction()` |
-
-**Préconditions**
-
-- L'élève est authentifié.
-- Le document appartient à l'élève et est en statut **Disponible**.
-- Pour un relevé/diplôme : une demande a été enregistrée (`demandeSoumiseAt`).
-- Pour un duplicata : le dossier associé est en statut `DISPONIBLE`.
-- Le routage impose un rendez-vous (`requiresAppointment = true`, retrait au centre d'examen).
-- Aucun rendez-vous actif (`PLANIFIE` ou `CONFIRME`) n'existe pour ce document.
-- La date choisie est au minimum le lendemain, un jour ouvrable, non férié, avec créneau et quota disponibles.
-
-**Scénario nominal**
-
-1. L'élève sélectionne le document et une date à partir de demain.
-2. Le système charge les créneaux disponibles (`getAvailableSlots`) en respectant quota journalier et capacité par créneau.
-3. L'élève choisit un créneau horaire libre.
-4. Le système crée un `RendezVous` en statut `PLANIFIE` avec lieu de retrait résolu.
-5. Notification email et in-app de confirmation (`notifyAppointmentConfirmed`).
-6. Redirection vers la page rendez-vous du document.
-
-**Postconditions (succès)**
-
-- Un rendez-vous actif est associé au document.
-- Le créneau est décompté du quota du jour.
-- L'agent du centre verra ce RDV dans son espace (UC-11).
-
-**Scénarios alternatifs**
-
-| Code | Condition | Résultat |
-| --- | --- | --- |
-| A1 | Document non disponible | Erreur : document pas encore disponible |
-| A2 | Retrait en antenne (pas de RDV) | Erreur : suivre les instructions sans RDV |
-| A3 | Date invalide (week-end, férié, avant demain) | Erreur sur la date |
-| A4 | Quota ou créneau saturé | Erreur : choisir une autre date |
-| A5 | RDV actif déjà existant | Redirection vers le RDV en cours |
-
----
-
-#### Fiche UC-08 — Disponibiliser un document (Import A ou action admin)
-
-| Élément | Description |
-| --- | --- |
-| **Identifiant** | UC-08 |
-| **Nom** | Mettre un document à disposition pour retrait |
-| **Acteur principal** | Administrateur OBC ou DECC |
-| **Objectif** | Passer un document de **Pas disponible** à **Disponible** et notifier l'élève |
-| **Route / implémentation** | `/admin/students` (Import A), `/admin/documents` — `importDocumentAvailabilityAction`, `updateDocumentStatusAction` |
-
-**Préconditions**
-
-- L'administrateur est authentifié (`role = ADMINISTRATEUR`) sur le portail OBC ou DECC correspondant.
-- Le document relève du périmètre organisme/antenne de l'admin (`assertAdminCanManageDocument`).
-- Pour un duplicata : le dossier est en statut `VALIDEE` (sinon transition refusée).
-- Les duplicatas ne sont pas disponibilisés via l'Import A CSV (règle métier).
-
-**Scénario nominal**
-
-1. L'administrateur importe un fichier CSV de disponibilisation (Import A) **ou** change manuellement le statut d'un document.
-2. Le système valide chaque ligne (matricule, diplôme, type) et le périmètre admin.
-3. Le système applique la transition vers **Disponible** via `applyDocumentStatusTransition`.
-4. Le système crée une notification in-app et envoie un email à l'élève (`notifyDocumentAvailable`).
-5. Un enregistrement `AuditLog` trace l'action.
-
-**Postconditions (succès)**
-
-- Le document est en statut **Disponible**.
-- L'élève est informé et peut consulter le lieu de retrait et, si applicable, réserver un RDV (UC-06).
-
-**Scénarios alternatifs**
-
-| Code | Condition | Résultat |
-| --- | --- | --- |
-| A1 | Document hors périmètre admin | Ligne ignorée ou erreur d'accès |
-| A2 | Duplicata non validé | Transition refusée |
-| A3 | Ligne CSV duplicata dans Import A | Erreur par ligne |
-| A4 | Document déjà disponible | Ligne signalée comme déjà traitée |
-| A5 | Élève inconnu dans le CSV | Erreur par ligne |
-
----
-
-#### Fiche UC-11 — Confirmer le retrait physique (agent centre)
-
-| Élément | Description |
-| --- | --- |
-| **Identifiant** | UC-11 |
-| **Nom** | Confirmer le retrait au centre d'examen |
-| **Acteur principal** | Agent centre d'examen |
-| **Objectif** | Valider que l'élève a retiré son document lors du rendez-vous |
-| **Route / implémentation** | `/centre-examen` — `PATCH /api/centre-examen/appointments/[id]/confirm-withdrawal` |
-
-**Préconditions**
-
-- L'agent est authentifié (`role = AGENT_CENTRE_EXAMEN`) et rattaché à un centre de sa région.
-- Un rendez-vous existe en statut `PLANIFIE` ou `CONFIRME` pour un document éligible au centre (`isCentreExamenDocumentEligible`).
-- Le document n'est pas déjà en statut **Retiré**.
-- Le retrait n'a pas déjà été confirmé (`retraitConfirmeAt` vide).
-
-**Scénario nominal**
-
-1. L'agent consulte la liste des rendez-vous de sa région pour la journée (ou période élargie).
-2. À l'issue du retrait physique, l'agent clique sur « Confirmer le retrait ».
-3. Le système met le rendez-vous en statut `HONORE` avec horodatage et identité de l'agent.
-4. Le système passe le document en statut **Retiré**.
-5. Pour un duplicata, le statut du dossier est synchronisé (`syncLatestDuplicataStatus`).
-6. Notification et email de retrait sont envoyés à l'élève (`notifyDocumentRetired`).
-
-**Postconditions (succès)**
-
-- Document en statut **Retiré** ; rendez-vous **Honoré**.
-- Traçabilité complète (agent, date, audit).
-- Cooldown d'un an activé pour une nouvelle demande de duplicata du même type.
-
-**Scénarios alternatifs**
-
-| Code | Condition | Résultat |
-| --- | --- | --- |
-| A1 | RDV hors centre de l'agent | HTTP 403 |
-| A2 | Retrait déjà confirmé | HTTP 409 |
-| A3 | Document déjà retiré | HTTP 409 |
-| A4 | RDV annulé ou invalide | HTTP 409 |
-| A5 | Retrait en antenne (Bac original, duplicatas) | Action réservée à l'administrateur, pas à l'agent |
-
-**Note de périmètre :** les retraits en **antenne régionale** (Bac original, tous les duplicatas) sont confirmés par l'**administrateur** via `updateDocumentStatusAction`, avec les mêmes postconditions sur le statut document.
-
-### 3.7 — Diagrammes de séquence
-
-Les diagrammes de séquence décrivent l'ordre des échanges entre l'acteur, le système DR-DOCSCOL et la base de données. Ils complètent les fiches descriptives §3.6.
-
-| Réf. | Cas d'utilisation | Fichier image |
-| --- | --- | --- |
-| SEQ-01 | Activation compte (UC-01) | `sequence-01-inscription-v3-soutenance.png` |
-| SEQ-02 | Connexion | `sequence-02-connexion-v3-soutenance.png` |
-| SEQ-03 | Consultation documents (UC-02) | `sequence-03-consultation-documents-v3-soutenance.png` |
-| SEQ-04 | Disponibilisation (UC-08) | `sequence-04-notification-disponibilite-v3-soutenance.png` |
-| SEQ-05 | Duplicata et paiement (UC-05) | `sequence-05-duplicata-paiement-v3-soutenance.png` |
-| SEQ-06 | Rendez-vous (UC-06) | `sequence-06-rendez-vous-v3-soutenance.png` |
-| SEQ-07 | Changement de statut (UC-09) | `sequence-07-statut-document-v3-soutenance.png` |
-| SEQ-08 | Retrait physique (UC-11) | `sequence-08-retrait-physique-v3-soutenance.png` |
-| SEQ-09 | Ajout élève admin (UC-07) | `sequence-09-ajout-eleve-admin-v3-soutenance.png` |
-| SEQ-10 | Demande relevé/diplôme (UC-04) | `sequence-10-demande-document-v3-soutenance.png` |
-
-#### Figure 3.2 — Activation du compte élève (SEQ-01 / UC-01)
-
-![Figure 3.2 — Diagramme de séquence : activation du compte élève](diagrammes-images/sequence-01-inscription-v3-soutenance.png)
-
-#### Figure 3.3 — Connexion (SEQ-02)
-
-![Figure 3.3 — Diagramme de séquence : connexion](diagrammes-images/sequence-02-connexion-v3-soutenance.png)
-
-#### Figure 3.4 — Consultation des documents (SEQ-03 / UC-02)
-
-![Figure 3.4 — Diagramme de séquence : consultation des documents](diagrammes-images/sequence-03-consultation-documents-v3-soutenance.png)
-
-#### Figure 3.5 — Disponibilisation et notification (SEQ-04 / UC-08)
-
-![Figure 3.5 — Diagramme de séquence : disponibilisation et notification](diagrammes-images/sequence-04-notification-disponibilite-v3-soutenance.png)
-
-#### Figure 3.6 — Demande de duplicata et paiement (SEQ-05 / UC-05)
-
-![Figure 3.6 — Diagramme de séquence : duplicata et paiement](diagrammes-images/sequence-05-duplicata-paiement-v3-soutenance.png)
-
-#### Figure 3.7 — Prise de rendez-vous (SEQ-06 / UC-06)
-
-![Figure 3.7 — Diagramme de séquence : prise de rendez-vous](diagrammes-images/sequence-06-rendez-vous-v3-soutenance.png)
-
-#### Figure 3.8 — Changement de statut document (SEQ-07 / UC-09)
-
-![Figure 3.8 — Diagramme de séquence : changement de statut](diagrammes-images/sequence-07-statut-document-v3-soutenance.png)
-
-#### Figure 3.9 — Confirmation du retrait physique (SEQ-08 / UC-11)
-
-![Figure 3.9 — Diagramme de séquence : retrait physique](diagrammes-images/sequence-08-retrait-physique-v3-soutenance.png)
-
-#### Figure 3.10 — Ajout d'élèves par l'administrateur (SEQ-09 / UC-07)
-
-![Figure 3.10 — Diagramme de séquence : ajout d'élèves (admin)](diagrammes-images/sequence-09-ajout-eleve-admin-v3-soutenance.png)
-
-#### Figure 3.11 — Demande de relevé ou diplôme (SEQ-10 / UC-04)
-
-![Figure 3.11 — Diagramme de séquence : demande de document](diagrammes-images/sequence-10-demande-document-v3-soutenance.png)
-
----
-
-## 4. CONCEPTION TECHNIQUE
-
-### 4.1 — Stack retenue
-
-| Composant | Technologie | Version |
-| --- | --- | --- |
-| Framework | Next.js App Router | 15.x |
-| UI | React, Tailwind, Radix UI | React 19 |
-| Langage | TypeScript | 5.x |
-| ORM | Prisma | 6.x |
-| BDD | PostgreSQL (Supabase) | — |
-| Auth | Supabase Auth + `@supabase/ssr` | — |
-| Validation | Zod | — |
-| Email | Nodemailer | — |
-| Hébergement | Vercel | Serverless |
-
-### 4.2 — Services métier (couche `lib/`)
-
-| Service | Fichier | Responsabilité |
-| --- | --- | --- |
-| Routage | `lib/document-routing.ts` | OBC/DECC, antennes, scope admin |
-| Statuts | `lib/document-status-transition.ts` | Transitions, notifications, audit |
-| RDV | `lib/appointment-service.ts` | Créneaux, quota, fériés |
-| Duplicata | `lib/duplicata-service.ts` | Barème, cooldown, sync statut |
-| Import élèves | `lib/admin-student-import.ts` | Import B |
-| Import dispo | `lib/document-availability-import.ts` | Import A |
-| Parser CSV | `lib/csv-import-parser.ts` | Parsing partagé |
-| Consultation | `lib/public-consultation.ts` | Lookup matricule |
-| Auth | `lib/auth.ts` | Session, rôles |
-| Notifications | `lib/notification-service.ts`, `lib/mail-service.ts` | In-app + email |
-| Rate limit | `lib/simple-rate-limit.ts` | Protection API publique |
-
-### 4.3 — Conception API REST
-
-38 handlers sous `app/api/` :
-
-| Domaine | Routes clés |
-| --- | --- |
-| Santé | `GET /api/health` |
-| Auth | `/api/auth/login`, `register`, `me`, `logout` |
-| Élève | `/api/students/me/documents`, `appointments`, `notifications` |
-| RDV | `GET /api/appointments/slots` |
-| Admin | `/api/admin/documents`, `students`, `dashboard/stats` |
-| Centre | `/api/centre-examen/appointments`, `confirm-withdrawal` |
-| Public | `POST /api/public/consultation` |
-| Interne | `/api/internal/notifications/dispatch` |
-| Paiement | `POST /api/payments/webhook` |
-
-**Helpers :** `lib/api-utils.ts` — `requireApiUser()`, `requireInternalRequest()`, validation Zod.
-
-### 4.4 — Server Actions
-
-| Fichier | Actions principales |
-| --- | --- |
-| `app/auth/actions.ts` | Connexion, inscription, sélection région admin |
-| `app/dashboard/actions.ts` | Demandes relevé/duplicata, RDV |
-| `app/admin/actions.ts` | Statuts, imports A/B, quota, fériés, duplicata |
-| `app/account/actions.ts` | Profil utilisateur |
-
-### 4.5 — Middleware et session
-
-- `middleware.ts` : rafraîchissement session Supabase, protection routes privées.
-- Cookies `sb-*` vérifiés pour `/dashboard`, `/admin`, `/account`.
-
----
-
-## 5. CONCEPTION DU MODÈLE DE DONNÉES
+> **Placement** — Le **diagramme de classes** (Figure 4.1) est présenté **après** l'ensemble des cas d'utilisation détaillés (§3.0 à §3.4), conformément à la syntaxe générale de modélisation.
 
 **Source :** `prisma/schema.prisma` — 20 migrations versionnées.
 
-### 5.1 — Entités principales
+### 4.1 — Entités principales
 
 | Modèle | Table | Rôle |
 | --- | --- | --- |
@@ -641,7 +955,7 @@ Les diagrammes de séquence décrivent l'ordre des échanges entre l'acteur, le 
 | `AuditLog` | audit_logs | Traçabilité |
 | `ParametreRendezVous` | parametres_rdv | Quota global |
 
-### 5.2 — Énumérations
+### 4.2 — Énumérations
 
 | Enum | Valeurs |
 | --- | --- |
@@ -652,7 +966,7 @@ Les diagrammes de séquence décrivent l'ordre des échanges entre l'acteur, le 
 | `StatutRendezVous` | PLANIFIE, CONFIRME, ANNULE, HONORE |
 | `StatutValidationDuplicata` | SOUMISE, EN_ANALYSE, VALIDEE, REJETEE |
 
-### 5.3 — Conception des transitions de statut
+### 4.3 — Conception des transitions de statut
 
 Service : `lib/document-status-transition.ts`
 
@@ -665,7 +979,7 @@ Service : `lib/document-status-transition.ts`
 
 Effets collatéraux conçus : notification email, `AuditLog`, sync duplicata, RDV → `HONORE`.
 
-### 5.4 — Conception duplicata et paiement
+### 4.4 — Conception duplicata et paiement
 
 | Élément | Conception |
 | --- | --- |
@@ -676,11 +990,91 @@ Effets collatéraux conçus : notification email, `AuditLog`, sync duplicata, RD
 | Stockage | Bucket Supabase `duplicata-documents` (MVP partiel) |
 | Paiement | MVP simulé, webhook `/api/payments/webhook` |
 
-**Figure 5.1 — Diagramme de classes**
+**Figure 4.1 — Diagramme de classes (vue simplifiée)**
 
-![Figure 5.1 — Diagramme de classes UML DR-DOCSCOL](diagrammes-images/diagramme-classes-uml-complet.png)
+Le diagramme ci-dessous retient les entités métier essentielles pour la soutenance : héritage **Utilisateur** → Élève, Administrateur, AgentCentreExamen ; héritage **DocumentScolaire** → OriginalDiplome, ReleveNote ; classe **Duplicata** ; et les associations principales (paiement, reçu, notification, rendez-vous, mise à jour admin, confirmation de retrait). Les multiplicités sont conformes au schéma Prisma (`prisma/schema.prisma`).
 
-*Source éditable : `docs/diagrammes-graphviz/diagramme-classes-uml-complet.dot` — Notation : généralisation (△ vide), composition (◆ plein), agrégation (◇ vide), associations avec cardinalités, visibilité + / - / #.*
+![Figure 4.1 — Diagramme de classes (vue simplifiée) DR-DOCSCOL](diagrammes-images/diagramme-classes-simplifie.png)
+
+**Tableau 4.1 — Cardinalités des associations (Figure 4.1)**
+
+| Association | Extrémité 1 | Multiplicité 1 | Extrémité 2 | Multiplicité 2 |
+| --- | --- | --- | --- | --- |
+| Élève → Notification (*reçoit*) | Élève | 0..* | Notification | 1 |
+| Élève → Paiement (*effectue*) | Élève | 0..* | Paiement | 1 |
+| Élève → Reçu (*télécharge*) | Élève | 0..* | Reçu | 0..1 |
+| Élève → RendezVous (*prend RDV*) | Élève | 0..* | RendezVous | 1 |
+| Administrateur → DocumentScolaire (*met à jour*) | Administrateur | * | DocumentScolaire | * |
+| AgentCentreExamen → DocumentScolaire (*confirme retrait*) | AgentCentreExamen | * | DocumentScolaire | * |
+| DocumentScolaire → Duplicata (*peut être*) | DocumentScolaire | 0..1 | Duplicata | 1 |
+
+*Régénération figure : `npm run diagrams:classes-simple` — Source : `scripts/generate-class-diagram-simple.mjs` — Notation : généralisation (△ vide, sans multiplicité), associations nommées avec multiplicités aux deux extrémités. Le modèle exhaustif (20 tables Prisma) reste documenté au §4.1.*
+
+---
+
+## 5. CONCEPTION TECHNIQUE
+
+### 5.1 — Stack retenue
+
+| Composant | Technologie | Version |
+| --- | --- | --- |
+| Framework | Next.js App Router | 15.x |
+| UI | React, Tailwind, Radix UI | React 19 |
+| Langage | TypeScript | 5.x |
+| ORM | Prisma | 6.x |
+| BDD | PostgreSQL (Supabase) | — |
+| Auth | Supabase Auth + `@supabase/ssr` | — |
+| Validation | Zod | — |
+| Email | Nodemailer | — |
+| Hébergement | Vercel | Serverless |
+
+### 5.2 — Services métier (couche `lib/`)
+
+| Service | Fichier | Responsabilité |
+| --- | --- | --- |
+| Routage | `lib/document-routing.ts` | OBC/DECC, antennes, scope admin |
+| Statuts | `lib/document-status-transition.ts` | Transitions, notifications, audit |
+| RDV | `lib/appointment-service.ts` | Créneaux, quota, fériés |
+| Duplicata | `lib/duplicata-service.ts` | Barème, cooldown, sync statut |
+| Import élèves | `lib/admin-student-import.ts` | Import B |
+| Import dispo | `lib/document-availability-import.ts` | Import A |
+| Parser CSV | `lib/csv-import-parser.ts` | Parsing partagé |
+| Consultation | `lib/public-consultation.ts` | Lookup matricule |
+| Auth | `lib/auth.ts` | Session, rôles |
+| Notifications | `lib/notification-service.ts`, `lib/mail-service.ts` | In-app + email |
+| Rate limit | `lib/simple-rate-limit.ts` | Protection API publique |
+
+### 5.3 — Conception API REST
+
+38 handlers sous `app/api/` :
+
+| Domaine | Routes clés |
+| --- | --- |
+| Santé | `GET /api/health` |
+| Auth | `/api/auth/login`, `register`, `me`, `logout` |
+| Élève | `/api/students/me/documents`, `appointments`, `notifications` |
+| RDV | `GET /api/appointments/slots` |
+| Admin | `/api/admin/documents`, `students`, `dashboard/stats` |
+| Centre | `/api/centre-examen/appointments`, `confirm-withdrawal` |
+| Public | `POST /api/public/consultation` |
+| Interne | `/api/internal/notifications/dispatch` |
+| Paiement | `POST /api/payments/webhook` |
+
+**Helpers :** `lib/api-utils.ts` — `requireApiUser()`, `requireInternalRequest()`, validation Zod.
+
+### 5.4 — Server Actions
+
+| Fichier | Actions principales |
+| --- | --- |
+| `app/auth/actions.ts` | Connexion, inscription, sélection région admin |
+| `app/dashboard/actions.ts` | Demandes relevé/duplicata, RDV |
+| `app/admin/actions.ts` | Statuts, imports A/B, quota, fériés, duplicata |
+| `app/account/actions.ts` | Profil utilisateur |
+
+### 5.5 — Middleware et session
+
+- `middleware.ts` : rafraîchissement session Supabase, protection routes privées.
+- Cookies `sb-*` vérifiés pour `/dashboard`, `/admin`, `/account`.
 
 ---
 

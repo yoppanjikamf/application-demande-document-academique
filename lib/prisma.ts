@@ -9,11 +9,24 @@ function getPrismaDatabaseUrl() {
   }
 
   const url = new URL(databaseUrl);
+  const isProduction = process.env.NODE_ENV === "production";
+  const usesPooler =
+    url.port === "6543" ||
+    url.searchParams.get("pgbouncer") === "true" ||
+    url.hostname.includes("pooler");
+
   if (!url.searchParams.has("connection_limit")) {
-    url.searchParams.set("connection_limit", process.env.NODE_ENV === "production" ? "1" : "3");
+    const fromEnv = process.env.DATABASE_CONNECTION_LIMIT;
+    const defaultLimit = fromEnv ?? (usesPooler ? "5" : isProduction ? "3" : "5");
+    url.searchParams.set("connection_limit", defaultLimit);
   }
+
   if (!url.searchParams.has("pool_timeout")) {
-    url.searchParams.set("pool_timeout", "60");
+    url.searchParams.set("pool_timeout", process.env.DATABASE_POOL_TIMEOUT ?? "60");
+  }
+
+  if (usesPooler && !url.searchParams.has("pgbouncer")) {
+    url.searchParams.set("pgbouncer", "true");
   }
 
   return url.toString();

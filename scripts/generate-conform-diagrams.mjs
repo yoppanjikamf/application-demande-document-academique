@@ -24,7 +24,6 @@ const tables = [
       "nom",
       "region",
       "ville",
-      "accessKey",
       "FK organismeId",
       "createdAt",
       "updatedAt",

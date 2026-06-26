@@ -34,14 +34,12 @@ export const OBC_REGIONAL_ANTENNAS = REGIONAL_BASE.map((item) => ({
   region: item.region,
   nom: `Antenne regionale OBC ${item.region}`,
   ville: item.ville,
-  accessKey: `OBC-${item.region.toUpperCase()}-2026`,
   organismeId: ORGANISME_IDS.OBC,
 })) as ReadonlyArray<{
   id: string;
   region: string;
   nom: string;
   ville: string;
-  accessKey: string;
   organismeId: string;
 }>;
 
@@ -50,14 +48,12 @@ export const DECC_REGIONAL_ANTENNAS = REGIONAL_BASE.map((item) => ({
   region: item.region,
   nom: `Antenne regionale DECC ${item.region}`,
   ville: item.ville,
-  accessKey: `DECC-${item.region.toUpperCase()}-2026`,
   organismeId: ORGANISME_IDS.DECC,
 })) as ReadonlyArray<{
   id: string;
   region: string;
   nom: string;
   ville: string;
-  accessKey: string;
   organismeId: string;
 }>;
 
@@ -144,15 +140,6 @@ export function isCentreExamenPickupDocument(document: {
   typeDocument: TypeDocument;
 }) {
   return resolveDocumentRoute(document).pickupType === "CENTRE_EXAMEN";
-}
-
-export function getAntenneByAccessKey(accessKey?: string | null) {
-  const normalized = accessKey?.trim();
-  if (!normalized) {
-    return null;
-  }
-
-  return REGIONAL_ANTENNAS.find((antenne) => antenne.accessKey === normalized) ?? null;
 }
 
 export function getOrganismeNameById(organismeId?: string | null): OrganismeName | null {

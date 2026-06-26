@@ -10,7 +10,8 @@ export async function middleware(request: NextRequest) {
   const isProtected =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/admin") ||
-    pathname.startsWith("/account");
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/centre-examen");
 
   if (!isProtected) return response;
 

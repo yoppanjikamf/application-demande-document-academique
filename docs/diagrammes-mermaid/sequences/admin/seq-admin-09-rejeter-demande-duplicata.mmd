@@ -1,0 +1,18 @@
+%% Admin — Rejeter demande duplicata
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Admin as Admin OBC/DECC
+    participant UI as /admin/documents
+    participant Action as rejectDuplicataRequestAction
+    participant DB as PostgreSQL<br/>(Prisma)
+    participant Mail as mail-service
+
+    Admin->>UI: Saisir motif de rejet
+    UI->>Action: rejectDuplicataRequestAction(duplicataId, motif)
+    Action->>DB: UPDATE duplicata statutValidation=REJETEE, motifRejet
+    Action->>Mail: notifyDuplicataRejected (email + notification)
+    Action->>DB: INSERT audit_logs
+    UI-->>Admin: Élève informé du rejet

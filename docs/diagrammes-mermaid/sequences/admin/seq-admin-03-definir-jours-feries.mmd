@@ -1,0 +1,17 @@
+%% Admin — Définir jours fériés
+%% Cas d'utilisation DR-DOCSCOL — diagramme de séquence détaillé
+%% Acteurs explicites : utilisateur métier, interface, services, base de données
+
+sequenceDiagram
+    autonumber
+    actor Admin as Admin OBC/DECC
+    participant UI as /admin/rdv-disponibilites
+    participant Action as upsertHolidayAction
+    participant DB as PostgreSQL<br/>(Prisma)
+
+    Admin->>UI: Saisir date + nom du jour férié
+    UI->>Action: POST date, nom
+    Action->>Action: assertAppointmentAdmin
+    Action->>DB: UPSERT jours_feries (date unique)
+    Action-->>UI: revalidatePath
+    UI-->>Admin: Jour férié enregistré (RDV bloqués ce jour)

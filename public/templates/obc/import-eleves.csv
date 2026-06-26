@@ -1,3 +1,2 @@
 eleve_matricule,eleve_email,eleve_nom,eleve_prenom,eleve_date_naissance,diplome_type,annee_session,centre_examen,region_composition,document_type
-DEMO2026006,demo2026006@example.com,TCHOUA,Marie,2005-03-18,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
-DEMO2026006,demo2026006@example.com,TCHOUA,Marie,2005-03-18,BACCALAUREAT,2025,Centre d'examen Centre,Centre,RELEVE_NOTES
+DEMO2026006,nouvel.eleve6@facsciences-uy1.cm,TCHOUA,Marie,2005-03-18,PROBATOIRE,2025,Centre d'examen Centre,Centre,RELEVE_NOTES

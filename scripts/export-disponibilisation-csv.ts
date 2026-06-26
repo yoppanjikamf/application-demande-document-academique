@@ -1,31 +1,36 @@
 #!/usr/bin/env npx tsx
 /**
- * Exporte un CSV Import A (disponibilisation) depuis la base reelle.
+ * Exporte un CSV disponibilisation depuis la base réelle.
  * Usage: npm run export:disponibilisation-csv
- * Sortie: docs/import-disponibilisation-depuis-bd.csv
  */
 import "dotenv/config";
 
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { PrismaClient, Role, StatutDocument, TypeDocument } from "../lib/generated/prisma/client";
+import { PrismaClient, Role, TypeDocument } from "../lib/generated/prisma/client";
+import { AVAILABILITY_IMPORT_CSV_HEADER } from "../lib/admin-student-import.constants";
 
 const prisma = new PrismaClient();
-const OUT_PATH = path.join(process.cwd(), "docs", "import-disponibilisation-depuis-bd.csv");
+const OUT_PATH = path.join(
+  process.cwd(),
+  "docs",
+  "imports",
+  "centre",
+  "obc",
+  "import-disponibilisation.csv",
+);
 
 async function main() {
   const documents = await prisma.documentAcademique.findMany({
     where: {
-      statut: StatutDocument.PAS_DISPONIBLE,
       typeDocument: { not: TypeDocument.DUPLICATA },
       eleve: { role: Role.ELEVE },
     },
     include: {
-      eleve: { select: { matricule: true } },
+      eleve: { select: { matricule: true, email: true } },
     },
     orderBy: [{ eleve: { matricule: "asc" } }, { diplomeType: "asc" }, { typeDocument: "asc" }],
-    take: 50,
   });
 
   const exams = await prisma.examenValide.findMany({
@@ -39,16 +44,17 @@ async function main() {
     exams.map((e) => [`${e.eleveId}:${e.diplomeType}`, e.anneeSession ?? ""]),
   );
 
-  const header = "eleve_matricule,diplome_type,document_type,annee_session";
-  const rows = documents.map((doc) => {
-    const session = sessionByKey.get(`${doc.eleveId}:${doc.diplomeType}`) ?? "";
-    return [doc.eleve.matricule, doc.diplomeType, doc.typeDocument, session].join(",");
-  });
+  const rows = documents
+    .filter((doc) => !doc.eleve.email.endsWith("@example.com"))
+    .map((doc) => {
+      const session = sessionByKey.get(`${doc.eleveId}:${doc.diplomeType}`) ?? "";
+      return [doc.eleve.matricule, doc.diplomeType, doc.typeDocument, session].join(",");
+    });
 
   await mkdir(path.dirname(OUT_PATH), { recursive: true });
-  await writeFile(OUT_PATH, [header, ...rows].join("\n") + "\n", "utf8");
+  await writeFile(OUT_PATH, [AVAILABILITY_IMPORT_CSV_HEADER, ...rows].join("\n") + "\n", "utf8");
 
-  console.log(`Export termine: ${documents.length} ligne(s) -> ${OUT_PATH}`);
+  console.log(`Export termine: ${rows.length} ligne(s) -> ${OUT_PATH}`);
 }
 
 main()

@@ -56,7 +56,7 @@ export async function requireApiUser(role?: Role): Promise<AuthenticatedUser> {
   }
 
   if (user.role === "ADMINISTRATEUR" && user.organismeId && !user.antenneRegionaleId) {
-    throw new ApiError("Selection de region requise.", 403);
+    throw new ApiError("Compte administrateur sans antenne regionale.", 403);
   }
 
   return user;
