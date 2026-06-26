@@ -14,7 +14,7 @@ type RateLimitResult = {
 const DEFAULT_MAX = 20;
 const DEFAULT_WINDOW_MS = 60_000;
 
-function useDatabaseStore() {
+function databaseStoreEnabled() {
   return process.env.RATE_LIMIT_STORE !== "memory" && Boolean(process.env.DATABASE_URL);
 }
 
@@ -25,7 +25,7 @@ export async function checkRateLimit(
   const maxRequests = options.maxRequests ?? DEFAULT_MAX;
   const windowMs = options.windowMs ?? DEFAULT_WINDOW_MS;
 
-  if (!useDatabaseStore()) {
+  if (!databaseStoreEnabled()) {
     return checkRateLimitMemory(key);
   }
 
