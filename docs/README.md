@@ -21,7 +21,9 @@ Voir `ETAT_FINAL_PROJET.md` pour le verdict detaille.
 | Fichier | Role |
 | --- | --- |
 | `ETAT_FINAL_PROJET.md` | Audit final du projet, points termines et restes a faire |
-| `cahier_analyse.md` | Cahier d'analyse (contexte, besoins, contraintes, risques) |
+| `cahier_analyse.md` | Cahier d'analyse v2.0 (contexte, BF/BNF, UML essentiel — PDF : `documents-word/cahier_analyse.pdf`) |
+| `cahier_implementation.md` | Cahier d'implémentation — justification des choix technologiques |
+| `guide_technologies_modules_soutenance.md` | Guide oral soutenance : technologies par module (élève, admin, agent) |
 | `cahier_conception.md` | Cahier de conception (architecture, technique, deploiement) |
 | `cahier_des_charges.md` | Cahier des charges (version 3.0) |
 | `guide_api_mis_a_jour.md` | Guide API + statut des routes implementees |
@@ -35,22 +37,18 @@ Voir `ETAT_FINAL_PROJET.md` pour le verdict detaille.
 | `CHANGELOG_UML.md` | Historique des modifications UML/documentation |
 | `configuration-gmail-nodemailer.md` | Configuration SMTP Gmail et usage dans l'application |
 | `connexions-tests-completes.md` | Identifiants et pages de connexion pour tous les profils |
-| `demo/KIT_DEMO_COMPLET.pdf` | Guide demo complet (parcours pas a pas) |
+| `documents-word/KIT_DEMO_COMPLET.pdf` | Guide demo complet (parcours pas a pas) |
 | `routes-implementees.md` | Inventaire des pages, routes API et Server Actions |
 
-## Fichiers CSV (imports demo — dossier `docs/csv-demo/`)
+## Fichiers CSV (imports demo — dossier `docs/imports/`)
 
 | Fichier | Role |
 | --- | --- |
-| `csv-demo/centre/obc/import-eleves-probatoire-bac.csv` | Import admin OBC — nouveaux élèves **DEMO2026006**–**008** |
-| `csv-demo/centre/obc/import-disponibilisation-probatoire-bac.csv` | Disponibilisation OBC — **DEMO2026001**–**005** + **DEMO2026006+** |
-| `csv-demo/centre/decc/import-eleves-bepc.csv` | Import admin DECC — nouveaux élèves **DEMO2026009**–**011** |
-| `csv-demo/centre/decc/import-disponibilisation-bepc.csv` | Disponibilisation DECC — **DEMO2026001**–**005** + **DEMO2026009+** |
-| `test-data-soutenance-eleves.csv` | Liste exportée après `npm run seed:soutenance-eleves` (référence, pas un import) |
+| `imports/centre/obc/import-ajout-eleves.csv` | Import admin OBC — nouveaux élèves |
+| `imports/centre/obc/import-disponibilisation.csv` | Disponibilisation OBC |
+| `imports/eleves-en-base.csv` | Élèves déjà en base (référence demo) |
 
-Guide d'utilisation : `demo/KIT_DEMO_COMPLET.md` et `csv-demo/README.md`. Modèles vides dans `public/templates/`.
-
-Régénération : `npm run generate:demo-csv`
+Réinitialisation demo : `npm run reset:imports`. Modèles vides dans `public/templates/`.
 
 ## Organisation finale
 

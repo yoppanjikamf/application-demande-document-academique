@@ -133,7 +133,7 @@ function arrowPath(points, guard = "", guardAt = 0) {
 }
 
 function swimlane(x, y, w, h, label) {
-  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${SWIM_FILL}" fill-opacity="0.35" stroke="${SWIM_STROKE}" stroke-width="1.5"/>
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${SWIM_FILL}" stroke="${SWIM_STROKE}" stroke-width="1.5"/>
     <text x="${x + 12}" y="${y + 22}" class="swim">${esc(label)}</text>`;
 }
 

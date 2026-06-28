@@ -39,7 +39,7 @@ def scale_emu(w_px: int, h_px: int, max_cx: int = 5600000, max_cy: int = 7600000
 
 
 def make_image_para(rid: str, cx: int, cy: int, docpr_id: int, name: str) -> str:
-    return f'''<w:p xmlns:w="{W}"><w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="80" w:line="360" w:lineRule="auto"/></w:pPr><w:r><w:drawing>
+    return f'''<w:p xmlns:w="{W}"><w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="80"/></w:pPr><w:r><w:rPr><w:noProof/></w:rPr><w:drawing>
 <wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="{WP}">
 <wp:extent cx="{cx}" cy="{cy}"/>
 <wp:docPr id="{docpr_id}" name="{esc(name)}"/>
@@ -48,7 +48,7 @@ def make_image_para(rid: str, cx: int, cy: int, docpr_id: int, name: str) -> str
 <pic:pic xmlns:pic="{PIC}"><pic:nvPicPr><pic:cNvPr id="0" name="{esc(name)}"/><pic:cNvPicPr/></pic:nvPicPr>
 <pic:blipFill><a:blip r:embed="{rid}" xmlns:r="{R}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>
 <pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="{cx}" cy="{cy}"/></a:xfrm>
-<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline>
+<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="0"><a:noFill/></a:ln></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline>
 </w:drawing></w:r></w:p>'''
 
 
@@ -168,6 +168,8 @@ def add_uc_module(
     sequence_img: Path,
     sequence_caption: str,
     module_intro: str | None = None,
+    extra_sequence_img: Path | None = None,
+    extra_sequence_caption: str | None = None,
 ) -> None:
     blocks.append(para(f"Analyse du cas d'utilisation « {case_title} »", style="Titre5"))
     if module_intro:
@@ -194,9 +196,15 @@ def add_uc_module(
     fig_s = counters.figure
     blocks.append(para(f"Les échanges sont illustrés par la figure {fig_s} suivante :", jc="both"))
     add_figure(blocks, injector, counters, sequence_img, sequence_caption)
+    if extra_sequence_img is not None and extra_sequence_caption:
+        blocks.append(para(
+            "La gestion des jours fériés sur le même écran est illustrée par la figure suivante :",
+            jc="both",
+        ))
+        add_figure(blocks, injector, counters, extra_sequence_img, extra_sequence_caption)
 
 
-# --- Contenu aligné sur le code DR-DOCSCOL ---
+# --- Contenu aligné sur D-SCOLCAM ---
 
 ELEVE_MODULES = [
     dict(
@@ -219,23 +227,61 @@ ELEVE_MODULES = [
         sequence_caption="Diagramme de séquence du cas « s'authentifier » (élève).",
     ),
     dict(
-        case_title="Consulter via QR code / matricule",
-        table_title="Consultation publique",
+        case_title="Consulter via matricule / QR code (consultation rapide)",
+        table_title="Consultation rapide matricule / QR",
         fiche_rows=[
-            ("Titre", "Consultation publique (UC-03)"),
-            ("Résumé", "Vérifier la disponibilité des documents sans compte utilisateur."),
-            ("Acteurs", "Visiteur, Élève non connecté"),
-            ("Précondition", "Aucune authentification ; matricule valide ; rate-limit IP respecté."),
-            ("Scénario nominal", "▪ Accès landing #consultation ou /consultation ; ▪ Saisie matricule ; ▪ POST /api/public/consultation ; ▪ Affichage des statuts (hors duplicatas)."),
+            ("Titre", "Consultation rapide par matricule ou QR code"),
+            ("Résumé", "Vérifier rapidement l'état des documents sans ouvrir une session sur le tableau de bord."),
+            ("Acteurs", "Élève (sans session dashboard)"),
+            ("Précondition", "Matricule valide ; compte déjà activé (authUserId renseigné) ; rate-limit IP respecté."),
+            ("Scénario nominal", "▪ Scan QR ou accès /consultation ; ▪ Saisie matricule ; ▪ POST /api/public/consultation ; ▪ Affichage des statuts PAS_DISPONIBLE / DISPONIBLE / RETIRE (lecture seule)."),
             ("Post condition", "Consultation en lecture seule ; aucune modification en base."),
-            ("Exception", "Matricule inconnu ; compte non activé ; HTTP 429 (trop de requêtes)."),
+            ("Exception", "Matricule inconnu ; compte non activé → invitation à /auth/register ; HTTP 429."),
         ],
-        activity_intro="Le visiteur saisit un matricule sur la page publique. Le système recherche l'élève et retourne les statuts documentaires autorisés sans exposer les duplicatas.",
+        activity_intro="L'élève saisit son matricule sur la page de consultation rapide. Si son compte est activé, le système affiche les statuts documentaires ; sinon, il est orienté vers l'activation de compte.",
         activity_img=IMG / "activites" / "act-uc-03-consultation-publique.png",
-        activity_caption="Diagramme d'activité de la consultation publique.",
-        sequence_intro="La route API lookupPublicConsultationByMatricule() interroge Prisma et renvoie une réponse JSON affichée sur components/landing/consultation-access.tsx.",
+        activity_caption="Diagramme d'activité — consultation rapide matricule / QR.",
+        sequence_intro="lookupPublicConsultationByMatricule() interroge Prisma : si authUserId est absent, la disponibilité n'est pas affichée.",
         sequence_img=IMG / "sequences" / "eleve" / "seq-eleve-02-consulter-via-qrcode.png",
-        sequence_caption="Diagramme de séquence du cas « consulter via QR code ».",
+        sequence_caption="Diagramme de séquence du cas « consulter via matricule / QR ».",
+    ),
+    dict(
+        case_title="Consulter ses documents (espace connecté)",
+        table_title="Consulter mes documents",
+        fiche_rows=[
+            ("Titre", "Consulter ses documents (dashboard)"),
+            ("Résumé", "Visualiser la liste de ses documents, leurs statuts et les instructions de retrait."),
+            ("Acteurs", "Élève connecté"),
+            ("Précondition", "Session valide ; compte activé."),
+            ("Scénario nominal", "▪ Accès /dashboard ; ▪ Chargement des documents du périmètre élève ; ▪ Affichage détaillé par type et statut."),
+            ("Post condition", "Élève informé avant tout déplacement."),
+            ("Exception", "Aucun document ; document hors périmètre."),
+        ],
+        activity_intro="L'élève connecté accède à son tableau de bord et consulte l'état de chaque document scolaire.",
+        activity_img=IMG / "activites" / "act-uc-02-mes-documents.png",
+        activity_caption="Diagramme d'activité — consulter mes documents.",
+        sequence_intro="Le dashboard charge les documents via Prisma selon le matricule de la session active.",
+        sequence_img=IMG / "sequences" / "eleve" / "seq-eleve-03-verifier-disponibilite.png",
+        sequence_caption="Diagramme de séquence du cas « vérifier la disponibilité ».",
+    ),
+    dict(
+        case_title="Demander un diplôme ou un relevé de notes",
+        table_title="Demande de diplôme ou relevé",
+        fiche_rows=[
+            ("Titre", "Demander un diplôme ou un relevé de notes"),
+            ("Résumé", "Soumettre une demande officielle avant traitement administratif."),
+            ("Acteurs", "Élève connecté"),
+            ("Précondition", "Session valide ; examen validé ; pas de demande en double."),
+            ("Scénario nominal", "▪ Choix examen et type de document ; ▪ Routage OBC/DECC ; ▪ Création document PAS_DISPONIBLE ; ▪ Notification."),
+            ("Post condition", "demandeSoumiseAt renseigné ; attente action admin."),
+            ("Exception", "Demande déjà existante ; type non autorisé."),
+        ],
+        activity_intro="L'élève formule une demande de relevé ou de diplôme depuis son espace connecté.",
+        activity_img=IMG / "activites" / "act-uc-04-demande-releve.png",
+        activity_caption="Diagramme d'activité — demande de relevé / document.",
+        sequence_intro="La Server Action applique les règles de routage document et persiste la demande en base.",
+        sequence_img=IMG / "sequences" / "eleve" / "seq-eleve-05-demande-releve.png",
+        sequence_caption="Diagramme de séquence du cas « demander un relevé ».",
     ),
     dict(
         case_title="Demander un duplicata et effectuer le paiement",
@@ -279,23 +325,42 @@ ELEVE_MODULES = [
 
 ADMIN_MODULES = [
     dict(
-        case_title="Effectuer un import de disponibilisation",
-        table_title="Import et disponibilisation",
+        case_title="Importer des données (CSV — page Élèves)",
+        table_title="Import CSV élèves et disponibilisation",
         fiche_rows=[
-            ("Titre", "Disponibilisation des documents (UC-08)"),
-            ("Résumé", "Importer un CSV pour passer les documents au statut DISPONIBLE et notifier les élèves."),
+            ("Titre", "Importer des données (CSV)"),
+            ("Résumé", "Alimenter la base via les deux flux CSV de la page Élèves : import élèves et import de disponibilisation."),
             ("Acteurs", "Administrateur OBC / DECC"),
-            ("Précondition", "Compte admin ; fichier CSV conforme au modèle Import A."),
-            ("Scénario nominal", "▪ Upload CSV admin ; ▪ Validation ligne à ligne ; ▪ Mise à jour statuts ; ▪ Notifications email."),
-            ("Post condition", "Documents DISPONIBLE ; historique import enregistré."),
-            ("Exception", "Ligne CSV invalide ; matricule introuvable ; doublon de traitement."),
+            ("Précondition", "Compte admin ; fichier CSV conforme au périmètre OBC/DECC et à la région."),
+            ("Scénario nominal", "▪ Upload CSV ; ▪ Validation ligne à ligne ; ▪ Création/màj élèves et documents ; ▪ Rapport d'import ; ▪ Notification si disponibilisation."),
+            ("Post condition", "Élèves pré-enregistrés et/ou documents DISPONIBLE."),
+            ("Exception", "Ligne hors périmètre ; matricule invalide ; duplicata non validé."),
         ],
-        activity_intro="L'administrateur importe un fichier de disponibilisation. Chaque ligne est validée avant mise à jour du statut document et envoi de notification.",
-        activity_img=IMG / "activites" / "act-admin-disponibilisation.png",
-        activity_caption="Diagramme d'activité — import de disponibilisation.",
-        sequence_intro="L'API d'import parse le CSV, applique les règles métier OBC/DECC et déclenche Nodemailer pour informer les élèves concernés.",
-        sequence_img=IMG / "sequences" / "admin" / "seq-admin-10-import-disponibilisation.png",
-        sequence_caption="Diagramme de séquence du cas « import disponibilisation ».",
+        activity_intro="Sur la page Élèves, l'administrateur importe un CSV d'ajout d'élèves ou de disponibilisation selon le modèle attendu.",
+        activity_img=IMG / "activites" / "act-uc-07-import-eleves.png",
+        activity_caption="Diagramme d'activité — import CSV.",
+        sequence_intro="Les Server Actions d'import parse le CSV, appliquent le périmètre régional et mettent à jour Prisma.",
+        sequence_img=IMG / "sequences" / "admin" / "seq-admin-11-import-ajout-eleve.png",
+        sequence_caption="Diagramme de séquence du cas « import élèves / disponibilisation ».",
+    ),
+    dict(
+        case_title="Mettre à jour / disponibiliser manuellement un document",
+        table_title="Mise à jour manuelle du statut",
+        fiche_rows=[
+            ("Titre", "Disponibilisation manuelle d'un document"),
+            ("Résumé", "Modifier le statut d'un document depuis la page Documents, sans import CSV."),
+            ("Acteurs", "Administrateur OBC / DECC"),
+            ("Précondition", "Document dans le périmètre admin ; transition autorisée."),
+            ("Scénario nominal", "▪ Sélection document ; ▪ Choix nouveau statut ; ▪ Contrôle métier ; ▪ Mise à jour ; ▪ Notification si DISPONIBLE ; ▪ Audit."),
+            ("Post condition", "Statut mis à jour ; élève informé si besoin."),
+            ("Exception", "Transition interdite ; document hors scope."),
+        ],
+        activity_intro="L'administrateur consulte la liste des documents et met à jour le statut au cas par cas.",
+        activity_img=IMG / "activites" / "act-uc-09-maj-statut.png",
+        activity_caption="Diagramme d'activité — mise à jour du statut document.",
+        sequence_intro="updateDocumentStatusAction() contrôle le périmètre et applique la transition de statut.",
+        sequence_img=IMG / "sequences" / "admin" / "seq-admin-06-mettre-a-jour-releve.png",
+        sequence_caption="Diagramme de séquence du cas « mise à jour statut document ».",
     ),
     dict(
         case_title="Valider une demande de duplicata",
@@ -316,9 +381,49 @@ ADMIN_MODULES = [
         sequence_img=IMG / "sequences" / "admin" / "seq-admin-08-valider-demande-duplicata.png",
         sequence_caption="Diagramme de séquence du cas « valider demande duplicata ».",
     ),
+    dict(
+        case_title="Paramétrer les disponibilités de rendez-vous (quota et jours fériés)",
+        table_title="Quota journalier et jours fériés",
+        fiche_rows=[
+            ("Titre", "Paramétrer quota et jours fériés"),
+            ("Résumé", "Fixer la capacité d'accueil journalière et exclure les jours fériés sur la page Disponibilités RDV."),
+            ("Acteurs", "Administrateur OBC / DECC"),
+            ("Précondition", "Compte admin authentifié."),
+            ("Scénario nominal", "▪ Saisie quota global ; ▪ Enregistrement ; ▪ Ajout/suppression jours fériés ; ▪ Prise en compte par le module RDV élève."),
+            ("Post condition", "Quota et calendrier mis à jour."),
+            ("Exception", "Quota invalide ; date fériée déjà existante."),
+        ],
+        activity_intro="L'administrateur règle le nombre maximal de rendez-vous par jour et les dates non ouvrables.",
+        activity_img=IMG / "activites" / "act-uc-06-rdv-retrait.png",
+        activity_caption="Diagramme d'activité — paramétrage des disponibilités RDV.",
+        sequence_intro="updateAdminQuotaAction() et upsertHolidayAction() mettent à jour ParametreRendezVous et JourFerie.",
+        sequence_img=IMG / "sequences" / "admin" / "seq-admin-02-definir-quota-journalier.png",
+        sequence_caption="Diagramme de séquence du cas « définir le quota journalier ».",
+        extra_sequence_img=IMG / "sequences" / "admin" / "seq-admin-03-definir-jours-feries.png",
+        extra_sequence_caption="Diagramme de séquence du cas « gérer les jours fériés ».",
+    ),
 ]
 
 AGENT_MODULES = [
+    dict(
+        case_title="Consulter les rendez-vous",
+        table_title="Consulter les rendez-vous",
+        fiche_rows=[
+            ("Titre", "Consulter les rendez-vous transmis"),
+            ("Résumé", "Visualiser les rendez-vous planifiés pour le centre d'examen."),
+            ("Acteurs", "Agent centre d'examen"),
+            ("Précondition", "Session agent ; centre d'examen renseigné."),
+            ("Scénario nominal", "▪ Accès espace agent ; ▪ Liste des RDV PLANIFIE / CONFIRME filtrés par centre."),
+            ("Post condition", "Agent informé du planning du jour."),
+            ("Exception", "Aucun RDV sur la période."),
+        ],
+        activity_intro="L'agent consulte les rendez-vous transmis pour son centre avant l'accueil des élèves.",
+        activity_img=IMG / "activites" / "act-uc-11-consulter-rdv.png",
+        activity_caption="Diagramme d'activité — consulter les rendez-vous.",
+        sequence_intro="L'API centre-examen/appointments retourne les RDV filtrés par centre.",
+        sequence_img=IMG / "sequences" / "agent" / "seq-agent-02-consulter-les-rdv.png",
+        sequence_caption="Diagramme de séquence du cas « consulter les rendez-vous ».",
+    ),
     dict(
         case_title="Confirmer le retrait effectué",
         table_title="Confirmation de retrait",
@@ -342,40 +447,40 @@ AGENT_MODULES = [
 
 
 def build_uml_blocks(injector, counters: Counters | None = None) -> list[ET.Element]:
-    """Construit la section 2.4.3 complète (Tamela + syntaxe DR-DOCSCOL)."""
+    """Construit la section modélisation UML — 12 cas essentiels D-SCOLCAM."""
     if counters is None:
         counters = Counters(figure=2, table=5)
 
     blocks: list[ET.Element] = []
 
     blocks.append(para(
-        "Pour bien représenter le fonctionnement du système, plusieurs diagrammes UML ont été réalisés "
-        "selon la syntaxe : diagramme général, diagrammes par package (acteur), puis pour chaque cas phare "
-        "une fiche descriptive (tableau), un diagramme d'activité et un diagramme de séquence. "
-        "Le diagramme de classes clôt la modélisation statique.",
+        "Douze cas d'utilisation essentiels ont été retenus (six côté élève, quatre côté "
+        "administrateur, deux côté agent). Pour chaque cas : fiche descriptive, diagramme "
+        "d'activité et diagramme de séquence. Le diagramme de classes clôt la modélisation.",
         jc="both",
     ))
 
     blocks.append(para("Diagramme de cas d'utilisation", style="Titre4"))
     blocks.append(para(
-        "Le diagramme général (figure 2) regroupe les trois acteurs — élève, administrateur OBC/DECC "
-        "et agent centre d'examen — et l'ensemble des cas avec leurs relations include, extend et généralisations.",
+        "Le diagramme général regroupe les trois acteurs — élève, administrateur OBC/DECC "
+        "et agent centre d'examen — et les cas retenus avec leurs relations.",
         jc="both",
     ))
     add_figure(
         blocks, injector, counters,
         IMG / "cas-utilisation-general.png",
-        "Diagramme général des cas d'utilisation DR-DOCSCOL.",
+        "Diagramme général des cas d'utilisation D-SCOLCAM.",
     )
 
     blocks.append(para(
-        "Chaque package acteur fait l'objet d'un diagramme dédié (figures 3 à 5). "
-        "Nous détaillons ensuite les cas phares par fiche, activité et séquence.",
+        "Chaque package acteur fait l'objet d'un diagramme dédié. Nous détaillons ensuite "
+        "les cas essentiels retenus.",
         jc="both",
     ))
 
     blocks.append(para(
-        "Le diagramme du package élève couvre authentification, consultation publique, demandes, duplicata et rendez-vous.",
+        "Le diagramme du package élève couvre authentification, consultation rapide, "
+        "demandes, duplicata et rendez-vous.",
         jc="both",
     ))
     add_figure(
@@ -386,15 +491,15 @@ def build_uml_blocks(injector, counters: Counters | None = None) -> list[ET.Elem
 
     blocks.append(para("Analyse des cas d'utilisation — package Élève", style="Titre4"))
     blocks.append(para(
-        "Dans cette partie, nous nous intéresserons à l'aspect dynamique du parcours élève.",
+        "Dans cette partie, nous nous intéressons au parcours élève.",
         jc="both",
     ))
     for mod in ELEVE_MODULES:
         add_uc_module(blocks, injector, counters, **mod)
 
     blocks.append(para(
-        "Le diagramme du package administrateur OBC/DECC regroupe imports, mise à jour des statuts, "
-        "validation duplicata, quotas RDV et journal d'audit.",
+        "Le diagramme du package administrateur regroupe imports CSV, disponibilisation "
+        "manuelle, validation duplicata et paramétrage des rendez-vous.",
         jc="both",
     ))
     add_figure(
@@ -407,8 +512,8 @@ def build_uml_blocks(injector, counters: Counters | None = None) -> list[ET.Elem
         add_uc_module(blocks, injector, counters, **mod)
 
     blocks.append(para(
-        "Le diagramme du package agent centre d'examen couvre la consultation des rendez-vous transmis "
-        "et la confirmation du retrait physique.",
+        "Le diagramme du package agent couvre la consultation des rendez-vous et "
+        "la confirmation du retrait physique.",
         jc="both",
     ))
     add_figure(
@@ -422,16 +527,14 @@ def build_uml_blocks(injector, counters: Counters | None = None) -> list[ET.Elem
 
     blocks.append(para("DIAGRAMME DES CLASSES", style="Titre4"))
     blocks.append(para(
-        "Le diagramme de classes modélise la structure statique du système (vue simplifiée pour la soutenance). "
-        "Il représente les héritages Utilisateur → Élève, Administrateur, AgentCentreExamen et "
-        "DocumentScolaire → OriginalDiplome, ReleveNote, la classe Duplicata et les associations essentielles. "
-        "Le modèle exhaustif (20 tables Prisma) est documenté dans le cahier de conception du projet.",
+        "Le diagramme de classes modélise la structure statique du système (vue simplifiée). "
+        "Le modèle exhaustif (tables Prisma) est documenté dans le cahier de conception.",
         jc="both",
     ))
     add_figure(
         blocks, injector, counters,
         IMG / "diagramme-classes-simplifie.png",
-        "Diagramme des classes du système DR-DOCSCOL (vue simplifiée).",
+        "Diagramme des classes du système D-SCOLCAM (vue simplifiée).",
     )
     blocks.append(para(
         "Cardinalités principales : Élève–Notification (0..* / 1), Élève–Paiement (0..* / 1), "
