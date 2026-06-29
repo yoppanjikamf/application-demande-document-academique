@@ -19,6 +19,7 @@ import {
   Role,
   StatutDocument,
   TypeDocument,
+  DiplomePrincipal,
 } from "../lib/generated/prisma/client";
 import {
   AVAILABILITY_IMPORT_CSV_HEADER,
@@ -27,7 +28,8 @@ import {
 import { createSupabaseAdminClient } from "../lib/supabase/admin";
 
 const prisma = new PrismaClient();
-const IMPORTS_DIR = path.join(process.cwd(), "docs", "imports", "centre", "obc");
+const IMPORTS_OBC_DIR = path.join(process.cwd(), "docs", "imports", "centre", "obc");
+const IMPORTS_DECC_DIR = path.join(process.cwd(), "docs", "imports", "centre", "decc");
 
 function isRealStudentEmail(email: string) {
   const normalized = email.trim().toLowerCase();
@@ -37,6 +39,12 @@ function isRealStudentEmail(email: string) {
     !normalized.endsWith("@test.com") &&
     !normalized.endsWith("@localhost")
   );
+}
+
+/** Élèves créés uniquement par les CSV d'ajout de démo (DEMO2026006+). */
+function isImportDemoStudent(matricule: string) {
+  const match = /^DEMO2026(\d+)$/i.exec(matricule.trim());
+  return match !== null && Number(match[1]) >= 6;
 }
 
 function csvEscape(value: string | number | null | undefined) {
@@ -198,18 +206,22 @@ async function exportImportsFromDatabase() {
     orderBy: { matricule: "asc" },
   });
 
-  const disponibilisationRows: string[] = [];
+  const disponibilisationObcRows: string[] = [];
+  const disponibilisationDeccRows: string[] = [];
   for (const student of students) {
     for (const doc of student.documentsAcademique) {
       const exam = student.examensValides.find((e) => e.diplomeType === doc.diplomeType);
-      disponibilisationRows.push(
-        [
-          csvEscape(student.matricule),
-          csvEscape(doc.diplomeType),
-          csvEscape(doc.typeDocument),
-          csvEscape(exam?.anneeSession ?? ""),
-        ].join(","),
-      );
+      const row = [
+        csvEscape(student.matricule),
+        csvEscape(doc.diplomeType),
+        csvEscape(doc.typeDocument),
+        csvEscape(exam?.anneeSession ?? ""),
+      ].join(",");
+      if (doc.diplomeType === DiplomePrincipal.BEPC) {
+        disponibilisationDeccRows.push(row);
+      } else {
+        disponibilisationObcRows.push(row);
+      }
     }
   }
 
@@ -258,32 +270,69 @@ async function exportImportsFromDatabase() {
     ].join(",");
   });
 
-  await mkdir(IMPORTS_DIR, { recursive: true });
+  await mkdir(IMPORTS_OBC_DIR, { recursive: true });
+  await mkdir(IMPORTS_DECC_DIR, { recursive: true });
   await mkdir(path.join(process.cwd(), "public", "templates", "obc"), { recursive: true });
+  await mkdir(path.join(process.cwd(), "public", "templates", "decc"), { recursive: true });
 
-  const disponibilisationPath = path.join(IMPORTS_DIR, "import-disponibilisation.csv");
-  const ajoutPath = path.join(IMPORTS_DIR, "import-ajout-eleves.csv");
+  const disponibilisationObcPath = path.join(IMPORTS_OBC_DIR, "import-disponibilisation.csv");
+  const disponibilisationDeccPath = path.join(IMPORTS_DECC_DIR, "import-disponibilisation.csv");
+  const ajoutPath = path.join(IMPORTS_OBC_DIR, "import-ajout-eleves.csv");
+  const ajoutDeccPath = path.join(IMPORTS_DECC_DIR, "import-ajout-eleves.csv");
   const referencePath = path.join(process.cwd(), "docs", "imports", "eleves-en-base.csv");
-  const templateDispo = path.join(process.cwd(), "public", "templates", "obc", "import-disponibilisation.csv");
+  const templateDispoObc = path.join(process.cwd(), "public", "templates", "obc", "import-disponibilisation.csv");
   const templateAjout = path.join(process.cwd(), "public", "templates", "obc", "import-eleves.csv");
+  const templateDispoDecc = path.join(
+    process.cwd(),
+    "public",
+    "templates",
+    "decc",
+    "import-disponibilisation.csv",
+  );
 
-  const disponibilisationContent = [AVAILABILITY_IMPORT_CSV_HEADER, ...disponibilisationRows].join("\n") + "\n";
+  const disponibilisationObcContent =
+    [AVAILABILITY_IMPORT_CSV_HEADER, ...disponibilisationObcRows].join("\n") + "\n";
+  const disponibilisationDeccContent =
+    [AVAILABILITY_IMPORT_CSV_HEADER, ...disponibilisationDeccRows].join("\n") + "\n";
   const ajoutContent = [STUDENT_IMPORT_CSV_HEADER, ...ajoutRows].join("\n") + "\n";
+  const ajoutDeccContent =
+    [
+      STUDENT_IMPORT_CSV_HEADER,
+      [
+        "DEMO2026009",
+        "nouvel.eleve.bepc@facsciences-uy1.cm",
+        "EBOGO",
+        "Judith",
+        "2005-06-11",
+        "BEPC",
+        "2025",
+        "Centre d'examen Centre",
+        "Centre",
+        "RELEVE_NOTES",
+      ]
+        .map(csvEscape)
+        .join(","),
+    ].join("\n") + "\n";
   const referenceHeader =
     "matricule,email,nom,prenom,date_naissance,examens_valides,centre_examen,region_composition";
   const referenceContent = [referenceHeader, ...elevesReferenceRows].join("\n") + "\n";
 
-  await writeFile(disponibilisationPath, disponibilisationContent, "utf8");
+  await writeFile(disponibilisationObcPath, disponibilisationObcContent, "utf8");
+  await writeFile(disponibilisationDeccPath, disponibilisationDeccContent, "utf8");
   await writeFile(ajoutPath, ajoutContent, "utf8");
+  await writeFile(ajoutDeccPath, ajoutDeccContent, "utf8");
   await writeFile(referencePath, referenceContent, "utf8");
-  await writeFile(templateDispo, disponibilisationContent, "utf8");
+  await writeFile(templateDispoObc, disponibilisationObcContent, "utf8");
+  await writeFile(templateDispoDecc, disponibilisationDeccContent, "utf8");
   await writeFile(templateAjout, [STUDENT_IMPORT_CSV_HEADER, ajoutRows[0] ?? ""].join("\n") + "\n", "utf8");
 
   return {
     students: students.length,
-    disponibilisationLines: disponibilisationRows.length,
+    disponibilisationObcLines: disponibilisationObcRows.length,
+    disponibilisationDeccLines: disponibilisationDeccRows.length,
     ajoutLines: ajoutRows.length,
-    disponibilisationPath,
+    disponibilisationObcPath,
+    disponibilisationDeccPath,
     ajoutPath,
     referencePath,
   };
@@ -295,8 +344,12 @@ async function main() {
     select: { id: true, matricule: true, email: true, authUserId: true },
   });
 
-  const toDelete = allStudents.filter((student) => !isRealStudentEmail(student.email));
-  const toKeep = allStudents.filter((student) => isRealStudentEmail(student.email));
+  const toDelete = allStudents.filter(
+    (student) => !isRealStudentEmail(student.email) || isImportDemoStudent(student.matricule),
+  );
+  const toKeep = allStudents.filter(
+    (student) => isRealStudentEmail(student.email) && !isImportDemoStudent(student.matricule),
+  );
 
   console.log(`Élèves en base : ${allStudents.length}`);
   console.log(`  → conservés (email réel) : ${toKeep.length}`);
@@ -320,7 +373,12 @@ async function main() {
   console.log("\nÉtat final :");
   console.log(`  Élèves actifs (auth) : ${activated}`);
   console.log(`  Documents par statut :`, docStats);
-  console.log(`  Disponibilisation : ${exportResult.disponibilisationLines} ligne(s) → ${exportResult.disponibilisationPath}`);
+  console.log(
+    `  Disponibilisation OBC : ${exportResult.disponibilisationObcLines} ligne(s) → ${exportResult.disponibilisationObcPath}`,
+  );
+  console.log(
+    `  Disponibilisation DECC : ${exportResult.disponibilisationDeccLines} ligne(s) → ${exportResult.disponibilisationDeccPath}`,
+  );
   console.log(`  Ajout élèves : ${exportResult.ajoutLines} ligne(s) exemple → ${exportResult.ajoutPath}`);
   console.log(`  Référence élèves en base → ${exportResult.referencePath}`);
 }

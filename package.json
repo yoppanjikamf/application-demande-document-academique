@@ -22,6 +22,7 @@
     "db:studio": "prisma studio",
     "export:disponibilisation-csv": "tsx scripts/export-disponibilisation-csv.ts",
     "reset:imports": "tsx scripts/reset-et-preparer-imports.ts",
+    "test:imports": "tsx scripts/test-imports-csv.ts",
     "export:docs-pdf": "bash scripts/export-all-docs-pdf.sh",
     "seed:soutenance-eleves": "tsx scripts/seed-soutenance-eleves.ts",
     "seed:admin": "tsx scripts/seed-admin.ts",
@@ -50,7 +51,16 @@
     "memoire:capture": "node scripts/capture-memoire-screenshots.mjs",
     "memoire:align": "python3 scripts/align-memoire-bou.py",
     "memoire:pdf": "libreoffice --headless --convert-to pdf MEMOIRE_bou_aligne.docx --outdir .",
-    "memoire:build": "npm run memoire:prepare && npm run memoire:capture && npm run memoire:align && npm run memoire:pdf"
+    "memoire:build": "npm run memoire:prepare && npm run memoire:capture && npm run memoire:align && npm run memoire:pdf",
+    "demo:prepare": "tsx scripts/prepare-demo-soutenance.ts",
+    "demo:record": "node scripts/record-demo-soutenance.mjs",
+    "demo:soutenance": "npm run demo:prepare && npm run demo:record",
+    "demo:complete:prepare": "tsx scripts/prepare-demo-complete.ts",
+    "demo:complete:record": "node scripts/record-demo-complete.mjs",
+    "demo:complete": "npm run demo:complete:prepare && DEMO_BASE_URL=https://application-demande-document-academ.vercel.app npm run demo:complete:record",
+    "demo:video:prepare": "tsx scripts/prepare-demo-video-state.ts",
+    "demo:video:record": "node scripts/record-demo-soutenance-propre.mjs",
+    "demo:video": "npm run demo:video:prepare && DEMO_BASE_URL=https://application-demande-document-academ.vercel.app DEMO_PAUSE_MS=2200 npm run demo:video:record"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",

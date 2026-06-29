@@ -1,5 +1,5 @@
 import { AdminPageLoading } from "@/components/admin/admin-page-loading";
 
-export default function AdminStudentsLoading() {
+export default function AdminLoading() {
   return <AdminPageLoading />;
 }
