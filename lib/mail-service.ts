@@ -345,7 +345,7 @@ export async function notifyDocumentRetired({
     },
   });
 
-  await sendTrackedMail({
+  await sendTrackedMailOptional({
     userId,
     to,
     subject,
@@ -416,7 +416,7 @@ export async function notifyAppointmentConfirmed({
     },
   });
 
-  await sendTrackedMail({
+  await sendTrackedMailOptional({
     userId,
     to,
     subject,

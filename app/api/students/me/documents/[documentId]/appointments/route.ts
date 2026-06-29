@@ -184,6 +184,8 @@ export async function POST(request: Request, { params }: RouteContext) {
       time: input.heureRdv,
       location,
       recipientName: `${user.prenom} ${user.nom}`.trim(),
+    }).catch((error) => {
+      console.error("[appointments] notification after booking failed:", error);
     });
 
     return json({ appointment }, 201);
