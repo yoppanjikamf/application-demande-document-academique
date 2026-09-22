@@ -18,6 +18,7 @@ export const dictionary = {
     alreadyHaveAccount: "J'ai déjà un compte",
     startNow: "Commencer maintenant",
     signIn: "Se connecter",
+    brandTagline: "Documents scolaires",
     activateAccount: "Activer mon compte",
     activateStudentAccount: "Activer mon compte élève",
     signInAs: "Se connecter en tant que",
@@ -76,6 +77,8 @@ export const dictionary = {
     sectionFollowUp:
       "Si votre compte n'est pas encore activé, commencez par l'activation avec votre matricule et votre e-mail enregistrés par l'administration.",
     openButton: "Ouvrir la consultation",
+    qrUnavailable: "QR code indisponible. Utilisez le bouton « Ouvrir la consultation ».",
+    qrLoading: "Chargement du QR code…",
     qrCaption:
       "Scannez ce QR code avec votre téléphone pour consulter le statut de vos documents scolaires avec votre matricule, après activation de votre compte.",
     qrAlt: "QR code vers la consultation rapide DR-DOCSCOL",
@@ -166,6 +169,8 @@ export const dictionary = {
     heroBulletExams: "BEPC, Probatoire, Baccalauréat, ESG",
     heroBulletAppointments: "Rendez-vous en ligne",
     heroBulletNotifications: "Notifications à chaque étape",
+    heroImageAlt:
+      "Élèves camerounais en classe consultant le portail et diplômés célébrant l'obtention de leurs documents scolaires",
     discoverSolution: "Découvrir la solution",
     stickyNav: {
       label: "Navigation rapide",
@@ -470,6 +475,34 @@ export const dictionary = {
         title: "Centre d'examen",
         text: "Confirmez en un geste les retraits effectués sur place.",
         cta: "Accès agent",
+      },
+    ],
+    mockup: {
+      welcome: "Bienvenue",
+      studentId: "Matricule : OBC-2024-0157",
+      transcript: "Relevé — Baccalauréat",
+      pickup: "Retrait au centre d'examen",
+      bookAppointment: "Prendre rendez-vous",
+      duplicate: "Duplicata — BEPC",
+      pending: "En attente",
+      paymentRequired: "Paiement requis avant traitement",
+      notification: "Votre document est disponible. Réservez un créneau pour le retirer.",
+    },
+    testimonials: [
+      {
+        quote:
+          "Les élèves voient enfin où en est leur dossier. Nous recevons beaucoup moins d'appels pour un simple statut.",
+        role: "Administration régionale",
+      },
+      {
+        quote:
+          "La prise de rendez-vous a désengorgé le guichet : les retraits s'enchaînent sans bousculade.",
+        role: "Centre d'examen",
+      },
+      {
+        quote:
+          "J'ai activé mon compte en quelques minutes et reçu une notification dès que mon relevé était disponible.",
+        role: "Élève",
       },
     ],
     ctaTitle: "Prêt à obtenir vos documents sans détour ?",

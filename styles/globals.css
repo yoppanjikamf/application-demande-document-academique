@@ -132,10 +132,24 @@
 
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 4.5rem;
   }
 
   * {
     @apply border-border;
+  }
+
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: clip;
+    overscroll-behavior-x: none;
+  }
+
+  @media (max-width: 640px) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 
   body {
@@ -165,6 +179,7 @@
   .dr-marquee {
     position: relative;
     overflow: hidden;
+    max-width: 100%;
     -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
     mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
   }
@@ -190,7 +205,7 @@
 
 @layer components {
   .Toastify__toast-container {
-    width: min(420px, calc(100vw - 24px));
+    width: min(420px, calc(100% - 24px));
     z-index: 9999;
   }
 

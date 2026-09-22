@@ -9,7 +9,7 @@ export default async function HomePage() {
   const consultationUrl = resolveConsultationUrl(headersList);
 
   return (
-    <div className="min-h-screen bg-surface-1 text-text-1">
+    <div className="min-h-screen overflow-x-clip overscroll-x-none bg-surface-1 text-text-1">
       <NavBar />
       <main>
         <LandingPage consultationUrl={consultationUrl} />

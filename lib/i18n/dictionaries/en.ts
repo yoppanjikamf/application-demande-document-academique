@@ -20,6 +20,7 @@ export const dictionary: Dictionary = {
     alreadyHaveAccount: "I already have an account",
     startNow: "Get started",
     signIn: "Sign in",
+    brandTagline: "School documents",
     activateAccount: "Activate my account",
     activateStudentAccount: "Activate my student account",
     signInAs: "Sign in as",
@@ -78,6 +79,8 @@ export const dictionary: Dictionary = {
     sectionFollowUp:
       "If your account is not activated yet, start with activation using your student ID and the email registered by your organisation.",
     openButton: "Open lookup",
+    qrUnavailable: "QR code unavailable. Use the “Open lookup” button.",
+    qrLoading: "Loading QR code…",
     qrCaption:
       "Scan this QR code with your phone to check your document status with your student ID, after activating your account.",
     qrAlt: "QR code to DR-DOCSCOL quick lookup",
@@ -167,6 +170,8 @@ export const dictionary: Dictionary = {
     heroBulletExams: "BEPC, Probatoire, Baccalaureate, ESG",
     heroBulletAppointments: "Online appointments",
     heroBulletNotifications: "Notifications at every step",
+    heroImageAlt:
+      "Cameroonian students in class checking the portal and graduates celebrating their school documents",
     discoverSolution: "Discover the solution",
     stickyNav: {
       label: "Quick navigation",
@@ -467,6 +472,34 @@ export const dictionary: Dictionary = {
         title: "Examination centre",
         text: "Confirm withdrawals completed on site.",
         cta: "Agent access",
+      },
+    ],
+    mockup: {
+      welcome: "Welcome",
+      studentId: "Student ID: OBC-2024-0157",
+      transcript: "Transcript — Baccalaureate",
+      pickup: "Collect at the examination centre",
+      bookAppointment: "Book an appointment",
+      duplicate: "Duplicate — BEPC",
+      pending: "Pending",
+      paymentRequired: "Payment required before processing",
+      notification: "Your document is available. Book a slot to collect it.",
+    },
+    testimonials: [
+      {
+        quote:
+          "Students can finally see where their file stands. We get far fewer calls just to check a status.",
+        role: "Regional administration",
+      },
+      {
+        quote:
+          "Online appointments eased the counter: withdrawals now follow one after another without crowding.",
+        role: "Examination centre",
+      },
+      {
+        quote:
+          "I activated my account in a few minutes and got a notification as soon as my transcript was ready.",
+        role: "Student",
       },
     ],
     ctaTitle: "Ready to get your documents without detours?",

@@ -15,7 +15,7 @@ type LanguageSwitcherProps = {
 };
 
 export function LanguageSwitcher({ compact = false, className }: LanguageSwitcherProps) {
-  const { locale, t } = useI18n();
+  const { locale, t, setLocale } = useI18n();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -24,6 +24,7 @@ export function LanguageSwitcher({ compact = false, className }: LanguageSwitche
       return;
     }
 
+    setLocale(nextLocale);
     startTransition(async () => {
       await setLocaleAction(nextLocale);
       router.refresh();
@@ -46,7 +47,7 @@ export function LanguageSwitcher({ compact = false, className }: LanguageSwitche
           disabled={pending}
           onClick={() => switchLocale(item)}
           className={cn(
-            "rounded-md px-2 py-1 text-xs font-semibold transition-colors",
+            "rounded-md px-1.5 py-1 text-[11px] font-semibold transition-colors sm:px-2 sm:text-xs",
             locale === item
               ? "bg-obc-800 text-white"
               : "border border-[var(--border-token)] bg-surface-0 text-text-2 hover:bg-obc-50",

@@ -38,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${body.className} ${body.variable} ${display.variable}`}>
+      <body className={`${body.className} ${body.variable} ${display.variable} overflow-x-clip`}>
         <LocaleProvider locale={locale} dictionary={dictionary}>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
             {children}

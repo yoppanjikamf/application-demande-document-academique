@@ -20,14 +20,14 @@ export async function NavBar() {
     : null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.9)] backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:gap-3 lg:px-8">
-        <Link href="/" className="flex min-w-0 shrink items-center gap-3 text-text-1">
-          <DocScolLogo variant="full" theme="light" />
+    <header className="sticky top-0 z-40 overflow-x-clip border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.9)] backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 overflow-x-clip px-3 sm:gap-3 sm:px-4 lg:px-8">
+        <Link href="/" className="flex min-w-0 shrink items-center text-text-1">
+          <DocScolLogo variant="full" theme="light" className="max-w-full" />
         </Link>
 
         {!dbUser ? (
-          <div className="flex flex-1 justify-center">
+          <div className="flex min-w-0 flex-1 justify-center overflow-hidden">
             <LandingNavLinks />
           </div>
         ) : (
@@ -43,7 +43,9 @@ export async function NavBar() {
               <div className="hidden sm:block">
                 <NavLoginMenu />
               </div>
-              <NavBarGuestActions />
+              <div className="hidden sm:block">
+                <NavBarGuestActions />
+              </div>
             </>
           )}
         </nav>

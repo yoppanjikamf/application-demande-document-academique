@@ -18,7 +18,7 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border-token)] bg-[rgba(255,255,255,0.95)] backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-3 text-obc-800">
+        <Link href="/" className="flex shrink-0 items-center text-obc-800">
           <DocScolLogo variant="full" theme="light" />
         </Link>
         <nav className="flex items-center gap-2">

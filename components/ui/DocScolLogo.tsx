@@ -1,3 +1,6 @@
+"use client";
+
+import { useOptionalI18n } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 type DocScolLogoVariant = "full" | "icon" | "mark";
@@ -18,12 +21,13 @@ export function DocScolLogo({
   theme?: DocScolLogoTheme;
   className?: string;
 }) {
+  const i18n = useOptionalI18n();
   const showText = variant === "full";
   const sizeClass =
-    variant === "icon" ? "h-10 w-10" : variant === "mark" ? "h-12 w-12" : "h-11 w-11";
+    variant === "icon" ? "h-10 w-10" : variant === "mark" ? "h-12 w-12" : "h-9 w-9 sm:h-11 sm:w-11";
 
   return (
-    <span className={cn("inline-flex items-center gap-3", themeClasses[theme], className)}>
+    <span className={cn("inline-flex min-w-0 items-center gap-2 sm:gap-3", themeClasses[theme], className)}>
       <svg
         viewBox="0 0 48 48"
         className={cn("shrink-0 drop-shadow-sm", sizeClass)}
@@ -84,10 +88,12 @@ export function DocScolLogo({
       </svg>
 
       {showText ? (
-        <span className="min-w-0 leading-tight">
-          <span className="block font-display text-lg text-current">DR-DOCSCOL</span>
-          <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] opacity-65">
-            Documents scolaires
+        <span className="leading-tight">
+          <span className="block whitespace-nowrap font-display text-base text-current sm:text-lg">
+            DR-DOCSCOL
+          </span>
+          <span className="hidden whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] opacity-65 sm:block">
+            {i18n?.t("common.brandTagline") ?? "Documents scolaires"}
           </span>
         </span>
       ) : null}
