@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import { getAdminRegionalScope } from "../lib/admin-scope";
 import { normalizeRegion } from "../lib/document-routing";
+import { getClientKeyFromRequest } from "../lib/simple-rate-limit";
 import { getAppBaseUrl } from "../lib/site-url";
 
 describe("admin-scope", () => {
@@ -45,5 +46,24 @@ describe("document-routing", () => {
   it("normalizes region names", () => {
     assert.equal(normalizeRegion("centre"), "Centre");
     assert.equal(normalizeRegion(undefined), "Centre");
+  });
+});
+
+describe("rate-limit client key", () => {
+  it("prefers Vercel forwarded IP over a spoofed X-Forwarded-For", () => {
+    const request = new Request("https://example.com", {
+      headers: {
+        "x-forwarded-for": "1.1.1.1, 2.2.2.2",
+        "x-vercel-forwarded-for": "9.9.9.9",
+      },
+    });
+    assert.equal(getClientKeyFromRequest(request), "9.9.9.9");
+  });
+
+  it("uses the last X-Forwarded-For hop when Vercel headers are absent", () => {
+    const request = new Request("https://example.com", {
+      headers: { "x-forwarded-for": "1.1.1.1, 8.8.8.8" },
+    });
+    assert.equal(getClientKeyFromRequest(request), "8.8.8.8");
   });
 });

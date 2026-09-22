@@ -1,10 +1,16 @@
 import { handleApiError, json, parseJson } from "@/lib/api-utils";
 import { prisma } from "@/lib/prisma";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { passwordResetSchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
   try {
+    const limited = await enforceRateLimit(request, "auth-reset", { maxRequests: 8 });
+    if (limited.response) {
+      return limited.response;
+    }
+
     const input = await parseJson(request, passwordResetSchema);
 
     // Récupérer le client Supabase

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
-/** Réveille Vercel + Postgres avant la démo. GET /api/health */
+/** Ping DB. Appelé aussi par le cron Vercel quotidien pour éviter la pause Supabase. */
 export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`;

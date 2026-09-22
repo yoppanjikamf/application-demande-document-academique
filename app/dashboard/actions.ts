@@ -608,6 +608,8 @@ export async function submitDuplicataRequestAction(formData: FormData) {
     to: user.email,
     documentTitle,
     diplomeType,
+  }).catch((error) => {
+    console.error("[duplicata] notification after submit failed:", error);
   });
 
   await notifyPaymentConfirmed({
@@ -620,6 +622,8 @@ export async function submitDuplicataRequestAction(formData: FormData) {
     receiptNumber: receipt.numero,
     amount: receipt.montant,
     paymentDate: receipt.dateEmission,
+  }).catch((error) => {
+    console.error("[duplicata] payment notification after submit failed:", error);
   });
 
   revalidatePath("/dashboard/documents");

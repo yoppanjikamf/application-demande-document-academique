@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { checkRateLimit as checkRateLimitMemory } from "@/lib/simple-rate-limit";
+import {
+  checkRateLimit as checkRateLimitMemory,
+  getClientKeyFromRequest,
+} from "@/lib/simple-rate-limit";
+
+export { getClientKeyFromRequest };
 
 type RateLimitOptions = {
   maxRequests?: number;
@@ -26,7 +31,7 @@ export async function checkRateLimit(
   const windowMs = options.windowMs ?? DEFAULT_WINDOW_MS;
 
   if (!databaseStoreEnabled()) {
-    return checkRateLimitMemory(key);
+    return checkRateLimitMemory(key, { maxRequests, windowMs });
   }
 
   const now = new Date();
@@ -62,17 +67,8 @@ export async function checkRateLimit(
     return { allowed: true, retryAfterSeconds: 0 };
   } catch (error) {
     console.error("Rate limit DB fallback:", error);
-    return checkRateLimitMemory(key);
+    return checkRateLimitMemory(key, { maxRequests, windowMs });
   }
-}
-
-export function getClientKeyFromRequest(request: Request) {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() ?? "unknown";
-  }
-
-  return request.headers.get("x-real-ip") ?? "unknown";
 }
 
 export async function enforceRateLimit(
