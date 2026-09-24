@@ -7,6 +7,8 @@ import { toast } from "react-toastify";
 import { ConfirmWithdrawalButton } from "@/components/centre-examen/confirm-withdrawal-button";
 import { DashboardListPanel, DashboardListPanelHeader } from "@/components/dashboard/dashboard-list-panel";
 import { StatusBadge, appointmentTone } from "@/components/dashboard/status-badge";
+import { useI18n } from "@/components/i18n/locale-provider";
+import { DocumentTitleText, useLocaleTag } from "@/components/i18n/ui";
 import { Button } from "@/components/ui/button";
 
 type AppointmentStatus = "PLANIFIE" | "CONFIRME" | "ANNULE" | "HONORE";
@@ -39,12 +41,12 @@ function buildSlots(appointments: CentreAppointment[]) {
   return Array.from(new Set(appointments.map((appointment) => appointment.heureRdv))).sort();
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("fr-FR");
+function formatDate(value: string, localeTag: string) {
+  return new Date(value).toLocaleDateString(localeTag);
 }
 
-function formatDateTime(value: string) {
-  return new Date(value).toLocaleString("fr-FR");
+function formatDateTime(value: string, localeTag: string) {
+  return new Date(value).toLocaleString(localeTag);
 }
 
 type AppointmentView = "today" | "upcoming";
@@ -62,6 +64,8 @@ export function CentreAppointmentsPanel({
   initialSlots: string[];
   initialSlot?: string;
 }) {
+  const { t } = useI18n();
+  const localeTag = useLocaleTag();
   const [view, setView] = React.useState<AppointmentView>("upcoming");
   const [appointments, setAppointments] = React.useState(
     initialUpcomingAppointments.length > 0 ? initialUpcomingAppointments : initialAppointments,
@@ -92,7 +96,7 @@ export function CentreAppointmentsPanel({
 
         if (!response.ok || !data?.appointments) {
           if (!silent) {
-            toast.error("Actualisation des rendez-vous impossible.");
+            toast.error(t("dashboard.centre.refreshError"));
           }
           return;
         }
@@ -102,7 +106,7 @@ export function CentreAppointmentsPanel({
         setIsRefreshing(false);
       }
     },
-    [view],
+    [view, t],
   );
 
   React.useEffect(() => {
@@ -124,10 +128,8 @@ export function CentreAppointmentsPanel({
       <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-semibold text-text-1">Rendez-vous du centre</h2>
-            <p className="mt-1 text-sm text-text-3">
-              Les réservations élèves apparaissent ici dès confirmation, par région de composition.
-            </p>
+            <h2 className="font-semibold text-text-1">{t("dashboard.centre.panelTitle")}</h2>
+            <p className="mt-1 text-sm text-text-3">{t("dashboard.centre.panelHint")}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -139,7 +141,7 @@ export function CentreAppointmentsPanel({
                 void refreshAppointments({ silent: false, filter: "upcoming" });
               }}
             >
-              À venir
+              {t("dashboard.centre.upcoming")}
             </Button>
             <Button
               type="button"
@@ -150,7 +152,7 @@ export function CentreAppointmentsPanel({
                 void refreshAppointments({ silent: false, filter: "today" });
               }}
             >
-              Aujourd&apos;hui
+              {t("dashboard.centre.today")}
             </Button>
             <Button
               type="button"
@@ -158,7 +160,7 @@ export function CentreAppointmentsPanel({
               variant={!selectedSlot ? "default" : "outline"}
               onClick={() => setSelectedSlot("")}
             >
-              Tous les créneaux
+              {t("dashboard.centre.allSlots")}
             </Button>
           </div>
         </div>
@@ -180,28 +182,28 @@ export function CentreAppointmentsPanel({
             variant="ghost"
             onClick={() => void refreshAppointments({ silent: false })}
             disabled={isRefreshing}
-            aria-label="Actualiser les rendez-vous du centre"
+            aria-label={t("dashboard.centre.refreshAria")}
           >
-            {isRefreshing ? "Actualisation..." : "Actualiser"}
+            {isRefreshing ? t("dashboard.centre.refreshing") : t("dashboard.centre.refresh")}
           </Button>
         </div>
       </section>
 
       <DashboardListPanel className="rounded-lg">
         <DashboardListPanelHeader
-          left={view === "today" ? "Retraits du jour" : "Rendez-vous à venir"}
-          right="Action"
+          left={view === "today" ? t("dashboard.centre.todayList") : t("dashboard.centre.upcomingList")}
+          right={t("dashboard.centre.action")}
           className="px-5"
         />
         <div className="divide-y divide-[var(--border-token)]">
           {listedAppointments.length === 0 ? (
             <div className="px-5 py-10 text-center">
               <ClipboardList className="mx-auto h-8 w-8 text-text-muted" aria-hidden="true" />
-              <p className="mt-3 text-sm text-text-3">Aucun rendez-vous sur ce créneau.</p>
+              <p className="mt-3 text-sm text-text-3">{t("dashboard.centre.empty")}</p>
             </div>
           ) : (
             listedAppointments.map((appointment) => {
-              const documentTitle = appointment.document?.title ?? "Document scolaire";
+              const documentTitle = appointment.document ? null : t("dashboard.schoolDocument");
               const isRetired = appointment.statut === "HONORE";
 
               return (
@@ -217,26 +219,36 @@ export function CentreAppointmentsPanel({
                       <span className="max-w-full break-all rounded-full bg-surface-1 px-2 py-1 font-mono text-xs text-text-3">
                         {appointment.eleve.matricule}
                       </span>
-                      <StatusBadge tone={appointmentTone(appointment.statut)}>
-                        {appointment.statut}
-                      </StatusBadge>
+                      <StatusBadge
+                        tone={appointmentTone(appointment.statut)}
+                        status={appointment.statut}
+                      />
                     </div>
                     <div className="mt-3 grid gap-2 text-sm text-text-3">
                       <span className="inline-flex min-w-0 items-start gap-2 break-words">
                         <ClipboardList className="mt-0.5 h-4 w-4 shrink-0 text-obc-400" aria-hidden="true" />
-                        {documentTitle}
+                        {appointment.document ? (
+                          <DocumentTitleText
+                            diplomeType={appointment.document.diplomeType}
+                            typeDocument={appointment.document.typeDocument}
+                          />
+                        ) : (
+                          documentTitle
+                        )}
                       </span>
                       <span className="break-words">{appointment.document?.centreExamen ?? centreName}</span>
                       <span className="inline-flex items-center gap-2">
                         <CalendarDays className="h-4 w-4 text-obc-400" aria-hidden="true" />
-                        {formatDate(appointment.dateRdv)}
+                        {formatDate(appointment.dateRdv, localeTag)}
                       </span>
                       <span>{appointment.heureRdv}</span>
                     </div>
                     {appointment.retraitConfirmeAt ? (
                       <p className="mt-2 inline-flex items-center gap-2 text-sm text-[#16A34A]">
                         <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                        Retiré le {formatDateTime(appointment.retraitConfirmeAt)}
+                        {t("dashboard.centre.withdrawnOn", {
+                          date: formatDateTime(appointment.retraitConfirmeAt, localeTag),
+                        })}
                       </p>
                     ) : null}
                   </div>

@@ -2,6 +2,7 @@
 
 import type { DiplomePrincipal } from "@/lib/generated/prisma/client";
 import { requestOriginalDiplomaAction, requestReleveNotesAction } from "@/app/dashboard/actions";
+import { useI18n } from "@/components/i18n/locale-provider";
 import { PendingForm, PendingSubmitButton } from "@/components/ui/action-loading-dialog";
 
 type PendingDocumentRequestFormProps = {
@@ -13,15 +14,19 @@ type PendingDocumentRequestFormProps = {
 export function PendingDocumentRequestForm({
   diplomeType,
   type,
-  label = "Faire une demande",
+  label,
 }: PendingDocumentRequestFormProps) {
+  const { t } = useI18n();
   const action = type === "ORIGINAL" ? requestOriginalDiplomaAction : requestReleveNotesAction;
   const pendingTitle =
-    type === "ORIGINAL" ? "Demande de diplôme en cours" : "Demande de relevé en cours";
+    type === "ORIGINAL"
+      ? t("dashboard.documents.requestingDiploma")
+      : t("dashboard.documents.requestingTranscript");
   const pendingDescription =
     type === "ORIGINAL"
-      ? "Enregistrement de votre demande de diplôme original auprès de l'administration."
-      : "Enregistrement de votre demande de relevé de notes auprès de votre centre d'examen.";
+      ? t("dashboard.documents.requestDiplomaPending")
+      : t("dashboard.documents.requestTranscriptPending");
+  const resolvedLabel = label ?? t("dashboard.documents.request");
 
   return (
     <PendingForm
@@ -30,7 +35,9 @@ export function PendingDocumentRequestForm({
       pendingDescription={pendingDescription}
     >
       <input type="hidden" name="diplomeType" value={diplomeType} />
-      <PendingSubmitButton pendingLabel="Envoi en cours...">{label}</PendingSubmitButton>
+      <PendingSubmitButton pendingLabel={t("dashboard.documents.sending")}>
+        {resolvedLabel}
+      </PendingSubmitButton>
     </PendingForm>
   );
 }

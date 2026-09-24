@@ -1,7 +1,11 @@
+"use client";
+
 // Badge de statut unifié pour documents, paiements et rendez-vous.
 import type { ReactNode } from "react";
 import { CheckCircle2, Clock3, Info, XCircle } from "lucide-react";
 
+import { useOptionalI18n } from "@/components/i18n/locale-provider";
+import type { TranslationKey } from "@/lib/i18n/translate";
 import { cn } from "@/lib/utils";
 
 export type BadgeTone = "slate" | "blue" | "green" | "orange" | "amber" | "red";
@@ -78,8 +82,20 @@ export function StatusBadge(props: {
   className?: string;
 }) {
   const { children, tone, status, className } = props;
+  const i18n = useOptionalI18n();
   const resolvedTone = tone ?? (status ? toneForStatus(status) : "slate");
-  const label = children ?? (status ? (statusLabels[status] ?? status) : null);
+  const statusKeys: TranslationKey[] = status
+    ? ([
+        `documentStatus.${status}`,
+        `dashboard.appointments.${status}`,
+        `dashboard.payments.${status}`,
+        `dashboard.inbox.${status}`,
+      ] as TranslationKey[])
+    : [];
+  const translated = statusKeys
+    .map((key) => i18n?.t(key))
+    .find((value, index) => value && value !== statusKeys[index]);
+  const label = children ?? translated ?? (status ? (statusLabels[status] ?? status) : null);
   const Icon =
     resolvedTone === "green"
       ? CheckCircle2

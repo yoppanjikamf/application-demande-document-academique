@@ -25,19 +25,29 @@ export function DashboardHeader({
   userName,
   title,
   subtitle,
+  titleKey,
+  subtitleKey,
+  titleVars,
+  subtitleVars,
   scopeLabel,
   activePath,
   unreadNotificationCount = 0,
 }: {
   role: Role;
   userName?: string;
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
+  titleKey?: TranslationKey;
+  subtitleKey?: TranslationKey;
+  titleVars?: Record<string, string | number>;
+  subtitleVars?: Record<string, string | number>;
   scopeLabel?: string;
   activePath: string;
   unreadNotificationCount?: number;
 }) {
   const { t } = useI18n();
+  const resolvedTitle = titleKey ? t(titleKey, titleVars) : title;
+  const resolvedSubtitle = subtitleKey ? t(subtitleKey, subtitleVars) : subtitle;
   const { toggleSidebar } = useSidebarContext();
   const breadcrumbItems = getBreadcrumbItems(activePath, t);
   const areaLabel =
@@ -75,9 +85,9 @@ export function DashboardHeader({
             ))}
           </nav>
           <h1 className="font-display text-lg leading-tight text-text-1 sm:text-2xl lg:text-3xl">
-            {title}
+            {resolvedTitle}
           </h1>
-          <p className="mt-1 line-clamp-3 text-sm text-text-3 sm:line-clamp-none">{subtitle}</p>
+          <p className="mt-1 line-clamp-3 text-sm text-text-3 sm:line-clamp-none">{resolvedSubtitle}</p>
           {scopeLabel ? (
             <p className="mt-2 inline-flex rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-obc-800 ring-1 ring-gold-300">
               {t("dashboard.scopePrefix")}: {scopeLabel}

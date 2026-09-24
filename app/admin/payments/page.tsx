@@ -98,8 +98,8 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
       userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/payments"
-      title="Paiements"
-      subtitle="Suivi des paiements de duplicata, reçus et annulations."
+      titleKey="dashboard.adminPaymentsTitle"
+      subtitleKey="dashboard.adminPaymentsSubtitle"
     >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <form className="w-full max-w-xl">

@@ -59,11 +59,19 @@ export default async function AdminStudentsPage({ searchParams }: AdminStudentsP
       userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/students"
-      title="Élèves"
-      subtitle={
+      titleKey="dashboard.adminStudentsTitle"
+      subtitleKey={
         importPresentation
-          ? `Imports CSV ${importPresentation.organismeName} — région ${importPresentation.scopeLabel?.split(" - ")[1] ?? "Centre"}.`
-          : "Ajoutez des élèves manuellement ou importez un tableau CSV, puis recherchez et suivez leurs dossiers."
+          ? "dashboard.adminStudentsImportSubtitle"
+          : "dashboard.adminStudentsSubtitle"
+      }
+      subtitleVars={
+        importPresentation
+          ? {
+              organisme: importPresentation.organismeName,
+              region: importPresentation.scopeLabel?.split(" - ")[1] ?? "Centre",
+            }
+          : undefined
       }
     >
       {importPresentation ? (

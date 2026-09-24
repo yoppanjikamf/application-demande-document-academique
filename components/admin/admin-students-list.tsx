@@ -2,6 +2,7 @@ import { Mail } from "lucide-react";
 
 import type { AuthenticatedUser } from "@/lib/auth";
 import { DashboardListPanel } from "@/components/dashboard/dashboard-list-panel";
+import { T } from "@/components/i18n/ui";
 import { getAdminStudentsWhere } from "@/lib/admin-student-import";
 import { getAdminDocumentScope } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
@@ -54,18 +55,33 @@ export async function AdminStudentsList({ user, query }: AdminStudentsListProps)
     <div className="space-y-3">
       {query ? (
         <p className="text-sm text-text-3">
-          {students.length} résultat{students.length > 1 ? "s" : ""} pour “{query}”.
+          <T
+            k={
+              students.length > 1
+                ? "dashboard.admin.resultsForPlural"
+                : "dashboard.admin.resultsFor"
+            }
+            vars={{ count: students.length, query }}
+          />
         </p>
       ) : null}
       <DashboardListPanel>
         <div className="hidden grid-cols-[1.2fr_1fr_auto] gap-4 border-b border-[var(--border-token)] bg-surface-1 px-5 py-3 text-sm font-medium text-text-3 md:grid">
-          <span>Élève</span>
-          <span>Contact</span>
-          <span>Dossier</span>
+          <span>
+            <T k="dashboard.admin.student" />
+          </span>
+          <span>
+            <T k="dashboard.admin.contact" />
+          </span>
+          <span>
+            <T k="dashboard.admin.file" />
+          </span>
         </div>
         <div className="divide-y divide-[#E8EEF6]">
           {students.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-text-3">Aucun élève trouvé.</p>
+            <p className="px-5 py-6 text-sm text-text-3">
+              <T k="dashboard.admin.noStudent" />
+            </p>
           ) : (
             students.map((student) => (
               <div
@@ -83,8 +99,13 @@ export async function AdminStudentsList({ user, query }: AdminStudentsListProps)
                   <span className="truncate">{student.email}</span>
                 </p>
                 <p className="text-sm text-text-3">
-                  {student._count.documentsAcademique} documents scolaires ·{" "}
-                  {student._count.eleveRendezVous} RDV
+                  <T
+                    k="dashboard.admin.fileSummary"
+                    vars={{
+                      documents: student._count.documentsAcademique,
+                      rdv: student._count.eleveRendezVous,
+                    }}
+                  />
                 </p>
               </div>
             ))

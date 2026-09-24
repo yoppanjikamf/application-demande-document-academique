@@ -9,6 +9,7 @@ import { z } from "zod";
 import { profileUpdateSchema } from "@/lib/validations";
 import type { Role } from "@/lib/generated/prisma/client";
 import { updateProfileAction } from "@/app/account/actions";
+import { useI18n } from "@/components/i18n/locale-provider";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -29,6 +30,7 @@ type ProfileFormProps = {
 };
 
 export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
+  const { t } = useI18n();
   const form = useForm<Values>({
     resolver: zodResolver(profileUpdateSchema),
     defaultValues,
@@ -43,7 +45,7 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
         toast.error(res.error);
         return;
       }
-      toast.success("Informations mises à jour.");
+      toast.success(t("dashboard.account.updated"));
     });
   };
 
@@ -51,7 +53,7 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormItem>
-          <FormLabel>Email</FormLabel>
+          <FormLabel>{t("dashboard.account.email")}</FormLabel>
           <FormControl>
             <Input value={email} disabled />
           </FormControl>
@@ -62,9 +64,13 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
           name="nom"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nom</FormLabel>
+              <FormLabel>{t("dashboard.account.lastName")}</FormLabel>
               <FormControl>
-                <Input placeholder="Nom" autoComplete="family-name" {...field} />
+                <Input
+                  placeholder={t("dashboard.account.lastName")}
+                  autoComplete="family-name"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -76,9 +82,13 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
           name="prenom"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Prénom</FormLabel>
+              <FormLabel>{t("dashboard.account.firstName")}</FormLabel>
               <FormControl>
-                <Input placeholder="Prénom" autoComplete="given-name" {...field} />
+                <Input
+                  placeholder={t("dashboard.account.firstName")}
+                  autoComplete="given-name"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -91,7 +101,7 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
             name="dateNaissance"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Date de naissance</FormLabel>
+                <FormLabel>{t("dashboard.account.birthDate")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -103,24 +113,24 @@ export function ProfileForm({ role, email, defaultValues }: ProfileFormProps) {
 
         {role === "ADMINISTRATEUR" ? (
           <FormItem>
-            <FormLabel>Service</FormLabel>
+            <FormLabel>{t("dashboard.account.service")}</FormLabel>
             <FormControl>
-              <Input value="Service administratif" disabled />
+              <Input value={t("dashboard.account.adminService")} disabled />
             </FormControl>
           </FormItem>
         ) : null}
 
         {role === "AGENT_CENTRE_EXAMEN" ? (
           <FormItem>
-            <FormLabel>Service</FormLabel>
+            <FormLabel>{t("dashboard.account.service")}</FormLabel>
             <FormControl>
-              <Input value="Centre d'examen" disabled />
+              <Input value={t("dashboard.account.centreService")} disabled />
             </FormControl>
           </FormItem>
         ) : null}
 
         <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Mise à jour..." : "Mettre à jour"}
+          {pending ? t("dashboard.account.updating") : t("dashboard.account.update")}
         </Button>
       </form>
     </Form>

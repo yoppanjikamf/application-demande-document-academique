@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { CentreAppointmentsPanel } from "@/components/centre-examen/centre-appointments-panel";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
+import { T } from "@/components/i18n/ui";
 import type { CentreAppointment } from "@/components/centre-examen/centre-appointments-panel";
 
 type CentreExamenPageProps = {
@@ -100,19 +101,19 @@ export default async function CentreExamenPage({ searchParams }: CentreExamenPag
       userMatricule={user.matricule}
       scopeLabel={centre.nom}
       activePath="/centre-examen"
-      title="Rendez-vous du centre"
-      subtitle="Consultez les rendez-vous à venir et confirmez les retraits le jour J."
+      titleKey="dashboard.centreTitle"
+      subtitleKey="dashboard.centreSubtitle"
     >
       <WelcomeBanner
         accent="agent"
-        eyebrow="Centre d'examen"
+        eyebrow={<T k="dashboard.fallbackCentre" />}
         title={centre.nom}
         subtitle={`${centre.region}${centre.ville ? ` · ${centre.ville}` : ""}`}
         icon={MapPin}
         trailing={
           <div className="rounded-lg border border-white/15 bg-white/10 px-5 py-4 text-center lg:min-w-56">
             <p className="text-xs uppercase tracking-wide text-white/70">
-              Retraits confirmés aujourd&apos;hui
+              <T k="dashboard.centre.confirmedToday" />
             </p>
             <p className="mt-2 text-3xl font-bold">
               {confirmedToday}/{todayAppointments.length}

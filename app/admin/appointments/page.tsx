@@ -35,8 +35,8 @@ export default async function AdminAppointmentsPage() {
       userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/appointments"
-      title="Planning des retraits"
-      subtitle="Rendez-vous de retrait à suivre, confirmer ou annuler pour votre périmètre OBC/DECC."
+      titleKey="dashboard.adminAppointmentsTitle"
+      subtitleKey="dashboard.adminAppointmentsSubtitle"
     >
       <DashboardListPanel>
         <DashboardListPanelHeader left="Rendez-vous" right="Actions" />

@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { reserverDisponibiliteAction } from "@/app/dashboard/actions";
+import { useI18n } from "@/components/i18n/locale-provider";
+import { useDiplomaName, useLocaleTag } from "@/components/i18n/ui";
+import type { TranslationKey } from "@/lib/i18n/translate";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,7 +28,9 @@ type Slot = {
 
 type AppointmentDialogProps = {
   documentId: string;
-  documentTitle: string;
+  documentTitle?: string;
+  documentTitleKey?: TranslationKey;
+  diplomeType?: string;
   disabled: boolean;
   defaultComment?: string;
 };
@@ -93,16 +98,24 @@ function getWeekdayDates(month: Date, minDateKey: string) {
   return days;
 }
 
-function formatMonthLabel(date: Date) {
-  return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
-}
-
 export function AppointmentDialog({
   documentId,
   documentTitle,
+  documentTitleKey,
+  diplomeType,
   disabled,
   defaultComment,
 }: AppointmentDialogProps) {
+  const { t } = useI18n();
+  const localeTag = useLocaleTag();
+  const diplomeName = useDiplomaName(diplomeType ?? "");
+  const resolvedTitle = documentTitleKey
+    ? t(documentTitleKey, { diplome: diplomeName })
+    : documentTitle ?? "";
+
+  function formatMonthLabel(date: Date) {
+    return date.toLocaleDateString(localeTag, { month: "long", year: "numeric" });
+  }
   const initialDate = useMemo(() => nextWeekdayKey(), []);
   const [date, setDate] = useState(initialDate);
   const [monthCursor, setMonthCursor] = useState(() => startOfMonthFromKey(initialDate));
@@ -140,7 +153,7 @@ export function AppointmentDialog({
     })
       .then(async (response) => {
         if (!response.ok) {
-          throw new Error("Impossible de charger les créneaux.");
+          throw new Error(t("dashboard.booking.slotsError"));
         }
         return response.json() as Promise<{ date?: string; slots: Slot[] }>;
       })
@@ -152,25 +165,27 @@ export function AppointmentDialog({
         if (fetchError instanceof DOMException && fetchError.name === "AbortError") {
           return;
         }
-        setError(fetchError instanceof Error ? fetchError.message : "Erreur inconnue.");
+        setError(
+          fetchError instanceof Error ? fetchError.message : t("dashboard.booking.unknownError"),
+        );
       })
       .finally(() => setLoading(false));
 
     return () => controller.abort();
-  }, [date, disabled, documentId]);
+  }, [date, disabled, documentId, t]);
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button disabled={disabled} size="sm">
           <CalendarDays />
-          Rendez-vous
+          {t("dashboard.booking.button")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Rendez-vous de retrait</DialogTitle>
-          <DialogDescription>{documentTitle}</DialogDescription>
+          <DialogTitle>{t("dashboard.booking.title")}</DialogTitle>
+          <DialogDescription>{resolvedTitle}</DialogDescription>
         </DialogHeader>
 
         <form action={reserverDisponibiliteAction} className="space-y-4">
@@ -181,17 +196,15 @@ export function AppointmentDialog({
           <div className="space-y-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-sm font-medium">Date</p>
-                <p className="text-xs text-muted-foreground">
-                  Les rendez-vous sont disponibles à partir du lendemain.
-                </p>
+                <p className="text-sm font-medium">{t("dashboard.booking.date")}</p>
+                <p className="text-xs text-muted-foreground">{t("dashboard.booking.dateHint")}</p>
               </div>
               <div className="flex items-center justify-between gap-2 sm:justify-end">
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  aria-label="Mois précédent"
+                  aria-label={t("dashboard.booking.prevMonth")}
                   disabled={monthKey(monthCursor) <= minMonth}
                   onClick={() => moveMonth(-1)}
                 >
@@ -204,7 +217,7 @@ export function AppointmentDialog({
                   type="button"
                   variant="outline"
                   size="icon"
-                  aria-label="Mois suivant"
+                  aria-label={t("dashboard.booking.nextMonth")}
                   onClick={() => moveMonth(1)}
                 >
                   <ChevronRight />
@@ -227,10 +240,10 @@ export function AppointmentDialog({
                     }`}
                   >
                     <span className="block font-medium">
-                      {weekdayDate.toLocaleDateString("fr-FR", { weekday: "short" })}
+                      {weekdayDate.toLocaleDateString(localeTag, { weekday: "short" })}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {weekdayDate.toLocaleDateString("fr-FR", {
+                      {weekdayDate.toLocaleDateString(localeTag, {
                         day: "2-digit",
                         month: "2-digit",
                       })}
@@ -242,14 +255,16 @@ export function AppointmentDialog({
             </div>
             {weekdayDates.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Aucun jour ouvrable disponible pour ce mois.
+                {t("dashboard.booking.noWeekday")}
               </p>
             ) : null}
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Créneau horaire</p>
-            {loading ? <p className="text-sm text-muted-foreground">Chargement...</p> : null}
+            <p className="text-sm font-medium">{t("dashboard.booking.slot")}</p>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">{t("dashboard.booking.loading")}</p>
+            ) : null}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {slots.map((slot) => (
@@ -263,7 +278,9 @@ export function AppointmentDialog({
                   }`}
                 >
                   <span className="block font-medium">{slot.label}</span>
-                  <span className="text-xs text-muted-foreground">{slot.remaining} places</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("dashboard.booking.places", { count: slot.remaining })}
+                  </span>
                 </button>
               ))}
             </div>
@@ -271,13 +288,13 @@ export function AppointmentDialog({
 
           <Input
             name="commentaire"
-            placeholder="Commentaire (optionnel)"
+            placeholder={t("dashboard.booking.comment")}
             defaultValue={defaultComment}
           />
 
           <DialogFooter className="sticky bottom-0 -mx-4 border-t border-[var(--border-token)] bg-surface-0 px-4 pb-1 pt-3 sm:-mx-6 sm:px-6">
             <Button type="submit" disabled={!selectedSlot || loading} className="w-full sm:w-auto">
-              Confirmer le rendez-vous
+              {t("dashboard.booking.confirm")}
             </Button>
           </DialogFooter>
         </form>

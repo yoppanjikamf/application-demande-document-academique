@@ -1,22 +1,8 @@
-import Link from "next/link";
-import {
-  AlertTriangle,
-  CalendarDays,
-  CreditCard,
-  FileClock,
-  ShieldCheck,
-  UsersRound,
-} from "lucide-react";
-
-import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
 import { getAdminDocumentScope, getAdminScopeLabel, ORGANISME_IDS } from "@/lib/document-routing";
 import { prisma } from "@/lib/prisma";
+import { AdminHomeView } from "@/components/dashboard/admin-home-view";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
-import { StatCard } from "@/components/dashboard/stat-card";
-import { StatusBadge, appointmentTone, documentTone } from "@/components/dashboard/status-badge";
-import { Button } from "@/components/ui/button";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -47,18 +33,6 @@ function buildThirtyDaySeries() {
       value: 0,
     };
   });
-}
-
-function buildSparklinePoints(values: number[]) {
-  const maxValue = Math.max(1, ...values);
-
-  return values
-    .map((value, index) => {
-      const x = values.length === 1 ? 0 : (index / (values.length - 1)) * 100;
-      const y = 32 - (value / maxValue) * 28;
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(" ");
 }
 
 export default async function AdminPage() {
@@ -160,178 +134,44 @@ export default async function AdminPage() {
       userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin"
-      title={`Administration ${user.nomService ?? ""}`.trim()}
-      subtitle={`Périmètre ${scopeLabel ?? "administration"}`}
+      titleKey="dashboard.adminHomeTitle"
+      titleVars={{ service: user.nomService ?? "" }}
+      subtitleKey="dashboard.adminHomeSubtitle"
+      subtitleVars={{ scope: scopeLabel ?? "—" }}
     >
-      <WelcomeBanner
-        accent="admin"
-        eyebrow={scopeLabel ? `Administration · ${scopeLabel}` : "Administration"}
-        title={`${user.prenom} ${user.nom}`}
-        subtitle={`Périmètre ${scopeLabel ?? "administration"}`}
-        icon={ShieldCheck}
-        trailing={
-          <div className="rounded-lg border border-white/15 bg-white/10 px-5 py-4 text-center lg:min-w-56">
-            <p className="text-xs uppercase tracking-wide text-white/70">Élèves suivis</p>
-            <p className="mt-2 text-3xl font-bold">{elevesCount}</p>
-          </div>
-        }
+      <AdminHomeView
+        userName={`${user.prenom} ${user.nom}`}
+        scopeLabel={scopeLabel ?? null}
+        elevesCount={elevesCount}
+        documentsEnAttente={documentsEnAttente}
+        rendezVousTodayCount={rendezVousTodayCount}
+        paiementsMoisCount={paiementsMoisCount}
+        quota={quota}
+        quotaAlmostReached={quotaAlmostReached}
+        withdrawalsCount={honoredAppointments.length}
+        chartValues={chartValues}
+        recentDocuments={recentDocuments.map((document) => ({
+          id: document.id,
+          statut: document.statut,
+          diplomeType: document.diplomeType,
+          typeDocument: document.typeDocument,
+          eleve: {
+            prenom: document.eleve.prenom,
+            nom: document.eleve.nom,
+            matricule: document.eleve.matricule,
+          },
+          organismeNom: document.organisme?.nom ?? null,
+        }))}
+        todayAppointments={todayAppointments.map((rdv) => ({
+          id: rdv.id,
+          heureRdv: rdv.heureRdv,
+          statut: rdv.statut,
+          matricule: rdv.eleve.matricule,
+          diplomeType: rdv.document?.diplomeType ?? null,
+          typeDocument: rdv.document?.typeDocument ?? null,
+        }))}
+        canManageAppointments={canManageAppointments}
       />
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Total élèves"
-          value={elevesCount}
-          icon={<UsersRound className="h-5 w-5" />}
-        />
-        <StatCard
-          label="Documents en attente"
-          value={documentsEnAttente}
-          icon={<FileClock className="h-5 w-5" />}
-          tone="amber"
-        />
-        <StatCard
-          label="RDV du jour"
-          value={rendezVousTodayCount}
-          icon={<CalendarDays className="h-5 w-5" />}
-          tone="green"
-        />
-        <StatCard
-          label="Paiements du mois"
-          value={paiementsMoisCount}
-          icon={<CreditCard className="h-5 w-5" />}
-          tone="blue"
-        />
-      </div>
-
-      {quotaAlmostReached ? (
-        <section className="flex items-start gap-3 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] p-4 text-sm text-[#92400E] shadow-card">
-          <AlertTriangle className="mt-0.5 h-5 w-5" aria-hidden="true" />
-          <p>
-            Quota journalier presque atteint : {rendezVousTodayCount}/{quota} rendez-vous planifiés.
-          </p>
-        </section>
-      ) : null}
-
-      <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="font-semibold text-text-1">Évolution des retraits sur 30 jours</h2>
-            <p className="mt-1 text-sm text-text-3">
-              Retraits confirmés sur les 30 derniers jours.
-            </p>
-          </div>
-          <StatusBadge tone="green">{honoredAppointments.length} retraits</StatusBadge>
-        </div>
-        <div className="mt-6 h-44 rounded-lg bg-surface-1 p-4">
-          <svg
-            viewBox="0 0 100 36"
-            className="h-full w-full"
-            role="img"
-            aria-label="Courbe des retraits sur 30 jours"
-          >
-            <polyline
-              points={buildSparklinePoints(chartValues)}
-              fill="none"
-              stroke="#52B788"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-      </section>
-
-      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 shadow-card">
-          <div className="border-b border-[var(--border-token)] bg-surface-1 px-5 py-4">
-            <h2 className="font-semibold text-text-1">Documents récents</h2>
-          </div>
-          <div className="hidden grid-cols-[1.4fr_1fr_auto_auto] gap-4 border-b border-[var(--border-token)] bg-surface-0 px-5 py-3 text-xs font-semibold uppercase text-text-3 md:grid">
-            <span>Élève</span>
-            <span>Type</span>
-            <span>Statut</span>
-            <span className="text-right">Action</span>
-          </div>
-          <div className="divide-y divide-[var(--border-token)]">
-            {recentDocuments.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-text-3">Aucun document récent.</p>
-            ) : (
-              recentDocuments.map((document) => (
-                <div
-                  key={document.id}
-                  className="grid gap-3 px-5 py-4 md:grid-cols-[1.4fr_1fr_auto_auto] md:items-center"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium text-text-1">
-                      {document.eleve.prenom} {document.eleve.nom}
-                    </p>
-                    <p className="font-mono text-xs text-text-3">{document.eleve.matricule}</p>
-                  </div>
-                  <div className="min-w-0 text-sm text-text-2">
-                    <p className="truncate">{getDocumentTitle(document)}</p>
-                    <p className="truncate text-xs text-text-3">
-                      {document.organisme?.nom ?? "Non défini"}
-                    </p>
-                  </div>
-                  <StatusBadge tone={documentTone(document.statut)}>
-                    {getStatusLabel(document.statut)}
-                  </StatusBadge>
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="justify-self-start md:justify-self-end"
-                  >
-                    <Link href={`/admin/documents?q=${document.eleve.matricule}`}>Ouvrir</Link>
-                  </Button>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
-          <h2 className="font-semibold text-text-1">Rendez-vous du jour</h2>
-          <div className="mt-5 flex gap-3 overflow-x-auto pb-2">
-            {todayAppointments.length === 0 ? (
-              <p className="text-sm text-text-3">Aucun rendez-vous programmé aujourd&apos;hui.</p>
-            ) : (
-              todayAppointments.map((rdv) => (
-                <div
-                  key={rdv.id}
-                  className="min-w-56 rounded-lg border border-[var(--border-token)] bg-surface-1 p-4"
-                >
-                  <p className="font-semibold text-obc-800">{rdv.heureRdv}</p>
-                  <p className="mt-2 text-sm font-medium text-text-1">{rdv.eleve.matricule}</p>
-                  <p className="mt-1 truncate text-xs text-text-3">
-                    {rdv.document ? getDocumentTitle(rdv.document) : "Document scolaire"}
-                  </p>
-                  <div className="mt-3">
-                    <StatusBadge tone={appointmentTone(rdv.statut)}>{rdv.statut}</StatusBadge>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-      </div>
-
-      <section className="rounded-lg border border-[var(--border-token)] bg-surface-0 p-5 shadow-card">
-        <h2 className="font-semibold text-text-1">Actions rapides</h2>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Button asChild variant="outline">
-            <Link href="/admin/documents">Documents</Link>
-          </Button>
-          {canManageAppointments ? (
-            <Button asChild variant="outline">
-              <Link href="/admin/rdv-disponibilites">Disponibilités RDV</Link>
-            </Button>
-          ) : null}
-          <Button asChild variant="outline">
-            <Link href="/admin/students">Élèves</Link>
-          </Button>
-        </div>
-      </section>
     </DashboardShell>
   );
 }

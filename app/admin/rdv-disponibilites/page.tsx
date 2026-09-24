@@ -52,8 +52,8 @@ export default async function AdminDisponibilitesPage() {
       userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/rdv-disponibilites"
-      title="Disponibilités RDV"
-      subtitle="Définissez le quota journalier global du centre et consultez les jours réservés."
+      titleKey="dashboard.adminAvailabilityTitle"
+      subtitleKey="dashboard.adminAvailabilitySubtitle"
     >
       <form
         action={updateAdminQuotaAction}

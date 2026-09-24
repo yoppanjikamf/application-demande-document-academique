@@ -27,8 +27,8 @@ export default async function AccountPage() {
       userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/account"
-      title="Compte"
-      subtitle="Vos coordonnées et informations personnelles — à vérifier et tenir à jour."
+      titleKey="dashboard.accountTitle"
+      subtitleKey="dashboard.accountSubtitle"
     >
       <div className="max-w-2xl rounded-md border border-slate-200 bg-surface-0 p-4 shadow-card sm:p-6">
         <ProfileForm

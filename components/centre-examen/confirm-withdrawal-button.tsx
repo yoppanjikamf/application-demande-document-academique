@@ -5,6 +5,7 @@ import { CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
+import { useI18n } from "@/components/i18n/locale-provider";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +25,7 @@ export function ConfirmWithdrawalButton({
   appointmentId: string;
   onConfirmed?: () => void;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
@@ -37,11 +39,11 @@ export function ConfirmWithdrawalButton({
       const data = (await response.json().catch(() => null)) as { error?: string } | null;
 
       if (!response.ok) {
-        toast.error(data?.error ?? "Confirmation impossible.");
+        toast.error(data?.error ?? t("dashboard.centre.confirmError"));
         return;
       }
 
-      toast.success("Retrait confirmé.");
+      toast.success(t("dashboard.centre.confirmSuccess"));
       setOpen(false);
       onConfirmed?.();
       router.refresh();
@@ -53,24 +55,22 @@ export function ConfirmWithdrawalButton({
       <DialogTrigger asChild>
         <Button size="sm">
           <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden="true" />
-          Confirmer retrait
+          {t("dashboard.centre.confirmButton")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Confirmer le retrait</DialogTitle>
-          <DialogDescription>
-            Confirmez-vous que l&apos;élève a effectivement retiré son document ?
-          </DialogDescription>
+          <DialogTitle>{t("dashboard.centre.confirmTitle")}</DialogTitle>
+          <DialogDescription>{t("dashboard.centre.confirmDescription")}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline" type="button" disabled={pending}>
-              Annuler
+              {t("dashboard.centre.cancel")}
             </Button>
           </DialogClose>
           <Button type="button" onClick={confirmWithdrawal} disabled={pending}>
-            {pending ? "Confirmation..." : "Confirmer"}
+            {pending ? t("dashboard.centre.confirming") : t("dashboard.centre.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

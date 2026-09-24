@@ -45,10 +45,10 @@ export function DashboardSidebar({
         : t("dashboard.roles.student");
   const badgeLabel =
     role === "ADMINISTRATEUR"
-      ? (scopeLabel ?? "Administration")
+      ? (scopeLabel ?? t("dashboard.fallbackAdmin"))
       : role === "AGENT_CENTRE_EXAMEN"
-        ? (scopeLabel ?? "Centre d'examen")
-        : "Espace élève";
+        ? (scopeLabel ?? t("dashboard.fallbackCentre"))
+        : t("dashboard.fallbackStudent");
 
   return (
     <>
@@ -57,7 +57,7 @@ export function DashboardSidebar({
           type="button"
           className="fixed inset-0 z-40 bg-black/40"
           onClick={() => setIsOpen(false)}
-          aria-label="Fermer le menu"
+          aria-label={t("dashboard.closeMenu")}
         />
       ) : null}
 
@@ -79,7 +79,7 @@ export function DashboardSidebar({
                 type="button"
                 onClick={toggleSidebar}
                 className="rounded-md border border-white/15 px-2 py-1 text-xs font-semibold text-white/75"
-                aria-label="Fermer le menu"
+                aria-label={t("dashboard.closeMenu")}
               >
                 {t("common.closeMenu")}
               </button>

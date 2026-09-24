@@ -7,7 +7,6 @@ import {
   validateDuplicataRequestAction,
 } from "@/app/admin/actions";
 import type { StatutDocument } from "@/lib/generated/prisma/client";
-import { getDocumentTitle, getStatusLabel } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
 import {
   getAdminDocumentScope,
@@ -24,6 +23,14 @@ import {
 } from "@/components/dashboard/dashboard-list-panel";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBadge, documentTone } from "@/components/dashboard/status-badge";
+import {
+  AdminRdvLine,
+  DocumentStatusText,
+  DocumentStatusOption,
+  DocumentTitleText,
+  T,
+  TPlaceholderInput,
+} from "@/components/i18n/ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -165,26 +172,30 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
       userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/documents"
-      title="Documents scolaires"
-      subtitle="Vérification physique, mise à jour des statuts et suivi des rendez-vous des documents scolaires."
+      titleKey="dashboard.adminDocumentsTitle"
+      subtitleKey="dashboard.adminDocumentsSubtitle"
     >
       <form className="rounded-md border border-[var(--border-token)] bg-surface-0 p-4 shadow-card">
         <label htmlFor="admin-document-search" className="text-sm font-medium text-text-1">
-          Recherche par élève
+          <T k="dashboard.admin.searchByStudent" />
         </label>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-          <Input
+          <TPlaceholderInput
+            k="dashboard.admin.searchPlaceholder"
             id="admin-document-search"
             name="q"
             defaultValue={q ?? ""}
-            placeholder="Matricule, nom, prénom ou email"
             className="flex-1"
           />
           {status ? <input type="hidden" name="statut" value={status} /> : null}
-          <Button type="submit">Rechercher</Button>
+          <Button type="submit">
+            <T k="dashboard.admin.search" />
+          </Button>
           {q ? (
             <Button asChild variant="outline">
-              <Link href={buildPageHref(1, status)}>Réinitialiser</Link>
+              <Link href={buildPageHref(1, status)}>
+                <T k="dashboard.admin.reset" />
+              </Link>
             </Button>
           ) : null}
         </div>
@@ -192,38 +203,53 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
 
       <div className="flex flex-wrap gap-2">
         <Button asChild size="sm" variant={!status ? "default" : "outline"}>
-          <Link href={buildPageHref(1, undefined, q)}>Tous</Link>
+          <Link href={buildPageHref(1, undefined, q)}>
+            <T k="dashboard.admin.all" />
+          </Link>
         </Button>
         {STATUSES.map((item) => (
           <Button key={item} asChild size="sm" variant={status === item ? "default" : "outline"}>
-            <Link href={buildPageHref(1, item, q)}>{getStatusLabel(item)}</Link>
+            <Link href={buildPageHref(1, item, q)}>
+              <DocumentStatusText requested statut={item} />
+            </Link>
           </Button>
         ))}
       </div>
 
       <DashboardListPanel>
-        <DashboardListPanelHeader left="Demande" right="Statut" />
+        <DashboardListPanelHeader
+          left={<T k="dashboard.admin.request" />}
+          right={<T k="dashboard.admin.status" />}
+        />
         {documents.map((document) => (
           <div key={document.id} className="space-y-4 border-b px-4 py-4 last:border-0 sm:px-5">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-lg font-semibold text-text-1">{getDocumentTitle(document)}</p>
-                  <StatusBadge tone={documentTone(document.statut)}>
-                    {getStatusLabel(document.statut)}
-                  </StatusBadge>
+                  <p className="text-lg font-semibold text-text-1">
+                    <DocumentTitleText
+                      diplomeType={document.diplomeType}
+                      typeDocument={document.typeDocument}
+                    />
+                  </p>
+                  <StatusBadge tone={documentTone(document.statut)} status={document.statut} />
                 </div>
                 <p className="break-words text-sm text-text-3">
                   {document.eleve.prenom} {document.eleve.nom} · {document.eleve.matricule}
                 </p>
                 <p className="break-words text-sm text-text-3">
-                  {document.organisme?.nom ?? "Organisme non defini"}
+                  {document.organisme?.nom ?? <T k="dashboard.admin.noOrg" />}
                   {document.antenneRegionale ? ` · ${document.antenneRegionale.nom}` : ""}
                 </p>
                 <p className="break-words text-sm text-text-3">
-                  {document.rendezVous[0]
-                    ? `RDV: ${document.rendezVous[0].dateRdv.toLocaleDateString("fr-FR")} ${document.rendezVous[0].heureRdv}`
-                    : "Aucun rendez-vous actif"}
+                  {document.rendezVous[0] ? (
+                    <AdminRdvLine
+                      date={document.rendezVous[0].dateRdv}
+                      time={document.rendezVous[0].heureRdv}
+                    />
+                  ) : (
+                    <T k="dashboard.noActiveAppointment" />
+                  )}
                 </p>
               </div>
               <form
@@ -242,13 +268,11 @@ export default async function AdminDocumentsPage({ searchParams }: AdminDocument
                       document.statut === "RETIRE" ||
                       resolveDocumentRoute(document).pickupType === "ANTENNE_REGIONALE",
                   ).map((item) => (
-                    <option key={item} value={item}>
-                      {getStatusLabel(item)}
-                    </option>
+                    <DocumentStatusOption key={item} status={item} value={item} />
                   ))}
                 </select>
                 <Button type="submit" size="sm">
-                  Modifier
+                  <T k="dashboard.admin.update" />
                 </Button>
               </form>
             </div>

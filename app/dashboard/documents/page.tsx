@@ -6,7 +6,6 @@ import { PendingDocumentRequestForm } from "@/components/documents/pending-docum
 import {
   ACTIVE_RENDEZ_VOUS_STATUSES,
   getPickupLocation,
-  getStudentDocumentStatusLabel,
   hasStudentDocumentRequest,
 } from "@/lib/appointment-service";
 import { requireRole } from "@/lib/auth";
@@ -29,6 +28,22 @@ import type {
 } from "@/lib/generated/prisma/client";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBadge, documentTone } from "@/components/dashboard/status-badge";
+import {
+  AppointmentBookedNotice,
+  DiplomaName,
+  DocumentStatusText,
+  RetiredSummary,
+  T,
+  DiplomaValueInput,
+  NextRequestNotice,
+  PickupAt,
+  TAria,
+  TDiploma,
+  TPlaceholderInput,
+  TPlaceholderTextarea,
+  TSelectValue,
+} from "@/components/i18n/ui";
+import type { TranslationKey } from "@/lib/i18n/translate";
 import { AppointmentDialog } from "@/components/documents/appointment-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,24 +87,6 @@ type DuplicataWithPayment = Duplicata & {
 
 type DuplicataTarget = Extract<TypeDocument, "ORIGINAL" | "RELEVE_NOTES">;
 
-const diplomeLabels: Record<DiplomePrincipal, string> = {
-  BEPC: "BEPC",
-  PROBATOIRE: "Probatoire",
-  BACCALAUREAT: "Baccalauréat",
-};
-
-const optionLabels: Record<"ORIGINAL" | "RELEVE_NOTES" | "DUPLICATA", string> = {
-  ORIGINAL: "Original du diplôme",
-  RELEVE_NOTES: "Relevé de notes",
-  DUPLICATA: "Duplicata",
-};
-
-const documentSummaries: Record<"ORIGINAL" | "RELEVE_NOTES" | "DUPLICATA", string> = {
-  ORIGINAL: "Suivi du diplôme original et du rendez-vous de retrait.",
-  RELEVE_NOTES: "Suivi du relevé et demande de mise à disposition.",
-  DUPLICATA: "Demande, paiement et suivi du retrait du duplicata.",
-};
-
 function parseDiplome(value?: string): DiplomePrincipal | null {
   if (value === "BEPC" || value === "PROBATOIRE" || value === "BACCALAUREAT") {
     return value;
@@ -116,32 +113,48 @@ function getHonoredAppointment(document: DocumentWithAppointments | null) {
   return document?.rendezVous.find((appointment) => appointment.statut === "HONORE") ?? null;
 }
 
-function getDuplicataTitle(diplomeType: DiplomePrincipal, target: DuplicataTarget) {
-  return target === "ORIGINAL"
-    ? `Duplicata du diplôme original du ${diplomeLabels[diplomeType]}`
-    : `Duplicata du relevé de notes du ${diplomeLabels[diplomeType]}`;
-}
-
 function formatAmount(value: number) {
   return new Intl.NumberFormat("fr-FR").format(value);
+}
+
+function getDuplicataTitleKey(target: DuplicataTarget): TranslationKey {
+  return target === "ORIGINAL"
+    ? "dashboard.documents.duplicateOriginalTitle"
+    : "dashboard.documents.duplicateTranscriptTitle";
+}
+
+type DuplicataWorkflowStatus =
+  | { status: "DISPONIBLE" | "RETIRE"; tone: "green" | "blue" }
+  | { key: "dashboard.documents.processing" | "dashboard.documents.notRequested"; tone: "amber" | "slate" };
+
+function DuplicataWorkflowBadge({ workflow }: { workflow: DuplicataWorkflowStatus }) {
+  if ("key" in workflow) {
+    return (
+      <StatusBadge tone={workflow.tone}>
+        <T k={workflow.key} />
+      </StatusBadge>
+    );
+  }
+
+  return <StatusBadge tone={workflow.tone} status={workflow.status} />;
 }
 
 function getDuplicataWorkflowStatus(
   document: DocumentAcademique | null,
   duplicataStatus: Duplicata["statut"] | null,
   hasPaidRequest: boolean,
-) {
+): DuplicataWorkflowStatus {
   const status = duplicataStatus ?? document?.statut ?? null;
   if (status === "DISPONIBLE") {
-    return { label: "Disponible", tone: "green" as const };
+    return { status: "DISPONIBLE" as const, tone: "green" as const };
   }
   if (status === "RETIRE") {
-    return { label: "Retiré", tone: "blue" as const };
+    return { status: "RETIRE" as const, tone: "blue" as const };
   }
   if (hasPaidRequest) {
-    return { label: "En cours de traitement", tone: "amber" as const };
+    return { key: "dashboard.documents.processing" as const, tone: "amber" as const };
   }
-  return { label: "Demande non effectuée", tone: "slate" as const };
+  return { key: "dashboard.documents.notRequested" as const, tone: "slate" as const };
 }
 
 function getDuplicataContext(
@@ -194,24 +207,6 @@ function getDuplicataContext(
     latestDuplicata,
     workflowStatus,
   };
-}
-
-function AppointmentSummary({ appointment }: { appointment: RendezVous }) {
-  return (
-    <div className="rounded-md bg-obc-100 p-3 text-sm text-obc-800">
-      Rendez-vous planifié le {appointment.dateRdv.toLocaleDateString("fr-FR")} ·{" "}
-      {appointment.heureRdv}
-    </div>
-  );
-}
-
-function RetiredSummary({ appointment, label }: { appointment: RendezVous | null; label: string }) {
-  return (
-    <div className="rounded-md bg-obc-100 p-3 text-sm text-obc-800">
-      {label} a déjà été retiré
-      {appointment ? ` le ${appointment.updatedAt.toLocaleDateString("fr-FR")}` : ""}.
-    </div>
-  );
 }
 
 const actionColumnHeadClassName =
@@ -279,21 +274,23 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       userName={`${user.prenom} ${user.nom}`}
       userMatricule={user.matricule}
       activePath="/dashboard/documents"
-      title="Mes documents scolaires"
-      subtitle="Suivez le statut de chaque document et lancez vos demandes en quelques clics."
+      titleKey="dashboard.studentDocumentsTitle"
+      subtitleKey="dashboard.studentDocumentsSubtitle"
     >
       {exams.length === 0 || !currentExam ? (
         <p className="rounded-md border border-[var(--border-token)] bg-surface-0 p-5 text-text-3 shadow-card">
-          Aucun examen composé n&apos;est rattaché à votre matricule.
+          <T k="dashboard.documents.noExam" />
         </p>
       ) : (
         <>
           <section className="space-y-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-text-1">Examens déjà composés</h2>
+                <h2 className="text-lg font-semibold text-text-1">
+                  <T k="dashboard.documents.examsTitle" />
+                </h2>
                 <p className="mt-1 text-sm text-text-3">
-                  Les examens non composés ne sont pas affichés.
+                  <T k="dashboard.documents.examsHint" />
                 </p>
               </div>
               <div className="grid gap-2 sm:grid-cols-3 md:w-auto md:min-w-0 lg:min-w-[520px]">
@@ -308,7 +305,9 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                     >
                       <Link href={`/dashboard/documents?exam=${exam.diplomeType}`}>
                         <GraduationCap className="h-4 w-4" />
-                        <span className="truncate">{diplomeLabels[exam.diplomeType]}</span>
+                        <span className="truncate">
+                          <DiplomaName type={exam.diplomeType} />
+                        </span>
                       </Link>
                     </Button>
                   );
@@ -318,19 +317,27 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
 
             <div className="grid gap-3 rounded-md border border-[var(--border-token)] bg-surface-0 p-4 text-sm shadow-card md:grid-cols-3">
               <div>
-                <p className="text-xs font-medium uppercase text-text-muted">Examen</p>
+                <p className="text-xs font-medium uppercase text-text-muted">
+                  <T k="dashboard.documents.exam" />
+                </p>
                 <p className="mt-1 font-semibold text-text-1">
-                  {diplomeLabels[currentExam.diplomeType]}
+                  <DiplomaName type={currentExam.diplomeType} />
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase text-text-muted">Session</p>
-                <p className="mt-1 text-text-2">{currentExam.anneeSession ?? "Non renseignée"}</p>
+                <p className="text-xs font-medium uppercase text-text-muted">
+                  <T k="dashboard.documents.session" />
+                </p>
+                <p className="mt-1 text-text-2">
+                  {currentExam.anneeSession ?? <T k="dashboard.documents.sessionUnknown" />}
+                </p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase text-text-muted">Centre</p>
+                <p className="text-xs font-medium uppercase text-text-muted">
+                  <T k="dashboard.documents.centre" />
+                </p>
                 <p className="mt-1 truncate text-text-2">
-                  {currentExam.centreExamen ?? "Centre non renseigné"}
+                  {currentExam.centreExamen ?? <T k="dashboard.documents.centreUnknown" />}
                 </p>
               </div>
             </div>
@@ -339,21 +346,19 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
           <section className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-text-1">
-                Documents du {diplomeLabels[currentExam.diplomeType]}
+                <TDiploma k="dashboard.documents.documentsOf" type={currentExam.diplomeType} />
               </h2>
               <p className="mt-1 text-sm text-text-3">
-                Enregistrez d&apos;abord votre demande, puis suivez le statut et prenez rendez-vous
-                lorsque le document est disponible.
+                <T k="dashboard.documents.documentsHint" />
               </p>
               <p className="mt-2 text-xs text-text-muted md:hidden">
-                Faites glisser le tableau vers la gauche pour afficher la colonne « Action ».
+                <T k="dashboard.documents.swipeHint" />
               </p>
             </div>
 
             {currentExam.diplomeType === "PROBATOIRE" ? (
               <p className="rounded-md bg-amber-50 p-4 text-sm text-amber-800">
-                Le Probatoire ne donne pas lieu à la délivrance d&apos;un diplôme. Seul le relevé de
-                notes est disponible.
+                <T k="dashboard.documents.probatoireNote" />
               </p>
             ) : null}
 
@@ -361,10 +366,18 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
               <Table className="min-w-[640px]">
                 <TableHeader className="bg-surface-1">
                   <TableRow>
-                    <TableHead className="w-[34%] px-4">Document</TableHead>
-                    <TableHead className="hidden px-4 md:table-cell">Retrait</TableHead>
-                    <TableHead className="px-4">Statut</TableHead>
-                    <TableHead className={actionColumnHeadClassName}>Action</TableHead>
+                    <TableHead className="w-[34%] px-4">
+                      <T k="dashboard.documents.columnDocument" />
+                    </TableHead>
+                    <TableHead className="hidden px-4 md:table-cell">
+                      <T k="dashboard.documents.columnPickup" />
+                    </TableHead>
+                    <TableHead className="px-4">
+                      <T k="dashboard.documents.columnStatus" />
+                    </TableHead>
+                    <TableHead className={actionColumnHeadClassName}>
+                      <T k="dashboard.documents.columnAction" />
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -375,16 +388,23 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                           <FileCheck2 className="h-5 w-5 text-obc-800" />
                           <div>
                             <p className="font-medium text-text-1">
-                              {optionLabels.ORIGINAL} du {diplomeLabels[currentExam.diplomeType]}
+                              <TDiploma
+                                k="dashboard.documents.originalTitle"
+                                type={currentExam.diplomeType}
+                              />
                             </p>
-                            <p className="text-xs text-text-3">{documentSummaries.ORIGINAL}</p>
+                            <p className="text-xs text-text-3">
+                              <T k="dashboard.documents.originalSummary" />
+                            </p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="hidden px-4 text-sm text-text-3 md:table-cell">
-                        {currentExam.diplomeType === "BACCALAUREAT"
-                          ? "Antenne régionale OBC"
-                          : "Centre d'examen"}
+                        {currentExam.diplomeType === "BACCALAUREAT" ? (
+                          <T k="dashboard.documents.pickupObc" />
+                        ) : (
+                          <T k="dashboard.documents.pickupCentre" />
+                        )}
                       </TableCell>
                       <TableCell className="px-4">
                         <StatusBadge
@@ -394,7 +414,10 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                               : "slate"
                           }
                         >
-                          {getStudentDocumentStatusLabel(originalDocument)}
+                          <DocumentStatusText
+                            requested={hasOriginalRequest}
+                            statut={originalDocument?.statut}
+                          />
                         </StatusBadge>
                       </TableCell>
                       <TableCell className={actionColumnCellClassName}>
@@ -402,26 +425,30 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                           <SheetTrigger asChild>
                             <Button variant="outline" size="sm">
                               <Eye className="h-4 w-4" />
-                              Détails
+                              <T k="dashboard.documents.details" />
                             </Button>
                           </SheetTrigger>
                           <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
                             <SheetHeader>
                               <SheetTitle>
-                                Original du diplôme du {diplomeLabels[currentExam.diplomeType]}
+                                <TDiploma
+                                  k="dashboard.documents.originalTitle"
+                                  type={currentExam.diplomeType}
+                                />
                               </SheetTitle>
                               <SheetDescription>
-                                {currentExam.diplomeType === "BACCALAUREAT"
-                                  ? "Retrait à l'antenne régionale OBC avec rendez-vous."
-                                  : "Retrait au centre d'examen avec rendez-vous."}
+                                {currentExam.diplomeType === "BACCALAUREAT" ? (
+                                  <T k="dashboard.documents.originalDescBac" />
+                                ) : (
+                                  <T k="dashboard.documents.originalDescOther" />
+                                )}
                               </SheetDescription>
                             </SheetHeader>
                             <div className="mt-6 space-y-4">
                               {!hasOriginalRequest ? (
                                 <>
                                   <p className="rounded-md bg-surface-1 p-3 text-sm text-text-3">
-                                    Enregistrez votre demande pour suivre le traitement de votre
-                                    diplôme original.
+                                    <T k="dashboard.documents.registerOriginal" />
                                   </p>
                                   <PendingDocumentRequestForm
                                     diplomeType={currentExam.diplomeType}
@@ -431,41 +458,47 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                               ) : (
                                 <>
                                   <StatusBadge tone={documentTone(originalDocument!.statut)}>
-                                    {getStudentDocumentStatusLabel(originalDocument)}
+                                    <DocumentStatusText
+                                      requested={hasOriginalRequest}
+                                      statut={originalDocument?.statut}
+                                    />
                                   </StatusBadge>
 
                                   {originalDocument?.statut === "RETIRE" ? (
                                     <RetiredSummary
-                                      appointment={honoredOriginalAppointment}
-                                      label="Ce document scolaire"
+                                      date={honoredOriginalAppointment?.updatedAt}
+                                      labelKey="dashboard.documents.schoolDocumentLabel"
                                     />
                                   ) : originalDocument?.statut === "DISPONIBLE" ? (
                                     <div className="space-y-4">
                                       <p className="text-sm text-text-3">
-                                        Lieu de retrait : {originalPickupLocation}
+                                        <PickupAt place={originalPickupLocation} />
                                       </p>
                                       {originalRoute?.requiresAppointment &&
                                       activeOriginalAppointment ? (
-                                        <AppointmentSummary
-                                          appointment={activeOriginalAppointment}
+                                        <AppointmentBookedNotice
+                                          date={activeOriginalAppointment.dateRdv}
+                                          time={activeOriginalAppointment.heureRdv}
                                         />
                                       ) : originalRoute?.requiresAppointment ? (
                                         <AppointmentDialog
                                           documentId={originalDocument.id}
-                                          documentTitle={`Original du diplôme du ${diplomeLabels[currentExam.diplomeType]}`}
+                                          documentTitleKey="dashboard.documents.originalTitle"
+                                          diplomeType={currentExam.diplomeType}
                                           disabled={false}
                                         />
                                       ) : (
                                         <div className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
-                                          Votre diplôme est disponible. Suivez les instructions de
-                                          retrait : {originalPickupLocation}.
+                                          <T
+                                            k="dashboard.documents.originalReady"
+                                            vars={{ place: originalPickupLocation ?? "" }}
+                                          />
                                         </div>
                                       )}
                                     </div>
                                   ) : (
                                     <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-                                      Votre demande a été enregistrée. Votre diplôme n&apos;est pas
-                                      encore disponible : vous serez notifié dès qu&apos;il le sera.
+                                      <T k="dashboard.documents.originalPending" />
                                     </p>
                                   )}
                                 </>
@@ -483,14 +516,19 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                         <FileText className="h-5 w-5 text-obc-800" />
                         <div>
                           <p className="font-medium text-text-1">
-                            {optionLabels.RELEVE_NOTES} du {diplomeLabels[currentExam.diplomeType]}
+                            <TDiploma
+                              k="dashboard.documents.transcriptTitle"
+                              type={currentExam.diplomeType}
+                            />
                           </p>
-                          <p className="text-xs text-text-3">{documentSummaries.RELEVE_NOTES}</p>
+                          <p className="text-xs text-text-3">
+                            <T k="dashboard.documents.transcriptSummary" />
+                          </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="hidden px-4 text-sm text-text-3 md:table-cell">
-                      Centre d&apos;examen
+                      <T k="dashboard.documents.pickupCentre" />
                     </TableCell>
                     <TableCell className="px-4">
                       <StatusBadge
@@ -500,7 +538,10 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                             : "slate"
                         }
                       >
-                        {getStudentDocumentStatusLabel(releveDocument)}
+                        <DocumentStatusText
+                          requested={hasReleveRequest}
+                          statut={releveDocument?.statut}
+                        />
                       </StatusBadge>
                     </TableCell>
                     <TableCell className={actionColumnCellClassName}>
@@ -508,24 +549,26 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                         <SheetTrigger asChild>
                           <Button variant="outline" size="sm">
                             <Eye className="h-4 w-4" />
-                            Détails
+                            <T k="dashboard.documents.details" />
                           </Button>
                         </SheetTrigger>
                         <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
                           <SheetHeader>
                             <SheetTitle>
-                              Relevé de notes du {diplomeLabels[currentExam.diplomeType]}
+                              <TDiploma
+                                k="dashboard.documents.transcriptTitle"
+                                type={currentExam.diplomeType}
+                              />
                             </SheetTitle>
                             <SheetDescription>
-                              Le relevé se retire au centre d&apos;examen après prise de
-                              rendez-vous.
+                              <T k="dashboard.documents.transcriptDesc" />
                             </SheetDescription>
                           </SheetHeader>
                           <div className="mt-6 space-y-4">
                             {!hasReleveRequest ? (
                               <>
                                 <p className="rounded-md bg-surface-1 p-3 text-sm text-text-3">
-                                  Enregistrez votre demande de relevé pour suivre son traitement.
+                                  <T k="dashboard.documents.registerTranscript" />
                                 </p>
                                 <PendingDocumentRequestForm
                                   diplomeType={currentExam.diplomeType}
@@ -535,38 +578,46 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                             ) : (
                               <>
                                 <StatusBadge tone={documentTone(releveDocument!.statut)}>
-                                  {getStudentDocumentStatusLabel(releveDocument)}
+                                  <DocumentStatusText
+                                    requested={hasReleveRequest}
+                                    statut={releveDocument?.statut}
+                                  />
                                 </StatusBadge>
 
                                 {releveDocument?.statut === "RETIRE" ? (
                                   <RetiredSummary
-                                    appointment={honoredReleveAppointment}
-                                    label="Ce relevé de notes"
+                                    date={honoredReleveAppointment?.updatedAt}
+                                    labelKey="dashboard.documents.transcriptItemLabel"
                                   />
                                 ) : releveDocument?.statut === "DISPONIBLE" ? (
                                   <div className="space-y-4">
                                     <p className="text-sm text-text-3">
-                                      Lieu de retrait : {relevePickupLocation ?? "Centre d'examen"}
+                                      <PickupAt place={relevePickupLocation} />
                                     </p>
                                     {releveRoute?.requiresAppointment && activeReleveAppointment ? (
-                                      <AppointmentSummary appointment={activeReleveAppointment} />
+                                      <AppointmentBookedNotice
+                                        date={activeReleveAppointment.dateRdv}
+                                        time={activeReleveAppointment.heureRdv}
+                                      />
                                     ) : releveRoute?.requiresAppointment ? (
                                       <AppointmentDialog
                                         documentId={releveDocument.id}
-                                        documentTitle={`Relevé de notes du ${diplomeLabels[currentExam.diplomeType]}`}
+                                        documentTitleKey="dashboard.documents.transcriptTitle"
+                                        diplomeType={currentExam.diplomeType}
                                         disabled={false}
                                       />
                                     ) : (
                                       <div className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
-                                        Votre relevé de notes est disponible :{" "}
-                                        {relevePickupLocation}.
+                                        <T
+                                          k="dashboard.documents.transcriptReady"
+                                          vars={{ place: relevePickupLocation ?? "" }}
+                                        />
                                       </div>
                                     )}
                                   </div>
                                 ) : (
                                   <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-                                    Votre demande a été enregistrée. Votre relevé n&apos;est pas
-                                    encore disponible : vous serez notifié dès qu&apos;il le sera.
+                                    <T k="dashboard.documents.transcriptPending" />
                                   </p>
                                 )}
                               </>
@@ -602,35 +653,44 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                               <RotateCcw className="h-5 w-5 text-obc-800" />
                               <div>
                                 <p className="font-medium text-text-1">
-                                  {getDuplicataTitle(currentExam.diplomeType, target)}
+                                  <TDiploma
+                                    k={getDuplicataTitleKey(target)}
+                                    type={currentExam.diplomeType}
+                                  />
                                 </p>
-                                <p className="text-xs text-text-3">{documentSummaries.DUPLICATA}</p>
+                                <p className="text-xs text-text-3">
+                                  <T k="dashboard.documents.duplicateSummary" />
+                                </p>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell className="hidden px-4 text-sm text-text-3 md:table-cell">
-                            {duplicataRoute.location ?? "Service concerné"}
+                            {duplicataRoute.location ?? <T k="dashboard.documents.pickupService" />}
                           </TableCell>
                           <TableCell className="px-4">
-                            <StatusBadge tone={context.workflowStatus.tone}>
-                              {context.workflowStatus.label}
-                            </StatusBadge>
+                            <DuplicataWorkflowBadge workflow={context.workflowStatus} />
                           </TableCell>
                           <TableCell className={actionColumnCellClassName}>
                             <Sheet>
                               <SheetTrigger asChild>
                                 <Button variant="outline" size="sm">
                                   <Eye className="h-4 w-4" />
-                                  Détails
+                                  <T k="dashboard.documents.details" />
                                 </Button>
                               </SheetTrigger>
                               <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
                                 <SheetHeader>
                                   <SheetTitle>
-                                    {getDuplicataTitle(currentExam.diplomeType, target)}
+                                    <TDiploma
+                                      k={getDuplicataTitleKey(target)}
+                                      type={currentExam.diplomeType}
+                                    />
                                   </SheetTitle>
                                   <SheetDescription>
-                                    Frais de demande : {formatAmount(getDuplicataFee(target))} FCFA.
+                                    <T
+                                      k="dashboard.documents.fee"
+                                      vars={{ amount: formatAmount(getDuplicataFee(target)) }}
+                                    />
                                   </SheetDescription>
                                 </SheetHeader>
                                 <div className="mt-6 space-y-5">
@@ -647,20 +707,20 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                                       <input type="hidden" name="cibleDocument" value={target} />
 
                                       <div className="grid gap-3 md:grid-cols-2">
-                                        <Input
+                                        <TAria
+                                          k="dashboard.documents.fullName"
                                           value={`${user.prenom} ${user.nom}`}
                                           disabled
-                                          aria-label="Nom et prénom"
                                         />
-                                        <Input
+                                        <TAria
+                                          k="dashboard.documents.studentId"
                                           value={user.matricule}
                                           disabled
-                                          aria-label="Numéro matricule"
                                         />
-                                        <Input
-                                          value={diplomeLabels[currentExam.diplomeType]}
+                                        <DiplomaValueInput
+                                          type={currentExam.diplomeType}
                                           disabled
-                                          aria-label="Examen concerné"
+                                          aria-label="exam"
                                         />
                                         <Input
                                           name="session"
@@ -674,31 +734,33 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                                         />
                                       </div>
 
-                                      <Input
+                                      <TPlaceholderInput
+                                        k="dashboard.documents.examCentrePlaceholder"
                                         name="centreExamen"
                                         defaultValue={currentExam.centreExamen ?? ""}
-                                        placeholder="Centre d'examen"
                                         required
                                       />
-                                      <textarea
+                                      <TPlaceholderTextarea
+                                        k="dashboard.documents.reasonPlaceholder"
                                         name="motif"
-                                        placeholder="Motif de la demande"
                                         required
-                                        className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-card outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                       />
                                       <div className="rounded-md border border-[var(--border-token)] bg-surface-1 p-4">
                                         <h4 className="font-semibold text-text-1">
-                                          Pièces obligatoires OBC
+                                          <T k="dashboard.documents.requiredPieces" />
                                         </h4>
                                         <p className="mt-1 text-xs text-text-3">
-                                          Formats acceptés : PDF, JPG, PNG ou WEBP. Taille maximale
-                                          : 10 Mo par fichier.
+                                          <T k="dashboard.documents.fileHint" />
                                         </p>
                                         <div className="mt-4 space-y-4">
                                           {DUPLICATA_REQUIRED_PIECES.map((piece) => (
                                             <div key={piece.type} className="space-y-2">
                                               <label className="text-sm font-medium text-text-1">
-                                                {piece.label}
+                                                <T
+                                                  k={
+                                                    `dashboard.documents.pieces.${piece.type}.label` as TranslationKey
+                                                  }
+                                                />
                                               </label>
                                               <Input
                                                 name={piece.type}
@@ -707,7 +769,11 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                                                 required
                                               />
                                               <p className="text-xs text-text-3">
-                                                {piece.description}
+                                                <T
+                                                  k={
+                                                    `dashboard.documents.pieces.${piece.type}.description` as TranslationKey
+                                                  }
+                                                />
                                               </p>
                                             </div>
                                           ))}
@@ -719,107 +785,111 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                                         required
                                       >
                                         <SelectTrigger>
-                                          <SelectValue placeholder="Mode de paiement" />
+                                          <TSelectValue k="dashboard.documents.paymentMode" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                          <SelectItem value="ORANGEMONEY">Orange Money</SelectItem>
-                                          <SelectItem value="MTNMONEY">MTN Mobile Money</SelectItem>
+                                          <SelectItem value="ORANGEMONEY">
+                                            <T k="dashboard.payments.ORANGEMONEY" />
+                                          </SelectItem>
+                                          <SelectItem value="MTNMONEY">
+                                            <T k="dashboard.payments.MTNMONEY" />
+                                          </SelectItem>
                                           <SelectItem value="CARTEBANCAIRE">
-                                            Carte bancaire
+                                            <T k="dashboard.payments.CARTEBANCAIRE" />
                                           </SelectItem>
                                         </SelectContent>
                                       </Select>
                                       <Button type="submit" className="w-full">
                                         <CreditCard className="h-4 w-4" />
-                                        Valider et payer
+                                        <T k="dashboard.documents.pay" />
                                       </Button>
                                     </form>
                                   ) : context.activeDifferentDuplicataRequest ? (
                                     <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-                                      Une autre demande de duplicata est déjà en cours pour cet
-                                      examen.
+                                      <T k="dashboard.documents.otherDuplicateActive" />
                                     </p>
                                   ) : !context.duplicataAvailability.allowed &&
                                     context.duplicataAvailability.nextAllowedAt ? (
                                     <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-                                      Une nouvelle demande sera possible à partir du{" "}
-                                      {context.duplicataAvailability.nextAllowedAt.toLocaleDateString(
-                                        "fr-FR",
-                                      )}
-                                      .
+                                      <NextRequestNotice
+                                        date={context.duplicataAvailability.nextAllowedAt}
+                                      />
                                     </p>
                                   ) : null}
 
                                   <div className="rounded-md border border-[var(--border-token)] bg-surface-1 p-4">
                                     <h4 className="font-semibold text-text-1">
-                                      Statut de la demande
+                                      <T k="dashboard.documents.requestStatus" />
                                     </h4>
                                     {context.latestDuplicata ? (
                                       <div className="mt-4 space-y-4">
-                                        <StatusBadge tone={context.workflowStatus.tone}>
-                                          {context.workflowStatus.label}
-                                        </StatusBadge>
+                                        <DuplicataWorkflowBadge workflow={context.workflowStatus} />
                                         {context.latestDuplicata.paiement?.recu[0] ? (
                                           <p className="text-sm text-text-3">
-                                            Reçu : {context.latestDuplicata.paiement.recu[0].numero}
+                                            <T
+                                              k="dashboard.documents.receipt"
+                                              vars={{
+                                                numero:
+                                                  context.latestDuplicata.paiement.recu[0].numero,
+                                              }}
+                                            />
                                           </p>
                                         ) : null}
                                         {context.latestDuplicata.statutValidation === "REJETEE" ? (
                                           <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
-                                            Votre dossier a été rejeté
-                                            {context.latestDuplicata.motifRejet
-                                              ? ` : ${context.latestDuplicata.motifRejet}`
-                                              : "."}
+                                            <T
+                                              k="dashboard.documents.rejected"
+                                              vars={{
+                                                reason: context.latestDuplicata.motifRejet
+                                                  ? ` : ${context.latestDuplicata.motifRejet}`
+                                                  : ".",
+                                              }}
+                                            />
                                           </div>
                                         ) : context.latestDuplicata.statut === "RETIRE" ? (
                                           <RetiredSummary
-                                            appointment={honoredDuplicataAppointment}
-                                            label="Ce duplicata"
+                                            date={honoredDuplicataAppointment?.updatedAt}
+                                            labelKey="dashboard.documents.duplicateItemLabel"
                                           />
                                         ) : context.latestDuplicata.statut === "DISPONIBLE" ? (
                                           <div className="space-y-3">
                                             <p className="text-sm text-text-3">
-                                              Lieu de retrait :{" "}
-                                              {duplicataRoute.location ?? "Centre d'examen"}
+                                              <PickupAt place={duplicataRoute.location} />
                                             </p>
                                             {duplicataRoute.requiresAppointment &&
                                             activeDuplicataAppointment ? (
-                                              <AppointmentSummary
-                                                appointment={activeDuplicataAppointment}
+                                              <AppointmentBookedNotice
+                                                date={activeDuplicataAppointment.dateRdv}
+                                                time={activeDuplicataAppointment.heureRdv}
                                               />
                                             ) : duplicataRoute.requiresAppointment &&
                                               duplicataDocument ? (
                                               <AppointmentDialog
                                                 documentId={duplicataDocument.id}
-                                                documentTitle={getDuplicataTitle(
-                                                  currentExam.diplomeType,
-                                                  target,
-                                                )}
+                                                documentTitleKey={getDuplicataTitleKey(target)}
+                                                diplomeType={currentExam.diplomeType}
                                                 disabled={false}
                                               />
                                             ) : (
                                               <div className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
-                                                Votre duplicata est prêt. Aucun rendez-vous
-                                                n&apos;est requis.
+                                                <T k="dashboard.documents.duplicateReady" />
                                               </div>
                                             )}
                                           </div>
                                         ) : context.latestDuplicata.statutValidation ===
                                           "VALIDEE" ? (
                                           <div className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
-                                            Votre dossier OBC est validé. Vous serez notifié lorsque
-                                            le duplicata sera prêt.
+                                            <T k="dashboard.documents.dossierValidated" />
                                           </div>
                                         ) : (
                                           <p className="text-sm leading-6 text-text-3">
-                                            Votre demande de duplicata est en cours de traitement.
+                                            <T k="dashboard.documents.duplicateProcessing" />
                                           </p>
                                         )}
                                       </div>
                                     ) : (
                                       <p className="mt-4 text-sm leading-6 text-text-3">
-                                        Aucune demande de duplicata n&apos;a encore été enregistrée
-                                        pour ce choix.
+                                        <T k="dashboard.documents.noDuplicateYet" />
                                       </p>
                                     )}
                                   </div>

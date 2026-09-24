@@ -5,6 +5,7 @@ import { getUnreadNotificationCount } from "@/lib/notification-service";
 import type { Role } from "@/lib/generated/prisma/client";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
+import type { TranslationKey } from "@/lib/i18n/translate";
 
 export async function DashboardShell({
   role,
@@ -14,6 +15,10 @@ export async function DashboardShell({
   userMatricule,
   title,
   subtitle,
+  titleKey,
+  subtitleKey,
+  titleVars,
+  subtitleVars,
   scopeLabel,
   activePath,
   children,
@@ -23,8 +28,12 @@ export async function DashboardShell({
   userId?: string;
   userName?: string;
   userMatricule?: string;
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
+  titleKey?: TranslationKey;
+  subtitleKey?: TranslationKey;
+  titleVars?: Record<string, string | number>;
+  subtitleVars?: Record<string, string | number>;
   scopeLabel?: string;
   activePath: string;
   children: ReactNode;
@@ -50,6 +59,10 @@ export async function DashboardShell({
             userName={userName}
             title={title}
             subtitle={subtitle}
+            titleKey={titleKey}
+            subtitleKey={subtitleKey}
+            titleVars={titleVars}
+            subtitleVars={subtitleVars}
             scopeLabel={scopeLabel}
             activePath={activePath}
             unreadNotificationCount={unreadNotificationCount}

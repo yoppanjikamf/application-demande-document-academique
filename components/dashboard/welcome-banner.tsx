@@ -25,7 +25,7 @@ export function WelcomeBanner({
   trailing,
 }: {
   accent: WelcomeAccent;
-  eyebrow: string;
+  eyebrow: ReactNode;
   title: ReactNode;
   subtitle?: ReactNode;
   icon: ComponentType<{ className?: string }>;

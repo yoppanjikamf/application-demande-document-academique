@@ -117,8 +117,8 @@ export default async function AdminAuditLogsPage({ searchParams }: AdminAuditLog
       userMatricule={user.matricule}
       scopeLabel={scopeLabel}
       activePath="/admin/audit-logs"
-      title="Journaux d'audit"
-      subtitle="Historique des actions sensibles sur les comptes, documents, paiements et rendez-vous."
+      titleKey="dashboard.adminAuditTitle"
+      subtitleKey="dashboard.adminAuditSubtitle"
     >
       <form className="max-w-xl">
         <Input

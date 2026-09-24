@@ -1,10 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Languages } from "lucide-react";
 
-import { setLocaleAction } from "@/app/actions/locale";
 import { useI18n } from "@/components/i18n/locale-provider";
 import type { Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
@@ -16,19 +13,13 @@ type LanguageSwitcherProps = {
 
 export function LanguageSwitcher({ compact = false, className }: LanguageSwitcherProps) {
   const { locale, t, setLocale } = useI18n();
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
 
   function switchLocale(nextLocale: Locale) {
-    if (nextLocale === locale || pending) {
+    if (nextLocale === locale) {
       return;
     }
 
     setLocale(nextLocale);
-    startTransition(async () => {
-      await setLocaleAction(nextLocale);
-      router.refresh();
-    });
   }
 
   return (
@@ -44,10 +35,9 @@ export function LanguageSwitcher({ compact = false, className }: LanguageSwitche
         <button
           key={item}
           type="button"
-          disabled={pending}
           onClick={() => switchLocale(item)}
           className={cn(
-            "rounded-md px-1.5 py-1 text-[11px] font-semibold transition-colors sm:px-2 sm:text-xs",
+            "rounded-md px-1.5 py-1 text-[11px] font-semibold sm:px-2 sm:text-xs",
             locale === item
               ? "bg-obc-800 text-white"
               : "border border-[var(--border-token)] bg-surface-0 text-text-2 hover:bg-obc-50",

@@ -1,3 +1,4 @@
+import { T } from "@/components/i18n/ui";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /** Écran de chargement pleine page pour l'espace admin (évite la page blanche). */
@@ -22,7 +23,9 @@ export function AdminPageLoading() {
         <div className="flex-1 space-y-6 px-4 py-5 sm:px-6 lg:px-8">
           <Skeleton className="h-24 w-full rounded-md" />
           <Skeleton className="h-64 w-full rounded-md" />
-          <p className="text-center text-sm text-text-3">Chargement en cours…</p>
+          <p className="text-center text-sm text-text-3">
+            <T k="dashboard.admin.loading" />
+          </p>
         </div>
       </div>
     </div>
